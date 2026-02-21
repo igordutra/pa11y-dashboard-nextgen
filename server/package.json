@@ -1,0 +1,46 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "start": "npx tsx index.ts",
+    "dev": "nodemon --exec 'npx tsx' index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@fastify/helmet": "^13.0.2",
+    "@fastify/static": "^9.0.0",
+    "@fastify/swagger": "^9.7.0",
+    "@fastify/swagger-ui": "^5.2.5",
+    "@types/sharp": "^0.31.1",
+    "cron-parser": "^5.5.0",
+    "dotenv": "^17.3.1",
+    "fastify": "^5.7.4",
+    "fastify-type-provider-zod": "^6.1.0",
+    "lighthouse": "^13.0.3",
+    "mongoose": "^9.2.1",
+    "pa11y": "^9.1.0",
+    "pa11y-runner-axe": "^2.0.1",
+    "puppeteer": "^24.37.3",
+    "sharp": "^0.34.5",
+    "tsx": "^4.21.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "mongodb-memory-server": "^11.0.1",
+    "nodemon": "^3.1.11",
+    "supertest": "^7.2.2",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "optionalDependencies": {
+    "@esbuild/linux-arm64": "^0.27.3"
+  }
+}
