@@ -8,7 +8,7 @@ import { UrlModel, ScanModel } from './models/index.js';
 import { SettingsModel, getSettings } from './models/settings.js';
 import { CategoryModel, CATEGORY_ICONS } from './models/category.js';
 import { z } from 'zod';
-import config from './config/index.js';
+import config, { getConfig } from './config/index.js';
 import fastifyStatic from '@fastify/static';
 import fs from 'fs/promises';
 import path from 'path';
@@ -44,16 +44,18 @@ import fastifyHelmet from '@fastify/helmet';
 
 // Middleware to check if dashboard is in readonly mode
 const checkReadonly = async (request: any, reply: any) => {
-  if (config.readonly) {
+  const currentConfig = getConfig();
+  if (currentConfig.readonly) {
     reply.status(403).send({ error: 'Forbidden', message: 'Dashboard is in read-only mode' });
   }
 };
 
 // Initialize application (routes and plugins) without starting server
 export const initApp = async () => {
+  const currentConfig = getConfig();
   try {
     await fastify.register(cors, {
-      origin: [config.clientUrl],
+      origin: [currentConfig.clientUrl],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
     });
 
@@ -75,11 +77,11 @@ export const initApp = async () => {
       routePrefix: '/documentation',
     });
 
-    await mongoose.connect(config.mongoUri);
+    await mongoose.connect(currentConfig.mongoUri);
     fastify.log.info('Connected to MongoDB');
 
     // Ensure screenshots directory exists
-    const screenshotsDir = config.screenshotsDir;
+    const screenshotsDir = currentConfig.screenshotsDir;
     try {
       await fs.access(screenshotsDir);
     } catch {
@@ -93,7 +95,7 @@ export const initApp = async () => {
     });
 
     // In production, serve the frontend React application
-    if (config.nodeEnv === 'production') {
+    if (currentConfig.nodeEnv === 'production') {
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = path.dirname(__filename);
       const clientDistDir = path.join(__dirname, '../client/dist');
@@ -114,7 +116,7 @@ export const initApp = async () => {
 
     // Basic Routes
     fastify.get('/', async function handler(request, reply) {
-      return { hello: 'world', service: 'pa11y-dashboard-nextgen-api', readonly: config.readonly, noindex: config.noindex };
+      return { hello: 'world', service: 'pa11y-dashboard-nextgen-api', readonly: currentConfig.readonly, noindex: currentConfig.noindex };
     });
 
     // CRUD: Get all URLs
@@ -644,9 +646,10 @@ export const initApp = async () => {
 };
 
 const start = async () => {
+  const currentConfig = getConfig();
   try {
     await initApp();
-    await fastify.listen({ port: config.port, host: '0.0.0.0' });
+    await fastify.listen({ port: currentConfig.port, host: '0.0.0.0' });
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

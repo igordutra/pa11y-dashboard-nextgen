@@ -17,13 +17,16 @@ const configSchema = z.object({
 
 export type Config = z.infer<typeof configSchema>;
 
-const config = configSchema.parse({
-  port: process.env.PORT,
-  mongoUri: process.env.MONGO_URI,
-  clientUrl: process.env.CLIENT_URL,
-  noindex: process.env.NOINDEX,
-  readonly: process.env.READONLY,
-  nodeEnv: process.env.NODE_ENV,
-});
+export const getConfig = (): Config => {
+  return configSchema.parse({
+    port: process.env.PORT,
+    mongoUri: process.env.MONGO_URI,
+    clientUrl: process.env.CLIENT_URL,
+    noindex: process.env.NOINDEX,
+    readonly: process.env.READONLY,
+    nodeEnv: process.env.NODE_ENV,
+  });
+};
 
+const config = getConfig();
 export default config;

@@ -8,6 +8,7 @@ import { URL } from 'url';
 import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
+import { getConfig } from '../config/index.js';
 
 // Pa11y config that will be passed to captureStep
 interface Pa11yConfig {
@@ -28,7 +29,8 @@ interface Pa11yConfig {
 const captureStep = async (page: any, browser: any, urlDoc: any, stepName: string, config: Pa11yConfig): Promise<any> => {
     console.log(`Capturing step: ${stepName}`);
     const timestamp = Date.now();
-    const screenshotsDir = path.join(process.cwd(), 'screenshots');
+    const currentConfig = getConfig();
+    const screenshotsDir = currentConfig.screenshotsDir;
 
     // 1. Capture Screenshot (Giant Viewport Strategy to avoid stitching artifacts)
     const originalViewport = page.viewport();
@@ -284,7 +286,8 @@ export const runScan = async (urlId: string) => {
         const page = await browser.newPage();
 
         // Ensure screenshots dir exists
-        const screenshotsDir = path.join(process.cwd(), 'screenshots');
+        const currentConfig = getConfig();
+        const screenshotsDir = currentConfig.screenshotsDir;
         try { await fs.access(screenshotsDir); } catch { await fs.mkdir(screenshotsDir, { recursive: true }); }
 
         const steps = [];
