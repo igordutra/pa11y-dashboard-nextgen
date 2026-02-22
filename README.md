@@ -21,12 +21,13 @@ Pa11y Dashboard NextGen is a modern, high-performance web interface to the [Pa11
 ## Features
 
 -   **URL Management**: Add, edit, and delete URLs to monitor.
--   **Automated Scanning**: Schedule scans with Cron expressions or intervals.
+-   **Automated Scanning**: Schedule scans using standard **Cron expressions** with a built-in user-friendly editor and human-readable feedback.
 -   **Scripted Multi-Step Scans**: Define user flows (click, type, wait) to test pages behind interactions.
 -   **Visual History**:
     -   **Trend Charts**: Track accessibility scores and issue counts over time.
-    -   **Screenshots**: View full-page screenshots of scanned pages at each step.
+    -   **Screenshots**: View full-page screenshots of scanned pages at each step with issue overlays.
 -   **Scoring Algorithm**: Uses Lighthouse for initial load and a custom rule-based deduction for intermediate steps.
+-   **Read-Only Mode**: Protect your dashboard from unauthorized changes via simple configuration.
 
 ## Scoring Algorithm
 

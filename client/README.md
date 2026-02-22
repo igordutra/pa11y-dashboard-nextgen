@@ -5,7 +5,7 @@ The frontend application for the Pa11y Dashboard, built with React and Vite.
 ## Tech Stack
 
 - **Framework**: React 19 (TypeScript)
-- **Styling**: Tailwind CSS 4, Radix UI (Shadcn UI)
+- **Styling**: Tailwind CSS 4.2, Radix UI (Shadcn UI)
 - **State Management**: TanStack Query (React Query)
 - **Routing**: React Router 7
 - **Charts**: Recharts

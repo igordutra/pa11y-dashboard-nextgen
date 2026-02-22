@@ -8,7 +8,7 @@ The backend API for the Pa11y Dashboard, built with Fastify, MongoDB, and Puppet
 - **Database**: MongoDB + Mongoose
 - **Audit Tools**: Pa11y, Lighthouse, Puppeteer
 - **Image Processing**: Sharp (for screenshots and thumbnails)
-- **Scheduling**: Cron-based and interval-based tasks
+- **Scheduling**: Cron-based background tasks
 - **Testing**: Vitest, Supertest, MongoDB Memory Server
 
 ## Development
