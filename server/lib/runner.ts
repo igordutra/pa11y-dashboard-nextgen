@@ -297,7 +297,12 @@ export const runScan = async (urlId: string) => {
     try {
         // 1. Launch Puppeteer
         const launchOptions: any = {
-            args: ['--disable-dev-shm-usage', '--headless=new'],
+            args: [
+                '--disable-dev-shm-usage', 
+                '--headless=new',
+                '--no-sandbox',
+                '--disable-setuid-sandbox'
+            ],
             defaultViewport: {
                 width: config.viewport.width,
                 height: config.viewport.height,
