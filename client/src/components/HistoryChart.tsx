@@ -23,8 +23,8 @@ export function HistoryChart({ data }: HistoryChartProps) {
     })).reverse(); // Recharts renders left-to-right, so we need oldest first if API returns newest first
 
     return (
-        <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[300px] w-full min-h-[300px]">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <LineChart
                     data={formattedData}
                     margin={{
