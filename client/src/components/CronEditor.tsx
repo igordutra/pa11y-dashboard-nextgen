@@ -42,6 +42,7 @@ export function CronEditor({ value, onChange }: CronEditorProps) {
                         size="xs"
                         className="text-[10px] h-7"
                         onClick={() => onChange(preset.cron)}
+                        aria-pressed={value === preset.cron}
                     >
                         {preset.label}
                     </Button>
@@ -56,6 +57,7 @@ export function CronEditor({ value, onChange }: CronEditorProps) {
                             // Don't change if already custom, but highlight it
                         }
                     }}
+                    aria-pressed={!PRESETS.some(p => p.cron === value)}
                 >
                     Custom
                 </Button>
@@ -69,18 +71,21 @@ export function CronEditor({ value, onChange }: CronEditorProps) {
                     placeholder="0 * * * *"
                     className={`font-mono ${error ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                     required
+                    aria-label="Cron expression"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "cron-error" : "cron-description"}
                 />
 
                 <div className="flex items-start gap-2 min-h-[1.5rem]">
                     {error ? (
-                        <p className="text-[10px] text-red-500 font-medium">{error}</p>
+                        <p id="cron-error" className="text-[10px] text-red-500 font-medium">{error}</p>
                     ) : humanReadable ? (
-                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-200">
-                            <Info className="h-3 w-3 shrink-0" />
+                        <div id="cron-description" className="flex items-center gap-1.5 text-[10px] text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-200">
+                            <Info className="h-3 w-3 shrink-0" aria-hidden="true" />
                             <span>Runs {humanReadable.toLowerCase()}</span>
                         </div>
                     ) : (
-                        <p className="text-[10px] text-muted-foreground">Enter a 5-segment cron expression (minute, hour, day, month, day-of-week).</p>
+                        <p id="cron-description" className="text-[10px] text-muted-foreground">Enter a 5-segment cron expression (minute, hour, day, month, day-of-week).</p>
                     )}
                 </div>
             </div>

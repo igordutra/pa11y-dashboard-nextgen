@@ -43,7 +43,7 @@ export function ActionEditor({ actions, onChange }: ActionEditorProps) {
             <div className="flex justify-between items-center">
                 <Label>Script Actions</Label>
                 <Button type="button" variant="outline" size="sm" onClick={addAction}>
-                    <Plus className="mr-2 h-4 w-4" /> Add Action
+                    <Plus className="mr-2 h-4 w-4" aria-hidden="true" /> Add Action
                 </Button>
             </div>
 
@@ -105,8 +105,9 @@ export function ActionEditor({ actions, onChange }: ActionEditorProps) {
                                 className="h-8 w-8"
                                 disabled={index === 0}
                                 onClick={() => moveAction(index, 'up')}
+                                aria-label="Move action up"
                             >
-                                <ArrowUp className="h-4 w-4" />
+                                <ArrowUp className="h-4 w-4" aria-hidden="true" />
                             </Button>
                             <Button
                                 type="button"
@@ -115,8 +116,9 @@ export function ActionEditor({ actions, onChange }: ActionEditorProps) {
                                 className="h-8 w-8"
                                 disabled={index === actions.length - 1}
                                 onClick={() => moveAction(index, 'down')}
+                                aria-label="Move action down"
                             >
-                                <ArrowDown className="h-4 w-4" />
+                                <ArrowDown className="h-4 w-4" aria-hidden="true" />
                             </Button>
                             <Button
                                 type="button"
@@ -124,8 +126,9 @@ export function ActionEditor({ actions, onChange }: ActionEditorProps) {
                                 size="icon"
                                 className="h-8 w-8 text-destructive hover:text-destructive"
                                 onClick={() => removeAction(index)}
+                                aria-label={`Remove action ${index + 1}${action.label ? `: ${action.label}` : ''}`}
                             >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
                             </Button>
                         </div>
                     </div>

@@ -53,7 +53,21 @@ describe('UrlCard Component', () => {
 
     it('renders the scan button', () => {
         renderWithProviders(<UrlCard url={mockUrl} />);
-        const scanBtn = screen.getByRole('button', { name: /scan/i });
+        // Use a more specific name that matches our new aria-label
+        const scanBtn = screen.getByRole('button', { name: /run new scan/i });
         expect(scanBtn).toBeInTheDocument();
+    });
+
+    it('renders accessibility features like aria-labels', () => {
+        renderWithProviders(<UrlCard url={mockUrl} />);
+        
+        // Check for delete button aria-label
+        expect(screen.getByRole('button', { name: /delete example site/i })).toBeInTheDocument();
+        
+        // Check for history button aria-label
+        expect(screen.getByRole('button', { name: /view scan history for example site/i })).toBeInTheDocument();
+        
+        // Check for edit button aria-label
+        expect(screen.getByRole('button', { name: /edit configuration for https:\/\/example.com/i })).toBeInTheDocument();
     });
 });

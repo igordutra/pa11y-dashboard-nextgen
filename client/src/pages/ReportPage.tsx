@@ -150,23 +150,23 @@ export function ReportPage() {
         <div className="space-y-6">
             <div className="flex items-center gap-4">
                 <Button variant="ghost" onClick={() => navigate('/')}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
                     Back
                 </Button>
                 <div>
                     <h1 className="text-2xl font-bold">{urlData.name || urlData.url}</h1>
-                    <a href={urlData.url} target="_blank" rel="noreferrer" className="text-muted-foreground hover:underline">
+                    <a href={urlData.url} target="_blank" rel="noreferrer" className="text-muted-foreground hover:underline" aria-label={`Visit ${urlData.name || urlData.url} (opens in new tab)`}>
                         {urlData.url}
                     </a>
                 </div>
                 <div className="ml-auto flex items-center gap-2">
                     {selectedScanId && (
                         <Button variant="outline" onClick={() => setSelectedScanId(null)}>
-                            ← Latest Scan
+                            <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" /> Latest Scan
                         </Button>
                     )}
                     <Button onClick={() => scanMutation.mutate()} disabled={scanMutation.isPending}>
-                        {scanMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                        {scanMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> : <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />}
                         Re-Scan
                     </Button>
                 </div>
@@ -174,8 +174,8 @@ export function ReportPage() {
 
             {/* Viewing historical scan indicator */}
             {selectedScanId && activeScan && (
-                <div className="bg-muted/50 border rounded-lg px-4 py-2 text-sm text-muted-foreground flex items-center gap-2">
-                    <Info className="h-4 w-4" />
+                <div className="bg-muted/50 border rounded-lg px-4 py-2 text-sm text-muted-foreground flex items-center gap-2" role="status">
+                    <Info className="h-4 w-4" aria-hidden="true" />
                     Viewing scan from <span className="font-medium text-foreground">{new Date(activeScan.timestamp).toLocaleString()}</span>
                     <Button variant="link" size="sm" className="h-auto p-0 ml-1" onClick={() => setSelectedScanId(null)}>
                         View latest
@@ -185,8 +185,8 @@ export function ReportPage() {
 
             {/* Loading state for selected scan */}
             {isScanLoading && (
-                <div className="flex items-center justify-center py-8 text-muted-foreground">
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                <div className="flex items-center justify-center py-8 text-muted-foreground" role="status" aria-busy="true">
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
                     Loading scan data...
                 </div>
             )}
@@ -194,19 +194,23 @@ export function ReportPage() {
             {!isScanLoading && activeScan && (
                 <>
                     {hasSteps && (
-                        <div className="flex gap-2 overflow-x-auto pb-2">
+                        <div className="flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label="Scan steps">
                             {activeScan.steps.map((step: ScanStep, index: number) => (
                                 <Button
                                     key={index}
+                                    role="tab"
+                                    aria-selected={selectedStepIndex === index}
+                                    aria-controls={`step-panel-${index}`}
                                     variant={selectedStepIndex === index ? 'default' : 'outline'}
                                     onClick={() => setSelectedStepIndex(index)}
                                     className="whitespace-nowrap"
                                     size="sm"
                                 >
-                                    <span className="mr-2 font-mono text-xs">{index + 1}.</span>
+                                    <span className="mr-2 font-mono text-xs" aria-hidden="true">{index + 1}.</span>
                                     {step.stepName}
                                     <Badge variant={step.issues.length > 0 ? "secondary" : "outline"} className="ml-2 h-5 px-1.5">
                                         {step.issues.length}
+                                        <span className="sr-only"> issues</span>
                                     </Badge>
                                 </Button>
                             ))}
@@ -214,7 +218,7 @@ export function ReportPage() {
                     )}
 
                     <div className="grid gap-6 md:grid-cols-3">
-                        <Card className="md:col-span-2">
+                        <Card className="md:col-span-2" id={`step-panel-${selectedStepIndex}`} role="tabpanel">
                             <CardHeader>
                                 <CardTitle>Screenshot {hasSteps && `- ${currentData.stepName}`}</CardTitle>
                             </CardHeader>
@@ -228,7 +232,7 @@ export function ReportPage() {
                                         onSelectIssue={setSelectedIssueIndex}
                                     />
                                 ) : (
-                                    <div className="flex items-center justify-center h-64 bg-muted text-muted-foreground">
+                                    <div className="flex items-center justify-center h-64 bg-muted text-muted-foreground" aria-hidden="true">
                                         No screenshot available
                                     </div>
                                 )}
@@ -267,50 +271,66 @@ export function ReportPage() {
                         </div>
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-4">
+                    <div className="grid gap-4 md:grid-cols-4" role="tablist" aria-label="Issue filters">
                         <Card
+                            role="tab"
+                            aria-selected={activeFilter === 'all'}
+                            tabIndex={0}
                             className={`cursor-pointer transition-all ${activeFilter === 'all' ? 'ring-2 ring-primary' : 'hover:bg-muted/50'}`}
                             onClick={() => setActiveFilter('all')}
+                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setActiveFilter('all')}
                         >
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Total Issues</CardTitle>
-                                <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                                <AlertCircle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">{issues.length}</div>
                             </CardContent>
                         </Card>
                         <Card
+                            role="tab"
+                            aria-selected={activeFilter === 'error'}
+                            tabIndex={0}
                             className={`cursor-pointer transition-all ${activeFilter === 'error' ? 'ring-2 ring-red-500' : 'hover:bg-muted/50'}`}
                             onClick={() => setActiveFilter('error')}
+                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setActiveFilter('error')}
                         >
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Errors</CardTitle>
-                                <AlertCircle className="h-4 w-4 text-red-500" />
+                                <AlertCircle className="h-4 w-4 text-red-500" aria-hidden="true" />
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold text-red-500">{errorCount}</div>
                             </CardContent>
                         </Card>
                         <Card
+                            role="tab"
+                            aria-selected={activeFilter === 'warning'}
+                            tabIndex={0}
                             className={`cursor-pointer transition-all ${activeFilter === 'warning' ? 'ring-2 ring-yellow-500' : 'hover:bg-muted/50'}`}
                             onClick={() => setActiveFilter('warning')}
+                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setActiveFilter('warning')}
                         >
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Warnings</CardTitle>
-                                <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                                <AlertTriangle className="h-4 w-4 text-yellow-500" aria-hidden="true" />
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold text-yellow-500">{warningCount}</div>
                             </CardContent>
                         </Card>
                         <Card
+                            role="tab"
+                            aria-selected={activeFilter === 'notice'}
+                            tabIndex={0}
                             className={`cursor-pointer transition-all ${activeFilter === 'notice' ? 'ring-2 ring-blue-500' : 'hover:bg-muted/50'}`}
                             onClick={() => setActiveFilter('notice')}
+                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setActiveFilter('notice')}
                         >
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Notices</CardTitle>
-                                <Info className="h-4 w-4 text-blue-500" />
+                                <Info className="h-4 w-4 text-blue-500" aria-hidden="true" />
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold text-blue-500">{noticeCount}</div>
@@ -338,11 +358,15 @@ export function ReportPage() {
                                             <div
                                                 key={originalIndex}
                                                 ref={(el) => { issueRefs.current[originalIndex] = el; }}
+                                                role="button"
+                                                tabIndex={0}
+                                                aria-expanded={selectedIssueIndex === originalIndex}
                                                 className={`border rounded-lg p-4 space-y-2 cursor-pointer transition-all duration-150 ${selectedIssueIndex === originalIndex
                                                     ? 'ring-2 ring-primary border-primary bg-primary/5'
                                                     : 'hover:border-primary/50'
                                                     }`}
                                                 onClick={() => setSelectedIssueIndex(selectedIssueIndex === originalIndex ? null : originalIndex)}
+                                                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setSelectedIssueIndex(selectedIssueIndex === originalIndex ? null : originalIndex)}
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <Badge
@@ -352,7 +376,7 @@ export function ReportPage() {
                                                     </Badge>
                                                     <span className="font-mono text-xs text-muted-foreground">{issue.code}</span>
                                                     {issue.boundingBox && (
-                                                        <span className="text-[10px] text-muted-foreground" title="This issue has a visual overlay on the screenshot">📍</span>
+                                                        <span className="text-[10px] text-muted-foreground" title="This issue has a visual overlay on the screenshot" aria-label="Has visual overlay">📍</span>
                                                     )}
                                                     {(() => {
                                                         const docsUrl = getIssueDocsUrl(issue.code);
@@ -363,18 +387,21 @@ export function ReportPage() {
                                                                 rel="noopener noreferrer"
                                                                 className="inline-flex items-center gap-1 text-xs text-primary hover:underline ml-auto"
                                                                 onClick={(e) => e.stopPropagation()}
+                                                                aria-label={`Learn how to fix issue ${issue.code} (opens in new tab)`}
                                                             >
                                                                 How to fix
-                                                                <ExternalLink className="h-3 w-3" />
+                                                                <ExternalLink className="h-3 w-3" aria-hidden="true" />
                                                             </a>
                                                         ) : null;
                                                     })()}
                                                 </div>
                                                 <p className="text-sm font-medium">{issue.message}</p>
                                                 <div className="bg-muted p-2 rounded text-xs font-mono break-all">
+                                                    <span className="sr-only">Selector: </span>
                                                     {issue.selector}
                                                 </div>
                                                 <div className="bg-muted/50 p-2 rounded text-xs font-mono break-all text-muted-foreground">
+                                                    <span className="sr-only">Context: </span>
                                                     {issue.context}
                                                 </div>
                                             </div>
@@ -396,21 +423,27 @@ export function ReportPage() {
                                 {history?.map((scan: Scan) => (
                                     <div
                                         key={scan._id}
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-pressed={activeScanId === scan._id}
                                         className={`p-2 border rounded cursor-pointer text-sm transition-colors ${activeScanId === scan._id
                                             ? 'bg-primary/10 border-primary ring-1 ring-primary/20'
                                             : 'hover:bg-muted'
                                             }`}
                                         onClick={() => handleSelectScan(scan._id)}
+                                        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSelectScan(scan._id)}
                                     >
                                         <div className="font-medium">{new Date(scan.timestamp).toLocaleDateString()}</div>
                                         <div className="text-muted-foreground text-xs">{new Date(scan.timestamp).toLocaleTimeString()}</div>
                                         <div className="mt-1">
                                             <Badge variant={((scan.issuesCount ?? scan.issues?.length) ?? 0) > 0 ? 'destructive' : 'success'} className="active:scale-95 transition-transform">
                                                 {(scan.issuesCount ?? scan.issues?.length) ?? 0} Issues
+                                                <span className="sr-only"> found in this scan</span>
                                             </Badge>
                                             {scan.score !== undefined && (
                                                 <Badge variant={scan.score >= 90 ? 'success' : scan.score >= 50 ? 'warning' : 'destructive'} className="ml-2">
                                                     Score: {scan.score}
+                                                    <span className="sr-only"> out of 100</span>
                                                 </Badge>
                                             )}
                                         </div>

@@ -78,8 +78,8 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                    <Pencil className="h-4 w-4" />
+                <Button variant="outline" size="sm" aria-label={`Edit configuration for ${urlData.url}`}>
+                    <Pencil className="h-4 w-4" aria-hidden="true" />
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
@@ -91,9 +91,13 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="flex gap-2 border-b mb-4 mt-2">
+                    <div className="flex gap-2 border-b mb-4 mt-2" role="tablist">
                         <Button
                             type="button"
+                            role="tab"
+                            aria-selected={activeTab === 'basic'}
+                            aria-controls="basic-panel"
+                            id="basic-tab"
                             variant={activeTab === 'basic' ? 'default' : 'ghost'}
                             size="sm"
                             onClick={() => setActiveTab('basic')}
@@ -103,6 +107,10 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
                         </Button>
                         <Button
                             type="button"
+                            role="tab"
+                            aria-selected={activeTab === 'script'}
+                            aria-controls="script-panel"
+                            id="script-tab"
                             variant={activeTab === 'script' ? 'default' : 'ghost'}
                             size="sm"
                             onClick={() => setActiveTab('script')}
@@ -112,6 +120,10 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
                         </Button>
                         <Button
                             type="button"
+                            role="tab"
+                            aria-selected={activeTab === 'overrides'}
+                            aria-controls="overrides-panel"
+                            id="overrides-tab"
                             variant={activeTab === 'overrides' ? 'default' : 'ghost'}
                             size="sm"
                             onClick={() => setActiveTab('overrides')}
@@ -123,7 +135,7 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
 
                     <div className="py-2">
                         {activeTab === 'basic' ? (
-                            <div className="grid gap-4">
+                            <div id="basic-panel" role="tabpanel" aria-labelledby="basic-tab" className="grid gap-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="edit-name" className="text-right">
                                         Name
@@ -168,9 +180,11 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
                                 <CategorySelect value={categoryId} onChange={setCategoryId} />
                             </div>
                         ) : activeTab === 'script' ? (
-                            <ActionEditor actions={actions} onChange={setActions} />
+                            <div id="script-panel" role="tabpanel" aria-labelledby="script-tab">
+                                <ActionEditor actions={actions} onChange={setActions} />
+                            </div>
                         ) : (
-                            <div className="grid gap-4">
+                            <div id="overrides-panel" role="tabpanel" aria-labelledby="overrides-tab" className="grid gap-4">
                                 <div className="flex items-center gap-3">
                                     <input type="checkbox" id="enable-overrides" checked={enableOverrides}
                                         onChange={e => setEnableOverrides(e.target.checked)}

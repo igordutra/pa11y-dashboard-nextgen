@@ -30,6 +30,7 @@ export function CategorySelect({ value, onChange }: CategorySelectProps) {
                 <button
                     type="button"
                     onClick={() => onChange(null)}
+                    aria-pressed={!value}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${!value
                         ? 'border-primary bg-primary/10 ring-1 ring-primary/20 text-primary'
                         : 'border-transparent bg-muted hover:bg-muted/80 text-muted-foreground'
@@ -42,6 +43,7 @@ export function CategorySelect({ value, onChange }: CategorySelectProps) {
                         key={cat._id}
                         type="button"
                         onClick={() => onChange(cat._id)}
+                        aria-pressed={value === cat._id}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${value === cat._id
                             ? 'ring-1 ring-primary/20'
                             : 'border-transparent hover:bg-muted/80'

@@ -140,29 +140,32 @@ export function SettingsPage() {
                 </div>
                 <div className="flex gap-2">
                     <button onClick={reset}
+                        aria-label="Reset all settings to default values"
                         className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors">
-                        <RotateCcw className="h-4 w-4" />
+                        <RotateCcw className="h-4 w-4" aria-hidden="true" />
                         Reset Defaults
                     </button>
                     <button onClick={save} disabled={saving}
+                        aria-busy={saving}
                         className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
-                        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saved ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+                        {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : saved ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : <Save className="h-4 w-4" aria-hidden="true" />}
                         {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Settings'}
                     </button>
                 </div>
             </div>
 
             {/* Runner */}
-            <Section icon={<Server className="h-5 w-5" />} title="Test Runner" description="Choose which accessibility testing engine(s) to use">
+            <Section icon={<Server className="h-5 w-5" aria-hidden="true" />} title="Test Runner" description="Choose which accessibility testing engine(s) to use">
                 <div className="flex gap-3">
                     {['axe', 'htmlcs'].map(runner => (
                         <button key={runner} onClick={() => toggleRunner(runner)}
+                            aria-pressed={settings.runners.includes(runner)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all ${settings.runners.includes(runner)
                                 ? 'border-primary bg-primary/10 text-primary'
                                 : 'border-border bg-background text-muted-foreground hover:border-muted-foreground'
                                 }`}>
                             <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${settings.runners.includes(runner) ? 'bg-primary' : 'bg-muted-foreground/30'}`} />
+                                <div className={`w-2 h-2 rounded-full ${settings.runners.includes(runner) ? 'bg-primary' : 'bg-muted-foreground/30'}`} aria-hidden="true" />
                                 {runner === 'axe' ? 'axe-core' : 'HTML_CodeSniffer'}
                             </div>
                             <div className="text-xs text-muted-foreground mt-1">
@@ -177,7 +180,7 @@ export function SettingsPage() {
             </Section>
 
             {/* Reporting */}
-            <Section icon={<Eye className="h-5 w-5" />} title="Reporting" description="Control which issue types are included in reports">
+            <Section icon={<Eye className="h-5 w-5" aria-hidden="true" />} title="Reporting" description="Control which issue types are included in reports">
                 <div className="space-y-3">
                     <Checkbox label="Include Warnings" description="Show issues that may need manual review"
                         checked={settings.includeWarnings}
@@ -189,7 +192,7 @@ export function SettingsPage() {
             </Section>
 
             {/* Viewport */}
-            <Section icon={<Monitor className="h-5 w-5" />} title="Viewport" description="Browser window dimensions for testing">
+            <Section icon={<Monitor className="h-5 w-5" aria-hidden="true" />} title="Viewport" description="Browser window dimensions for testing">
                 <div className="grid grid-cols-3 gap-4">
                     <NumberInput label="Width (px)" value={settings.viewport.width}
                         onChange={v => setSettings({ ...settings, viewport: { ...settings.viewport, width: v } })} />
@@ -209,6 +212,7 @@ export function SettingsPage() {
                         { label: 'Mobile', w: 375, h: 812, m: true },
                     ].map(p => (
                         <button key={p.label}
+                            aria-pressed={settings.viewport.width === p.w && settings.viewport.height === p.h && settings.viewport.isMobile === p.m}
                             onClick={() => setSettings({ ...settings, viewport: { width: p.w, height: p.h, isMobile: p.m } })}
                             className="px-3 py-1 text-xs rounded-md border hover:bg-accent transition-colors">
                             {p.label}
@@ -218,7 +222,7 @@ export function SettingsPage() {
             </Section>
 
             {/* Timing */}
-            <Section icon={<Clock className="h-5 w-5" />} title="Timing" description="Control scan timeouts and wait periods">
+            <Section icon={<Clock className="h-5 w-5" aria-hidden="true" />} title="Timing" description="Control scan timeouts and wait periods">
                 <div className="grid grid-cols-2 gap-4">
                     <NumberInput label="Timeout (ms)" value={settings.timeout} description="Max time for entire test run (default: 30000)"
                         onChange={v => setSettings({ ...settings, timeout: v })} />
@@ -228,7 +232,7 @@ export function SettingsPage() {
             </Section>
 
             {/* Advanced */}
-            <Section icon={<Shield className="h-5 w-5" />} title="Advanced" description="Fine-tune element selection, user agent, and rule exclusions">
+            <Section icon={<Shield className="h-5 w-5" aria-hidden="true" />} title="Advanced" description="Fine-tune element selection, user agent, and rule exclusions">
                 <div className="space-y-4">
                     <TextInput label="Hide Elements" value={settings.hideElements}
                         description="CSS selectors to hide from testing (comma-separated)"
@@ -251,6 +255,7 @@ export function SettingsPage() {
                             <input value={ignoreInput} onChange={e => setIgnoreInput(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && addIgnoreRule()}
                                 placeholder="WCAG2AA.Principle1.Guideline1_3.1_3_1.H57.2"
+                                aria-label="Add WCAG rule to ignore"
                                 className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm" />
                             <button onClick={addIgnoreRule}
                                 className="px-3 py-1.5 text-sm rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
@@ -261,7 +266,7 @@ export function SettingsPage() {
                             {settings.ignore.map((rule, i) => (
                                 <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted text-xs font-mono">
                                     {rule}
-                                    <button onClick={() => removeIgnoreRule(i)} className="text-muted-foreground hover:text-foreground ml-1">×</button>
+                                    <button onClick={() => removeIgnoreRule(i)} aria-label={`Remove ignore rule ${rule}`} className="text-muted-foreground hover:text-foreground ml-1">×</button>
                                 </span>
                             ))}
                         </div>
@@ -274,9 +279,11 @@ export function SettingsPage() {
                         <div className="flex gap-2 mb-2">
                             <input value={headerKey} onChange={e => setHeaderKey(e.target.value)}
                                 placeholder="Header name"
+                                aria-label="Custom header name"
                                 className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm" />
                             <input value={headerVal} onChange={e => setHeaderVal(e.target.value)}
                                 placeholder="Value"
+                                aria-label="Custom header value"
                                 onKeyDown={e => e.key === 'Enter' && addHeader()}
                                 className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm" />
                             <button onClick={addHeader}
@@ -293,7 +300,7 @@ export function SettingsPage() {
                                             <tr key={k} className="border-t">
                                                 <td className="px-3 py-1.5 font-mono text-xs">{k}</td>
                                                 <td className="px-3 py-1.5 text-xs">{v}</td>
-                                                <td className="px-2"><button onClick={() => removeHeader(k)} className="text-muted-foreground hover:text-foreground">×</button></td>
+                                                <td className="px-2"><button onClick={() => removeHeader(k)} aria-label={`Remove header ${k}`} className="text-muted-foreground hover:text-foreground">×</button></td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -306,7 +313,7 @@ export function SettingsPage() {
 
             {/* Environment Info */}
             {env && (
-                <Section icon={<Info className="h-5 w-5" />} title="Environment" description="System information (read-only)">
+                <Section icon={<Info className="h-5 w-5" aria-hidden="true" />} title="Environment" description="System information (read-only)">
                     <div className="grid grid-cols-2 gap-4 text-sm">
                         <InfoRow label="Pa11y Version" value={env.pa11yVersion} />
                         <InfoRow label="Node.js Version" value={env.nodeVersion} />

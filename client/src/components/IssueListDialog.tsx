@@ -69,9 +69,10 @@ export function IssueListDialog({ urlId, urlName, trigger }: IssueListDialogProp
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                                                            aria-label={`Learn how to fix issue ${issue.code} (opens in new tab)`}
                                                         >
                                                             How to fix
-                                                            <ExternalLink className="h-3 w-3" />
+                                                            <ExternalLink className="h-3 w-3" aria-hidden="true" />
                                                         </a>
                                                     ) : null;
                                                 })()}

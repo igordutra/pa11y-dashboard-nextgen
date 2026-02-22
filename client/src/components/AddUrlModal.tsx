@@ -58,7 +58,7 @@ export function AddUrlModal() {
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button>
-                    <Plus className="mr-2 h-4 w-4" />
+                    <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
                     Add URL
                 </Button>
             </DialogTrigger>
@@ -71,9 +71,13 @@ export function AddUrlModal() {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="flex gap-2 border-b mb-4 mt-2">
+                    <div className="flex gap-2 border-b mb-4 mt-2" role="tablist">
                         <Button
                             type="button"
+                            role="tab"
+                            aria-selected={activeTab === 'basic'}
+                            aria-controls="add-basic-panel"
+                            id="add-basic-tab"
                             variant={activeTab === 'basic' ? 'default' : 'ghost'}
                             size="sm"
                             onClick={() => setActiveTab('basic')}
@@ -83,6 +87,10 @@ export function AddUrlModal() {
                         </Button>
                         <Button
                             type="button"
+                            role="tab"
+                            aria-selected={activeTab === 'script'}
+                            aria-controls="add-script-panel"
+                            id="add-script-tab"
                             variant={activeTab === 'script' ? 'default' : 'ghost'}
                             size="sm"
                             onClick={() => setActiveTab('script')}
@@ -94,7 +102,7 @@ export function AddUrlModal() {
 
                     <div className="py-2">
                         {activeTab === 'basic' ? (
-                            <div className="grid gap-4">
+                            <div id="add-basic-panel" role="tabpanel" aria-labelledby="add-basic-tab" className="grid gap-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="name" className="text-right">
                                         Name
@@ -153,7 +161,9 @@ export function AddUrlModal() {
                                 <CategorySelect value={categoryId} onChange={setCategoryId} />
                             </div>
                         ) : (
-                            <ActionEditor actions={actions} onChange={setActions} />
+                            <div id="add-script-panel" role="tabpanel" aria-labelledby="add-script-tab">
+                                <ActionEditor actions={actions} onChange={setActions} />
+                            </div>
                         )}
                     </div>
 

@@ -29,8 +29,8 @@ export function HistoryDialog({ urlId, urlName }: HistoryDialogProps) {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                    <ChartIcon className="mr-2 h-4 w-4" />
+                <Button variant="outline" size="sm" aria-label={`View scan history for ${urlName}`}>
+                    <ChartIcon className="mr-2 h-4 w-4" aria-hidden="true" />
                     History
                 </Button>
             </DialogTrigger>

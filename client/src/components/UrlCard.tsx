@@ -56,38 +56,44 @@ export function UrlCard({ url }: UrlCardProps) {
                     <CardTitle className="truncate pr-4">{url.name || url.url}</CardTitle>
                     <div className="flex gap-2">
                         {(url.lastScore !== undefined) && (
-                            <Badge variant={
-                                url.lastScore >= 90 ? 'success' :
-                                    url.lastScore >= 50 ? 'warning' : 'destructive'
-                            } className="mr-2 cursor-pointer hover:opacity-80">
-                                Score: {url.lastScore}
-                            </Badge>
+                            <Link to={`/report/${url._id}`}>
+                                <Badge variant={
+                                    url.lastScore >= 90 ? 'success' :
+                                        url.lastScore >= 50 ? 'warning' : 'destructive'
+                                } className="mr-2 cursor-pointer hover:opacity-80">
+                                    Score: {url.lastScore}
+                                    <span className="sr-only">. View detailed report for {url.name || url.url}</span>
+                                </Badge>
+                            </Link>
                         )}
 
                         {url.status === 'error' && url.lastScore === undefined ? (
                             <Link to={`/report/${url._id}`}>
                                 <Badge variant="destructive" className="cursor-pointer hover:opacity-80">
                                     Error
+                                    <span className="sr-only">. View error details for {url.name || url.url}</span>
                                 </Badge>
                             </Link>
                         ) : url.lastIssueCount !== undefined && url.lastIssueCount > 0 ? (
                             <Link to={`/report/${url._id}`}>
                                 <Badge variant="destructive" className="cursor-pointer hover:bg-destructive/80">
                                     {url.lastIssueCount} Issues
+                                    <span className="sr-only"> found on {url.name || url.url}. View report.</span>
                                 </Badge>
                             </Link>
                         ) : url.lastScore !== undefined ? (
                             <Link to={`/report/${url._id}`}>
                                 <Badge variant="success" className="cursor-pointer hover:opacity-80">
                                     Pass
+                                    <span className="sr-only">. All checks passed for {url.name || url.url}. View report.</span>
                                 </Badge>
                             </Link>
                         ) : null}
                     </div>
                 </div>
                 <CardDescription className="truncate">
-                    <a href={url.url} target="_blank" rel="noreferrer" className="flex items-center hover:underline">
-                        {url.url} <ExternalLink className="h-3 w-3 ml-1" />
+                    <a href={url.url} target="_blank" rel="noreferrer" className="flex items-center hover:underline" aria-label={`Visit ${url.name || url.url} (opens in new tab)`}>
+                        {url.url} <ExternalLink className="h-3 w-3 ml-1" aria-hidden="true" />
                     </a>
                 </CardDescription>
             </CardHeader>
@@ -117,11 +123,12 @@ export function UrlCard({ url }: UrlCardProps) {
                         size="sm"
                         onClick={() => scanMutation.mutate()}
                         disabled={scanMutation.isPending}
+                        aria-label={`Run new scan for ${url.name || url.url}`}
                     >
                         {scanMutation.isPending ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                         ) : (
-                            <Play className="mr-2 h-4 w-4" />
+                            <Play className="mr-2 h-4 w-4" aria-hidden="true" />
                         )}
                         Scan
                     </Button>
@@ -132,8 +139,8 @@ export function UrlCard({ url }: UrlCardProps) {
                 <div className="flex gap-2">
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm">
-                                <Trash2 className="h-4 w-4" />
+                            <Button variant="destructive" size="sm" aria-label={`Delete ${url.name || url.url}`}>
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
                             </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent className="z-50">

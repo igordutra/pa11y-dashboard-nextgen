@@ -130,7 +130,7 @@ const captureStep = async (page: any, browser: any, urlDoc: any, stepName: strin
         ignore: config.ignore,
         headers: config.headers,
         chromeLaunchConfig: {
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
+            args: []
         }
     };
     // Only set optional string-based config if non-empty
@@ -270,7 +270,7 @@ export const runScan = async (urlId: string) => {
     try {
         // 1. Launch Puppeteer
         const launchOptions: any = {
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--headless=new'],
+            args: ['--disable-dev-shm-usage', '--headless=new'],
             defaultViewport: {
                 width: config.viewport.width,
                 height: config.viewport.height,

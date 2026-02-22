@@ -48,7 +48,7 @@ const COLOR_PRESETS = [
 
 export function CategoryIcon({ icon, className }: { icon: string; className?: string }) {
     const IconComponent = ICON_MAP[icon] || Folder;
-    return <IconComponent className={className || 'h-4 w-4'} />;
+    return <IconComponent className={className || 'h-4 w-4'} aria-hidden="true" />;
 }
 
 interface Category {
@@ -139,7 +139,7 @@ export function CategoriesManager({ trigger }: { trigger?: React.ReactNode }) {
             <DialogTrigger asChild>
                 {trigger || (
                     <Button variant="ghost" size="sm" className="gap-2">
-                        <Tags className="h-4 w-4" />
+                        <Tags className="h-4 w-4" aria-hidden="true" />
                         Manage Categories
                     </Button>
                 )}
@@ -191,6 +191,7 @@ export function CategoriesManager({ trigger }: { trigger?: React.ReactNode }) {
                                                 : 'border-transparent hover:bg-muted'
                                                 }`}
                                             title={name}
+                                            aria-label={`Select ${name} icon`}
                                         >
                                             <Icon className="h-4 w-4" />
                                         </button>
@@ -213,6 +214,7 @@ export function CategoriesManager({ trigger }: { trigger?: React.ReactNode }) {
                                             : 'border-transparent hover:scale-105'
                                             }`}
                                         style={{ backgroundColor: color }}
+                                        aria-label={`Select color ${color}`}
                                     />
                                 ))}
                             </div>
@@ -257,20 +259,21 @@ export function CategoriesManager({ trigger }: { trigger?: React.ReactNode }) {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-1 shrink-0">
-                                                <Button variant="ghost" size="sm" onClick={() => startEdit(cat)}>
-                                                    <Pencil className="h-3.5 w-3.5" />
+                                                <Button variant="ghost" size="sm" onClick={() => startEdit(cat)} aria-label={`Edit category ${cat.name}`}>
+                                                    <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
                                                     className="text-destructive hover:text-destructive"
+                                                    aria-label={`Delete category ${cat.name}`}
                                                     onClick={() => {
                                                         if (confirm(`Delete "${cat.name}"? URLs won't be deleted, just uncategorized.`)) {
                                                             deleteMutation.mutate(cat._id);
                                                         }
                                                     }}
                                                 >
-                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                                                 </Button>
                                             </div>
                                         </div>
@@ -279,7 +282,7 @@ export function CategoriesManager({ trigger }: { trigger?: React.ReactNode }) {
                             )}
                         </ScrollArea>
                         <Button onClick={startCreate} className="w-full gap-2" variant="outline">
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-4 w-4" aria-hidden="true" />
                             New Category
                         </Button>
                     </div>

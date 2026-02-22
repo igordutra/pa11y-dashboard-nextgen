@@ -34,14 +34,14 @@ export function Layout({ children }: LayoutProps) {
                 {/* Sidebar */}
                 <div className="hidden lg:flex lg:flex-col lg:col-span-1 border-r bg-muted/40 p-4">
                     <Link to="/" className="flex items-center gap-2 font-bold text-xl mb-8 px-2 hover:opacity-80 transition-opacity">
-                        <Activity className="h-6 w-6 text-primary" />
+                        <Activity className="h-6 w-6 text-primary" aria-hidden="true" />
                         <span>Pa11y Dash</span>
                     </Link>
                     <nav className="flex flex-col gap-1 flex-1">
                         <Link to="/"
                             className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${isDashboard && !activeCategory ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground/80'
                                 }`}>
-                            <LayoutDashboard className="h-4 w-4" />
+                            <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
                             All URLs
                         </Link>
 
@@ -71,7 +71,7 @@ export function Layout({ children }: LayoutProps) {
                         <CategoriesManager
                             trigger={
                                 <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-muted-foreground hover:bg-muted hover:text-foreground/80 transition-colors w-full text-left">
-                                    <Plus className="h-4 w-4" />
+                                    <Plus className="h-4 w-4" aria-hidden="true" />
                                     {categories.length === 0 ? 'Add Category' : 'Manage'}
                                 </button>
                             }
@@ -82,7 +82,7 @@ export function Layout({ children }: LayoutProps) {
                         <Link to="/settings"
                             className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${isSettings ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground/80'
                                 }`}>
-                            <Settings className="h-4 w-4" />
+                            <Settings className="h-4 w-4" aria-hidden="true" />
                             Settings
                         </Link>
                     </nav>
@@ -92,7 +92,7 @@ export function Layout({ children }: LayoutProps) {
                 <div className="col-span-1 lg:col-span-4 xl:col-span-5 flex flex-col">
                     <header className="h-14 border-b flex items-center px-6 lg:hidden">
                         <div className="flex items-center gap-2 font-bold text-xl">
-                            <Activity className="h-6 w-6 text-primary" />
+                            <Activity className="h-6 w-6 text-primary" aria-hidden="true" />
                             <span>Pa11y Dash</span>
                         </div>
                     </header>
