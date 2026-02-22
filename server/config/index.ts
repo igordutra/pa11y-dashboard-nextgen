@@ -20,7 +20,7 @@ export type Config = z.infer<typeof configSchema>;
 export const getConfig = (): Config => {
   return configSchema.parse({
     port: process.env.PORT,
-    mongoUri: process.env.MONGO_URI,
+    mongoUri: process.env.MONGO_URI || process.env.MONGODB_URI || process.env.DATABASE,
     clientUrl: process.env.CLIENT_URL,
     noindex: process.env.NOINDEX,
     readonly: process.env.READONLY,

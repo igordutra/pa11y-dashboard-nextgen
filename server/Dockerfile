@@ -1,8 +1,13 @@
 FROM node:24-bookworm-slim
 
-# Install Chromium for Puppeteer (same as main Pa11y Dockerfile)
-RUN apt-get update \
-    && apt-get install -y chromium \
+# Install Chromium and dependencies for Puppeteer
+RUN apt-get update && apt-get install -y \
+    chromium \
+    wget \
+    gnupg \
+    ca-certificates \
+    procps \
+    libxss1 \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
