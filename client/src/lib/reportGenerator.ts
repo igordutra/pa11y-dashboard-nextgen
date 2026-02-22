@@ -9,11 +9,14 @@ export function generateHtmlReport(url: Url, scan: Scan): string {
     const date = new Date(scan.timestamp).toLocaleString();
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
     
-    // Calculate stats
-    const issues = scan.issues || [];
-    const errors = issues.filter(i => i.type === 'error').length;
-    const warnings = issues.filter(i => i.type === 'warning').length;
-    const notices = issues.filter(i => i.type === 'notice').length;
+    // Calculate stats across all steps if available, or just from the main issues list
+    const allIssues = scan.steps && scan.steps.length > 0 
+        ? scan.steps.flatMap(s => s.issues) 
+        : (scan.issues || []);
+        
+    const errors = allIssues.filter(i => i.type === 'error').length;
+    const warnings = allIssues.filter(i => i.type === 'warning').length;
+    const notices = allIssues.filter(i => i.type === 'notice').length;
 
     const html = `
 <!DOCTYPE html>
@@ -212,17 +215,20 @@ export function generateHtmlReport(url: Url, scan: Scan): string {
             ${scan.steps && scan.steps.length > 0 ? 
                 scan.steps.map((step, sIdx) => `
                 <h3>Step ${sIdx + 1}: ${step.stepName}</h3>
-                <p>Accessibility Score for this step: <strong>${step.score}</strong></p>
+                <p>Accessibility Score for this step: <strong>${step.score}</strong> | Issues: <strong>${step.issues.length}</strong></p>
                 ${step.screenshot ? `
                     <div class="screenshot-container">
                         <img src="${apiUrl}${step.screenshot}" alt="Screenshot of ${step.stepName}" class="screenshot-img">
                     </div>
                 ` : ''}
                 
-                ${step.issues.map((issue: Issue) => renderIssue(issue)).join('')}
+                ${step.issues.length > 0 ? 
+                    step.issues.map((issue: Issue) => renderIssue(issue)).join('') : 
+                    '<p class="fix-suggestion" style="background-color: #f0fdf4; border-color: #bbf7d0; color: #166534;">No accessibility issues found in this step! 🎉</p>'
+                }
                 `).join('')
                 : 
-                issues.map((issue: Issue) => renderIssue(issue)).join('')
+                allIssues.map((issue: Issue) => renderIssue(issue)).join('')
             }
         </section>
 
