@@ -658,3 +658,4 @@ export const app = fastify;
 if (process.env.NODE_ENV !== 'test') {
   start();
 }
+// CI Trigger
