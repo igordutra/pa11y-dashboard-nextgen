@@ -49,11 +49,11 @@ export function ReportPage() {
     const activeScan = selectedScanId ? selectedScan : latestScan;
     const isScanLoading = selectedScanId ? isSelectedLoading : isLatestLoading;
 
-    // Auto-select the step with the most issues when active scan changes
-    useEffect(() => {
-        if (!activeScan) return;
-
-        if (activeScan.steps?.length) {
+    // Transition state tracking for "Update state while rendering" pattern
+    const [prevActiveScanId, setPrevActiveScanId] = useState<string | null>(null);
+    if (activeScan?._id !== prevActiveScanId) {
+        setPrevActiveScanId(activeScan?._id || null);
+        if (activeScan?.steps?.length) {
             let maxIssues = -1;
             let bestIndex = 0;
             activeScan.steps.forEach((step: ScanStep, i: number) => {
@@ -66,15 +66,19 @@ export function ReportPage() {
         } else {
             setSelectedStepIndex(0);
         }
-    }, [activeScan?._id]);
+    }
 
     const [selectedIssueIndex, setSelectedIssueIndex] = useState<number | null>(null);
+    const [prevStepIndex, setPrevStepIndex] = useState(0);
     const issueRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-    // Reset selection when step changes
-    useEffect(() => {
-        setSelectedIssueIndex(null);
-    }, [selectedStepIndex]);
+    // Reset selection when step changes (Update state while rendering)
+    if (selectedStepIndex !== prevStepIndex) {
+        setPrevStepIndex(selectedStepIndex);
+        if (selectedIssueIndex !== null) {
+            setSelectedIssueIndex(null);
+        }
+    }
 
     // Scroll issue into view when selected from overlay
     useEffect(() => {

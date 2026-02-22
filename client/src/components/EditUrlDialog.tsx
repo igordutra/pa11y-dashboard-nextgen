@@ -73,7 +73,7 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
         e.preventDefault();
         mutation.mutate({ name, standard, schedule, actions, overrides: enableOverrides ? overrides : undefined, categoryId });
     };
-...
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
