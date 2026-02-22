@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import cronstrue from 'cronstrue';
@@ -17,28 +16,20 @@ const PRESETS = [
 ];
 
 export function CronEditor({ value, onChange }: CronEditorProps) {
-    const [humanReadable, setHumanReadable] = useState('');
-    const [error, setError] = useState<string | null>(null);
+    // Derived state for human readable description
+    let humanReadable = '';
+    let error: string | null = null;
 
-    useEffect(() => {
-        if (!value) {
-            setHumanReadable('');
-            setError(null);
-            return;
-        }
-
+    if (value) {
         try {
-            const description = cronstrue.toString(value, {
+            humanReadable = cronstrue.toString(value, {
                 use24HourTimeFormat: true,
                 throwExceptionOnParseError: true,
             });
-            setHumanReadable(description);
-            setError(null);
-        } catch (err) {
-            setHumanReadable('');
-            setError('Invalid cron expression');
+        } catch {
+            error = 'Invalid cron expression';
         }
-    }, [value]);
+    }
 
     return (
         <div className="space-y-3">

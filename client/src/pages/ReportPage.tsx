@@ -49,11 +49,17 @@ export function ReportPage() {
     const activeScan = selectedScanId ? selectedScan : latestScan;
     const isScanLoading = selectedScanId ? isSelectedLoading : isLatestLoading;
 
-    // Transition state tracking for "Update state while rendering" pattern
+    // Stable state synchronization
+    const [selectedIssueIndex, setSelectedIssueIndex] = useState<number | null>(null);
     const [prevActiveScanId, setPrevActiveScanId] = useState<string | null>(null);
-    if (activeScan?._id !== prevActiveScanId) {
-        setPrevActiveScanId(activeScan?._id || null);
-        if (activeScan?.steps?.length) {
+    const [prevStepIndex, setPrevStepIndex] = useState(0);
+
+    // Only synchronize when activeScan is actually loaded and changed
+    if (activeScan && activeScan._id !== prevActiveScanId) {
+        setPrevActiveScanId(activeScan._id);
+        
+        // Reset selection when scan changes
+        if (activeScan.steps?.length) {
             let maxIssues = -1;
             let bestIndex = 0;
             activeScan.steps.forEach((step: ScanStep, i: number) => {
@@ -63,22 +69,26 @@ export function ReportPage() {
                 }
             });
             setSelectedStepIndex(bestIndex);
+            setPrevStepIndex(bestIndex); // Keep indices in sync
         } else {
             setSelectedStepIndex(0);
+            setPrevStepIndex(0);
+        }
+        
+        if (selectedIssueIndex !== null) {
+            setSelectedIssueIndex(null);
         }
     }
 
-    const [selectedIssueIndex, setSelectedIssueIndex] = useState<number | null>(null);
-    const [prevStepIndex, setPrevStepIndex] = useState(0);
-    const issueRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-    // Reset selection when step changes (Update state while rendering)
+    // Reset issue selection when step manually changes
     if (selectedStepIndex !== prevStepIndex) {
         setPrevStepIndex(selectedStepIndex);
         if (selectedIssueIndex !== null) {
             setSelectedIssueIndex(null);
         }
     }
+
+    const issueRefs = useRef<(HTMLDivElement | null)[]>([]);
 
     // Scroll issue into view when selected from overlay
     useEffect(() => {
