@@ -1,0 +1,57 @@
+# Pa11y Dashboard NextGen - Server
+
+The backend API for the Pa11y Dashboard, built with Fastify, MongoDB, and Puppeteer.
+
+## Tech Stack
+
+- **Framework**: Fastify (with Zod for type-safe validation)
+- **Database**: MongoDB + Mongoose
+- **Audit Tools**: Pa11y, Lighthouse, Puppeteer
+- **Image Processing**: Sharp (for screenshots and thumbnails)
+- **Scheduling**: Cron-based and interval-based tasks
+- **Testing**: Vitest, Supertest, MongoDB Memory Server
+
+## Development
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Run dev server**:
+   ```bash
+   npm run dev
+   ```
+   The API will be available at `http://localhost:3000`.
+
+3. **Build for production**:
+   ```bash
+   npm run build
+   ```
+
+## Configuration
+
+Configuration is managed via environment variables or a configuration loader in `config/index.ts`. See `config/samples/` for example setups.
+
+- **PORT**: API port (default: 3000)
+- **MONGO_URI**: MongoDB connection string
+- **CLIENT_URL**: Frontend URL (for CORS)
+- **NOINDEX**: Set to `true` to disable search engine indexing.
+- **READONLY**: Set to `true` to disable write operations.
+
+## Testing & Quality
+
+- **Run tests**: `npm run test`
+
+## API Documentation
+
+The API includes built-in Swagger documentation. When the server is running, visit:
+`http://localhost:3000/documentation`
+
+## Architecture
+
+- **`index.ts`**: Fastify server setup and API route definitions.
+- **`lib/runner.ts`**: The core scanning engine (Lighthouse + Pa11y logic).
+- **`lib/scheduler.ts`**: Background task manager for periodic scans.
+- **`models/`**: Mongoose schemas for `Url`, `Scan`, `Category`, and `Settings`.
+- **`screenshots/`**: Local storage for generated scan screenshots.
