@@ -18,7 +18,7 @@ describe('API Tests', () => {
         // Wait for fastify to be ready
         await initApp();
         await app.ready();
-    });
+    }, 30000); // Increase timeout for CI
 
     beforeEach(async () => {
         // Clear database before each test
@@ -31,7 +31,7 @@ describe('API Tests', () => {
         if (mongoServer) {
             await mongoServer.stop();
         }
-    });
+    }, 30000);
 
     it('GET / should return hello world', async () => {
         const response = await app.inject({
