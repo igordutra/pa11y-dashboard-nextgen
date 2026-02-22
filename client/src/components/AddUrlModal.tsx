@@ -23,16 +23,15 @@ export function AddUrlModal() {
     const [activeTab, setActiveTab] = useState<'basic' | 'script'>('basic');
     const [url, setUrl] = useState('');
     const [name, setName] = useState('');
-    const [frequency, setFrequency] = useState(60);
     const [standard, setStandard] = useState('WCAG2AA');
-    const [schedule, setSchedule] = useState('');
+    const [schedule, setSchedule] = useState('0 * * * *');
     const [actions, setActions] = useState<Action[]>([]);
     const [categoryId, setCategoryId] = useState<string | null>(null);
 
     const queryClient = useQueryClient();
 
     const mutation = useMutation({
-        mutationFn: async (newUrl: { url: string; name?: string; frequency: number; standard?: string; schedule?: string; actions: Action[]; categoryId?: string | null }) => {
+        mutationFn: async (newUrl: { url: string; name?: string; standard?: string; schedule?: string; actions: Action[]; categoryId?: string | null }) => {
             const res = await api.post('/api/urls', newUrl);
             return res.data;
         },
@@ -41,9 +40,8 @@ export function AddUrlModal() {
             setOpen(false);
             setUrl('');
             setName('');
-            setFrequency(60);
             setStandard('WCAG2AA');
-            setSchedule('');
+            setSchedule('0 * * * *');
             setActions([]);
             setCategoryId(null);
             setActiveTab('basic');
@@ -52,7 +50,7 @@ export function AddUrlModal() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        mutation.mutate({ url, name, frequency, standard, schedule, actions, categoryId });
+        mutation.mutate({ url, name, standard, schedule, actions, categoryId });
     };
 
     return (
@@ -147,25 +145,18 @@ export function AddUrlModal() {
                                     <Label htmlFor="schedule" className="text-right">
                                         Schedule (Cron)
                                     </Label>
-                                    <Input
-                                        id="schedule"
-                                        value={schedule}
-                                        onChange={(e) => setSchedule(e.target.value)}
-                                        placeholder="0 0 * * *"
-                                        className="col-span-3"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="frequency" className="text-right">
-                                        Frequency (min)
-                                    </Label>
-                                    <Input
-                                        id="frequency"
-                                        type="number"
-                                        value={frequency}
-                                        onChange={(e) => setFrequency(Number(e.target.value))}
-                                        className="col-span-3"
-                                    />
+                                    <div className="col-span-3 space-y-1">
+                                        <Input
+                                            id="schedule"
+                                            value={schedule}
+                                            onChange={(e) => setSchedule(e.target.value)}
+                                            placeholder="0 * * * *"
+                                            required
+                                        />
+                                        <p className="text-[10px] text-muted-foreground">
+                                            Default: Hourly (0 * * * *). Use 5-segment cron syntax.
+                                        </p>
+                                    </div>
                                 </div>
                                 <CategorySelect value={categoryId} onChange={setCategoryId} />
                             </div>

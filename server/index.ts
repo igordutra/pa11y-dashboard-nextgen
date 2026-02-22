@@ -127,8 +127,7 @@ export const initApp = async () => {
             _id: z.any(),
             url: z.string(),
             name: z.string().optional(),
-            frequency: z.number(),
-            schedule: z.string().optional(),
+            schedule: z.string(),
             standard: z.string().optional(),
             status: z.string(),
             lastScanAt: z.date().optional(),
@@ -160,8 +159,7 @@ export const initApp = async () => {
         body: z.object({
           url: z.string().url(),
           name: z.string().optional(),
-          frequency: z.number().default(60),
-          schedule: z.string().optional(),
+          schedule: z.string().default('0 * * * *'),
           standard: z.enum([
             'WCAG2A', 'WCAG2AA', 'WCAG2AAA',
             'WCAG21A', 'WCAG21AA', 'WCAG21AAA',
@@ -180,8 +178,7 @@ export const initApp = async () => {
             _id: z.any(),
             url: z.string(),
             name: z.string().optional(),
-            frequency: z.number(),
-            schedule: z.string().optional(),
+            schedule: z.string(),
             standard: z.string(),
             status: z.string()
           }),
@@ -195,8 +192,8 @@ export const initApp = async () => {
         }
       }
     }, async (req, reply) => {
-      const { url, name, frequency, schedule, standard, actions, overrides, categoryId } = req.body;
-      const newUrl = await UrlModel.create({ url, name, frequency, schedule, standard, actions, overrides, ...(categoryId ? { categoryId } : {}) });
+      const { url, name, schedule, standard, actions, overrides, categoryId } = req.body;
+      const newUrl = await UrlModel.create({ url, name, schedule, standard, actions, overrides, ...(categoryId ? { categoryId } : {}) });
       return newUrl;
     });
 
@@ -235,7 +232,6 @@ export const initApp = async () => {
         }),
         body: z.object({
           name: z.string().optional(),
-          frequency: z.number().optional(),
           schedule: z.string().optional(),
           standard: z.enum([
             'WCAG2A', 'WCAG2AA', 'WCAG2AAA',
@@ -255,8 +251,7 @@ export const initApp = async () => {
             _id: z.any(),
             url: z.string(),
             name: z.string().optional(),
-            frequency: z.number(),
-            schedule: z.string().optional(),
+            schedule: z.string(),
             standard: z.string(),
             status: z.string()
           }),

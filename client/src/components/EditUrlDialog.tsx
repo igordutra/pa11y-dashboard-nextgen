@@ -37,9 +37,8 @@ interface EditUrlDialogProps {
         _id: string;
         url: string;
         name?: string;
-        frequency: number;
         standard?: string;
-        schedule?: string;
+        schedule: string;
         actions?: Action[];
         overrides?: UrlOverrides;
         categoryId?: string | null;
@@ -50,9 +49,8 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
     const [open, setOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'basic' | 'script' | 'overrides'>('basic');
     const [name, setName] = useState(urlData.name || '');
-    const [frequency, setFrequency] = useState(urlData.frequency);
     const [standard, setStandard] = useState(urlData.standard || 'WCAG2AA');
-    const [schedule, setSchedule] = useState(urlData.schedule || '');
+    const [schedule, setSchedule] = useState(urlData.schedule);
     const [actions, setActions] = useState<Action[]>(urlData.actions || []);
     const [overrides, setOverrides] = useState<UrlOverrides>(urlData.overrides || {});
     const [enableOverrides, setEnableOverrides] = useState(!!urlData.overrides && Object.keys(urlData.overrides).length > 0);
@@ -61,7 +59,7 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
     const queryClient = useQueryClient();
 
     const mutation = useMutation({
-        mutationFn: async (updatedUrl: { name?: string; frequency: number; standard?: string; schedule?: string; actions: Action[]; overrides?: UrlOverrides; categoryId?: string | null }) => {
+        mutationFn: async (updatedUrl: { name?: string; standard?: string; schedule?: string; actions: Action[]; overrides?: UrlOverrides; categoryId?: string | null }) => {
             const res = await api.put(`/api/urls/${urlData._id}`, updatedUrl);
             return res.data;
         },
@@ -73,9 +71,9 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        mutation.mutate({ name, frequency, standard, schedule, actions, overrides: enableOverrides ? overrides : undefined, categoryId });
+        mutation.mutate({ name, standard, schedule, actions, overrides: enableOverrides ? overrides : undefined, categoryId });
     };
-
+...
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -162,25 +160,18 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
                                     <Label htmlFor="edit-schedule" className="text-right">
                                         Schedule (Cron)
                                     </Label>
-                                    <Input
-                                        id="edit-schedule"
-                                        value={schedule}
-                                        onChange={(e) => setSchedule(e.target.value)}
-                                        placeholder="0 0 * * *"
-                                        className="col-span-3"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="edit-frequency" className="text-right">
-                                        Frequency (min)
-                                    </Label>
-                                    <Input
-                                        id="edit-frequency"
-                                        type="number"
-                                        value={frequency}
-                                        onChange={(e) => setFrequency(Number(e.target.value))}
-                                        className="col-span-3"
-                                    />
+                                    <div className="col-span-3 space-y-1">
+                                        <Input
+                                            id="edit-schedule"
+                                            value={schedule}
+                                            onChange={(e) => setSchedule(e.target.value)}
+                                            placeholder="0 * * * *"
+                                            required
+                                        />
+                                        <p className="text-[10px] text-muted-foreground">
+                                            Default: Hourly (0 * * * *). Use 5-segment cron syntax.
+                                        </p>
+                                    </div>
                                 </div>
                                 <CategorySelect value={categoryId} onChange={setCategoryId} />
                             </div>

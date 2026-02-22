@@ -9,66 +9,39 @@ export const startScheduler = () => {
 
     setInterval(async () => {
         try {
-            // 1. Process Interval-based URLs (frequency)
-            // Where schedule is NOT set
-            const dueIntervalUrls = await UrlModel.aggregate([
-                {
-                    $match: {
-                        $or: [
-                            { schedule: { $exists: false } },
-                            { schedule: null },
-                            { schedule: '' }
-                        ],
-                        status: 'active', // Only check active URLs
-                        $expr: {
-                            $or: [
-                                { $not: ["$lastScanAt"] },
-                                {
-                                    $gte: [
-                                        { $subtract: [new Date(), "$lastScanAt"] },
-                                        { $multiply: ["$frequency", 60 * 1000] }
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                }
-            ]);
-
-            // 2. Process Cron-based URLs
-            // Where schedule IS set
-            const cronUrls = await UrlModel.find({
-                schedule: { $nin: [null, ''] },
-                status: 'active'
+            // Get all active URLs with a schedule
+            const activeUrls = await UrlModel.find({
+                status: 'active',
+                schedule: { $exists: true, $ne: '' }
             });
 
-            const dueCronUrls = [];
-            for (const url of cronUrls) {
+            const dueUrls = [];
+            for (const url of activeUrls) {
+                // If it never ran, it's due
                 if (!url.lastScanAt) {
-                    dueCronUrls.push(url);
+                    dueUrls.push(url);
                     continue;
                 }
 
                 try {
-                    const interval = CronExpressionParser.parse(url.schedule!);
+                    const interval = CronExpressionParser.parse(url.schedule);
                     const prevRun = interval.prev().toDate();
 
+                    // If the last scan was BEFORE the most recent scheduled time, it's due
                     if (url.lastScanAt < prevRun) {
-                        dueCronUrls.push(url);
+                        dueUrls.push(url);
                     }
                 } catch (err) {
                     console.error(`Invalid cron schedule for ${url.url}: ${url.schedule}`, err);
                 }
             }
 
-            const allDue = [...dueIntervalUrls, ...dueCronUrls];
-
-            if (allDue.length > 0) {
-                console.log(`Found ${allDue.length} URLs due for scanning (${dueIntervalUrls.length} interval, ${dueCronUrls.length} cron).`);
+            if (dueUrls.length > 0) {
+                console.log(`Found ${dueUrls.length} URLs due for scanning.`);
 
                 // Simple concurrency control to avoid launching too many browsers at once
                 const MAX_CONCURRENT = 3;
-                const uniqueIds = Array.from(new Set(allDue.map(u => u._id.toString())));
+                const uniqueIds = Array.from(new Set(dueUrls.map(u => u._id.toString())));
 
                 // Process in chunks
                 for (let i = 0; i < uniqueIds.length; i += MAX_CONCURRENT) {

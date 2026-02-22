@@ -25,8 +25,7 @@ export interface IUrlOverrides {
 export interface IUrl extends Document {
     url: string;
     name?: string;
-    frequency: number; // in minutes
-    schedule?: string;
+    schedule: string;
     standard: 'WCAG2A' | 'WCAG2AA' | 'WCAG2AAA' | 'WCAG21A' | 'WCAG21AA' | 'WCAG21AAA' | 'WCAG22A' | 'WCAG22AA' | 'WCAG22AAA';
     lastScanAt?: Date;
     lastIssueCount?: number;
@@ -42,8 +41,7 @@ export interface IUrl extends Document {
 const UrlSchema = new Schema<IUrl>({
     url: { type: String, required: true },
     name: { type: String },
-    frequency: { type: Number, default: 60 }, // minutes (legacy)
-    schedule: { type: String }, // Cron expression (e.g. "0 0 * * *")
+    schedule: { type: String, default: '0 * * * *' }, // Cron expression (default: hourly)
     standard: {
         type: String,
         enum: [

@@ -41,8 +41,7 @@ export interface Url {
     _id: string;
     url: string;
     name?: string;
-    frequency: number;
-    schedule?: string;
+    schedule: string;
     standard?: string;
     status: 'active' | 'error' | 'paused';
     lastScanAt?: string;

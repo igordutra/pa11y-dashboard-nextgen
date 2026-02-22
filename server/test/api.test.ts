@@ -65,7 +65,7 @@ describe('API Tests', () => {
             payload: {
                 url: 'https://example.com',
                 name: 'Example Domain',
-                frequency: 60,
+                schedule: '0 * * * *',
                 standard: 'WCAG2AA' // Required in Zod schema
             }
         });
