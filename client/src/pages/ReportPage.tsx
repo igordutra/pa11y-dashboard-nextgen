@@ -20,8 +20,6 @@ export function ReportPage() {
     const [selectedScanId, setSelectedScanId] = useState<string | null>(null);
     const [activeFilter, setActiveFilter] = useState<'all' | 'error' | 'warning' | 'notice'>('all');
 
-    const [prevActiveScanId, setPrevActiveScanId] = useState<string | null>(null);
-
     const { data: urlData, isLoading: isUrlLoading } = useQuery({
         queryKey: ['url', id],
         queryFn: async () => (await api.get(`/api/urls`)).data.find((u: Url) => u._id === id),
@@ -52,11 +50,11 @@ export function ReportPage() {
     const isScanLoading = selectedScanId ? isSelectedLoading : isLatestLoading;
 
     // Auto-select the step with the most issues when active scan changes
-    // Adjusted during render to avoid cascading useEffect renders
-    if (activeScan?._id !== prevActiveScanId) {
-        setPrevActiveScanId(activeScan?._id || null);
-        if (activeScan?.steps?.length) {
-            let maxIssues = 0;
+    useEffect(() => {
+        if (!activeScan) return;
+
+        if (activeScan.steps?.length) {
+            let maxIssues = -1;
             let bestIndex = 0;
             activeScan.steps.forEach((step: ScanStep, i: number) => {
                 if (step.issues?.length > maxIssues) {
@@ -68,19 +66,15 @@ export function ReportPage() {
         } else {
             setSelectedStepIndex(0);
         }
-    }
+    }, [activeScan?._id]);
 
     const [selectedIssueIndex, setSelectedIssueIndex] = useState<number | null>(null);
-    const [prevStepIndex, setPrevStepIndex] = useState(0);
     const issueRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-    // Reset selection when step changes (Adjusted during render)
-    if (selectedStepIndex !== prevStepIndex) {
-        setPrevStepIndex(selectedStepIndex);
-        if (selectedIssueIndex !== null) {
-            setSelectedIssueIndex(null);
-        }
-    }
+    // Reset selection when step changes
+    useEffect(() => {
+        setSelectedIssueIndex(null);
+    }, [selectedStepIndex]);
 
     // Scroll issue into view when selected from overlay
     useEffect(() => {
