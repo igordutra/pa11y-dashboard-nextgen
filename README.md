@@ -42,10 +42,17 @@ Test complex user journeys, not just landing pages. Our script editor supports:
 - **`wait-for-url`**: Synchronize with navigation events.
 - **Interactive Reports**: Each step generates its own score and screenshot, allowing you to pinpoint exactly where accessibility degrades in a user flow.
 
+### 📄 Standalone HTML Export
+Generate and share professional accessibility reports with stakeholders.
+- **Self-Contained**: Reports follow the WCAG-EM structure and include all necessary context.
+- **Actionable**: Includes code snippets, selectors, and specific fix suggestions for every issue.
+- **Visual Evidence**: Automatically embeds focused screenshots of the problematic elements.
+
 ### 📈 Visual Intelligence
 - **Trend Charts**: Interactive Recharts-powered graphs show accessibility health over time.
-- **Screenshot Overlays**: NextGen maps Pa11y issues directly onto screenshots. Click an issue in the list to see exactly where it is on the page.
-- **Hybrid Scoring**: Combines Lighthouse's industry-standard metrics with our custom rule-based algorithm for intermediate scripted steps.
+- **Focused Issue Snippets**: NextGen automatically crops the page screenshot around each identified issue. You can see the exact problematic element directly in the issue list and exported reports.
+- **Screenshot Overlays**: Maps Pa11y issues directly onto full-page screenshots. Click an issue in the list to see exactly where it is on the page.
+- **Hybrid Scoring**: Combines Lighthouse's industry-standard metrics with our custom rule-based algorithm for intermediate scripted scripted steps.
 
 ---
 
