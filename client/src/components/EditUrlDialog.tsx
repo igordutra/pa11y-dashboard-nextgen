@@ -17,6 +17,7 @@ import { Pencil } from 'lucide-react';
 import { ActionEditor } from './ActionEditor';
 import { Action } from '../types';
 import { CategorySelect } from './CategorySelect';
+import { CronEditor } from './CronEditor';
 
 interface UrlOverrides {
     runners?: string[];
@@ -156,21 +157,12 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
                                         <option value="WCAG22AAA">WCAG 2.2 AAA</option>
                                     </select>
                                 </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="edit-schedule" className="text-right">
+                                <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label htmlFor="edit-schedule" className="text-right pt-2">
                                         Schedule (Cron)
                                     </Label>
-                                    <div className="col-span-3 space-y-1">
-                                        <Input
-                                            id="edit-schedule"
-                                            value={schedule}
-                                            onChange={(e) => setSchedule(e.target.value)}
-                                            placeholder="0 * * * *"
-                                            required
-                                        />
-                                        <p className="text-[10px] text-muted-foreground">
-                                            Default: Hourly (0 * * * *). Use 5-segment cron syntax.
-                                        </p>
+                                    <div className="col-span-3">
+                                        <CronEditor value={schedule} onChange={setSchedule} />
                                     </div>
                                 </div>
                                 <CategorySelect value={categoryId} onChange={setCategoryId} />
