@@ -121,7 +121,7 @@ export function ScreenshotOverlay({
                         onClick={(e) => handleBoxClick(issue.originalIndex, e)}
                         onMouseEnter={(e) => handleBoxMouseEnter(issue.originalIndex, e)}
                         onMouseLeave={handleBoxMouseLeave}
-                        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleBoxClick(issue.originalIndex, e as any)}
+                        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleBoxClick(issue.originalIndex, e as unknown as React.MouseEvent)}
                         role="button"
                         tabIndex={0}
                         aria-label={`${colors.label}: ${issue.code}`}

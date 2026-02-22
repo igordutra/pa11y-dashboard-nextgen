@@ -10,6 +10,7 @@ import { ScrollArea } from '../components/ui/scroll-area';
 import { TrendChart } from '../components/TrendChart';
 import { getIssueDocsUrl } from '../lib/issueDocsUrl';
 import { ScreenshotOverlay } from '../components/ScreenshotOverlay';
+import { ExportReportModal } from '../components/ExportReportModal';
 import { Issue, Scan, ScanStep, Url } from '../types';
 
 export function ReportPage() {
@@ -169,6 +170,7 @@ export function ReportPage() {
                             <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" /> Latest Scan
                         </Button>
                     )}
+                    {activeScan && <ExportReportModal url={urlData} scan={activeScan} />}
                     <Button onClick={() => scanMutation.mutate()} disabled={scanMutation.isPending || urlData.status === 'scanning'}>
                         {scanMutation.isPending || urlData.status === 'scanning' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> : <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />}
                         Re-Scan
