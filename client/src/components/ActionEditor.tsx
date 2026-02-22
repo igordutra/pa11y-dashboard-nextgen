@@ -80,8 +80,8 @@ export function ActionEditor({ actions, onChange }: ActionEditorProps) {
                                         onChange={(e) => updateAction(index, 'value', e.target.value)}
                                         placeholder={
                                             action.type === 'wait' ? '1000' :
-                                                action.type === 'click' ? '#submit-btn' :
-                                                    action.type === 'type' ? '#search|query' : 'timeout(ms) or empty'
+                                                action.type === 'click' ? '#btn or iframe >>> #btn' :
+                                                    action.type === 'type' ? '#search|query or iframe >>> #input|text' : 'timeout(ms) or empty'
                                         }
                                         className="h-8"
                                     />

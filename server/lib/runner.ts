@@ -311,15 +311,33 @@ export const runScan = async (urlId: string) => {
                         await new Promise(r => setTimeout(r, ms));
                         break;
                     case 'click':
-                        await page.waitForSelector(action.value, { timeout: 10000 });
-                        await page.click(action.value);
+                        if (action.value.includes(' >>> ')) {
+                            const [frameSelector, elementSelector] = action.value.split(' >>> ');
+                            const frameHandle = await page.waitForSelector(frameSelector, { timeout: 10000 });
+                            const frame = await frameHandle?.contentFrame();
+                            if (!frame) throw new Error(`Could not find iframe with selector: ${frameSelector}`);
+                            await frame.waitForSelector(elementSelector, { timeout: 10000 });
+                            await frame.click(elementSelector);
+                        } else {
+                            await page.waitForSelector(action.value, { timeout: 10000 });
+                            await page.click(action.value);
+                        }
                         break;
                     case 'type':
-                        // Format: "selector|text"
-                        const [selector, text] = action.value.split('|');
-                        if (selector && text) {
-                            await page.waitForSelector(selector, { timeout: 10000 });
-                            await page.type(selector, text);
+                        // Format: "selector|text" OR "iframe >>> selector|text"
+                        const [fullSelector, text] = action.value.split('|');
+                        if (fullSelector && text) {
+                            if (fullSelector.includes(' >>> ')) {
+                                const [frameSelector, elementSelector] = fullSelector.split(' >>> ');
+                                const frameHandle = await page.waitForSelector(frameSelector, { timeout: 10000 });
+                                const frame = await frameHandle?.contentFrame();
+                                if (!frame) throw new Error(`Could not find iframe with selector: ${frameSelector}`);
+                                await frame.waitForSelector(elementSelector, { timeout: 10000 });
+                                await frame.type(elementSelector, text);
+                            } else {
+                                await page.waitForSelector(fullSelector, { timeout: 10000 });
+                                await page.type(fullSelector, text);
+                            }
                         }
                         break;
                     case 'wait-for-url':
