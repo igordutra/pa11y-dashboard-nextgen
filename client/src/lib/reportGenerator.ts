@@ -261,6 +261,13 @@ export function generateHtmlReport(url: Url, scan: Scan): string {
                 <div class="issue-body">
                     <div class="issue-message">${issue.message}</div>
                     
+                    ${issue.snippetUrl ? `
+                    <div class="screenshot-container" style="border-color: var(--secondary); background-color: #fafafa;">
+                        <div style="padding: 4px; font-size: 10px; color: var(--muted-foreground); text-transform: uppercase;">Issue Snippet:</div>
+                        <img src="${apiUrl}${issue.snippetUrl}" alt="Visual snippet of the issue" style="max-width: 100%; height: auto; display: block; border-top: 1px solid var(--border);">
+                    </div>
+                    ` : ''}
+
                     <div class="code-block">
                         <strong>Selector:</strong> ${escapeHtml(issue.selector)}
                     </div>

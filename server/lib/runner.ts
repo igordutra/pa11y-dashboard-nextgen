@@ -140,18 +140,16 @@ const captureStep = async (page: any, browser: any, urlDoc: any, stepName: strin
 
     const pa11yResult = await pa11y(currentUrl, pa11yOptions);
 
-    // 4. Capture bounding boxes for each issue's selector
-    // Used by the frontend ScreenshotOverlay to draw rectangles over the screenshot
+    // 4. Capture bounding boxes for each issue's selector and generate snippets
     for (const issue of pa11yResult.issues) {
         if (issue.selector) {
             try {
-                issue.boundingBox = await page.evaluate((sel: string) => {
+                const boundingBox = await page.evaluate((sel: string) => {
                     try {
                         const el = document.querySelector(sel);
                         if (!el) return null;
                         const rect = el.getBoundingClientRect();
                         if (rect.width === 0 && rect.height === 0) return null;
-                        // Add scroll offset to get document-relative coordinates
                         return {
                             x: rect.x + window.scrollX,
                             y: rect.y + window.scrollY,
@@ -160,6 +158,31 @@ const captureStep = async (page: any, browser: any, urlDoc: any, stepName: strin
                         };
                     } catch { return null; }
                 }, issue.selector);
+
+                if (boundingBox) {
+                    issue.boundingBox = boundingBox;
+                    
+                    // Generate a unique filename for the snippet
+                    const snippetFilename = `snippet-${urlDoc._id}-${timestamp}-${Math.random().toString(36).substring(2, 9)}.png`;
+                    const snippetPath = path.join(screenshotsDir, snippetFilename);
+
+                    // Crop the original screenshot buffer to the bounding box with some padding
+                    const padding = 20;
+                    const left = Math.max(0, Math.floor(boundingBox.x) - padding);
+                    const top = Math.max(0, Math.floor(boundingBox.y) - padding);
+                    const width = Math.min(Math.ceil(boundingBox.width) + (padding * 2), 2000); // Safety cap
+                    const height = Math.min(Math.ceil(boundingBox.height) + (padding * 2), 2000);
+
+                    try {
+                        await sharp(screenshotBuffer)
+                            .extract({ left, top, width, height })
+                            .toFile(snippetPath);
+                        
+                        issue.snippetUrl = `/screenshots/${snippetFilename}`;
+                    } catch (e) {
+                        console.error('Failed to create snippet:', e);
+                    }
+                }
             } catch {
                 issue.boundingBox = null;
             }

@@ -14,6 +14,7 @@ export interface Issue {
     runner: string;
     runnerExtras?: unknown;
     boundingBox?: { x: number; y: number; width: number; height: number; };
+    snippetUrl?: string;
 }
 
 export interface ScanStep {

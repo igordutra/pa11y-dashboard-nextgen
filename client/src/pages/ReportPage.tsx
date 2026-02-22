@@ -401,6 +401,15 @@ export function ReportPage() {
                                                     })()}
                                                 </div>
                                                 <p className="text-sm font-medium">{issue.message}</p>
+                                                {issue.snippetUrl && (
+                                                    <div className="mt-2 rounded border overflow-hidden bg-muted/20">
+                                                        <img 
+                                                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${issue.snippetUrl}`} 
+                                                            alt="Element snippet" 
+                                                            className="max-h-32 w-auto object-contain"
+                                                        />
+                                                    </div>
+                                                )}
                                                 <div className="bg-muted p-2 rounded text-xs font-mono break-all">
                                                     <span className="sr-only">Selector: </span>
                                                     {issue.selector}
