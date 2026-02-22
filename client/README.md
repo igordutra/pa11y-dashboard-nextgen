@@ -12,6 +12,17 @@ The frontend application for the Pa11y Dashboard, built with React and Vite.
 - **Icons**: Lucide React
 - **Testing**: Vitest, React Testing Library
 
+## Key Features
+
+- **Dashboard**: High-level overview of all monitored sites with real-time status and accessibility scores.
+- **Rich Categories**: Organize URLs with custom icons and colors for better manageability.
+- **Interactive Reports**: 
+    - Full-page screenshots with issue mapping (click issue to highlight on image).
+    - Historical trend charts per URL.
+    - Multi-step interaction results (see results for each click/type action).
+- **Advanced Configuration**: UI for per-URL overrides (runners, viewports, headers, and element exclusion).
+- **Cron Editor**: Intuitive schedule management with presets and human-readable feedback.
+
 ## Development
 
 1. **Install dependencies**:

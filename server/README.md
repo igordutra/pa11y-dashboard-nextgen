@@ -11,6 +11,15 @@ The backend API for the Pa11y Dashboard, built with Fastify, MongoDB, and Puppet
 - **Scheduling**: Cron-based background tasks
 - **Testing**: Vitest, Supertest, MongoDB Memory Server
 
+## Key Features
+
+- **Robust Scanning Engine**: Combines **Lighthouse** (for performance/standard scores) and **Pa11y/Axe** (for multi-step auditing).
+- **Multi-Step Puppeteer Scripting**: Processes sequential actions (`click`, `type`, `wait`) while maintaining browser state.
+- **Concurrent Scheduler**: Efficiently manages background tasks with a configurable concurrency limit to prevent resource exhaustion.
+- **Image Processing**: On-the-fly thumbnail generation using **Sharp** for optimized dashboard performance.
+- **Type-Safe API**: Built with **Fastify** and **Zod** for high-performance, contract-first API design.
+- **Dynamic Configuration**: Support for environment-based overrides, crucial for testing and containerized environments.
+
 ## Development
 
 1. **Install dependencies**:

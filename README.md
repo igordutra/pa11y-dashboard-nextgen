@@ -18,16 +18,51 @@ Pa11y Dashboard NextGen is a modern, high-performance web interface to the [Pa11
 
 ---
 
-## Features
+## Key Features
 
--   **URL Management**: Add, edit, and delete URLs to monitor.
--   **Automated Scanning**: Schedule scans using standard **Cron expressions** with a built-in user-friendly editor and human-readable feedback.
--   **Scripted Multi-Step Scans**: Define user flows (click, type, wait) to test pages behind interactions.
--   **Visual History**:
-    -   **Trend Charts**: Track accessibility scores and issue counts over time.
-    -   **Screenshots**: View full-page screenshots of scanned pages at each step with issue overlays.
--   **Scoring Algorithm**: Uses Lighthouse for initial load and a custom rule-based deduction for intermediate steps.
--   **Read-Only Mode**: Protect your dashboard from unauthorized changes via simple configuration.
+### 📂 Category Management
+Organize your monitored URLs into logical groups. NextGen supports rich metadata for categories:
+- **Custom Icons**: Choose from a library of semantic icons (Globe, Building, Shopping Cart, etc.).
+- **Color Coding**: Assign distinct colors to categories for quick visual identification.
+- **Descriptions**: Add context to why a group of URLs is being monitored together.
+- **Filtering**: Sidebar navigation allows you to quickly isolate URLs by category.
+
+### ⚙️ Global & Per-URL Configuration
+Fine-tune your accessibility scans at any level:
+- **Global Defaults**: Set organization-wide standards for runners (Axe vs HTMLCS), viewports, and ignore rules.
+- **Per-URL Overrides**: Override any global setting for a specific URL. Useful for legacy sites that need longer timeouts or specific viewports.
+- **Custom Headers**: Add authentication tokens or cookies to test pages behind login screens.
+- **Element Control**: Hide specific CSS selectors (like moving carousels) or limit testing to a "Root Element".
+
+### 🎭 Scripted Multi-Step Actions
+Test complex user journeys, not just landing pages. Our script editor supports:
+- **`click`**: Interact with buttons, tabs, or menus.
+- **`type`**: Fill out forms (e.g., login, search).
+- **`wait`**: Pause for a specific duration to allow animations to finish.
+- **`wait-for-url`**: Synchronize with navigation events.
+- **Interactive Reports**: Each step generates its own score and screenshot, allowing you to pinpoint exactly where accessibility degrades in a user flow.
+
+### 📈 Visual Intelligence
+- **Trend Charts**: Interactive Recharts-powered graphs show accessibility health over time.
+- **Screenshot Overlays**: NextGen maps Pa11y issues directly onto screenshots. Click an issue in the list to see exactly where it is on the page.
+- **Hybrid Scoring**: Combines Lighthouse's industry-standard metrics with our custom rule-based algorithm for intermediate scripted steps.
+
+---
+
+## NextGen vs. Original Pa11y Dashboard
+
+| Feature | Original Pa11y Dashboard | NextGen (This Project) |
+|---------|-------------------------|------------------------|
+| **Framework** | Express / EJS (Legacy) | Fastify / React 19 (Modern) |
+| **Language** | Plain JavaScript | 100% TypeScript (Type-safe) |
+| **Styling** | Custom LESS / CSS | Tailwind CSS 4.2 |
+| **Testing** | Mocha / Should | Vitest / React Testing Library |
+| **Scoring** | Basic issue counting | Hybrid Lighthouse + Weighted Rules |
+| **Visuals** | Static reports | Interactive Charts & Screenshot Pins |
+| **Speed** | Standard execution | Optimized Fastify + Concurrent Scheduler |
+| **Scripting** | Text-based Pa11y actions | Interactive UI Script Editor |
+
+---
 
 ## Scoring Algorithm
 
