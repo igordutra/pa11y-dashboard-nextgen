@@ -217,11 +217,6 @@ export function generateHtmlReport(url: Url, scan: Scan): string {
                 <div class="step-section">
                     <h3>Step ${sIdx + 1}: ${step.stepName}</h3>
                     <p>Accessibility Score for this step: <strong>${step.score}</strong> | Issues: <strong>${step.issues?.length || 0}</strong></p>
-                    ${step.screenshot ? `
-                        <div class="screenshot-container">
-                            <img src="${apiUrl}${step.screenshot}" alt="Screenshot of ${step.stepName}" class="screenshot-img">
-                        </div>
-                    ` : ''}
                     
                     ${(step.issues && step.issues.length > 0) ? 
                         step.issues.map((issue: Issue) => renderIssue(issue)).join('') : 
