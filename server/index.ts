@@ -9,6 +9,10 @@ import { SettingsModel, getSettings } from './models/settings.js';
 import { CategoryModel, CATEGORY_ICONS } from './models/category.js';
 import { z } from 'zod';
 import config from './config/index.js';
+import fastifyStatic from '@fastify/static';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Shared Zod schema for per-URL overrides
 const overridesSchema = z.object({
@@ -26,7 +30,7 @@ const overridesSchema = z.object({
   rootElement: z.string().optional(),
   userAgent: z.string().optional(),
   ignore: z.array(z.string()).optional(),
-  headers: z.record(z.string()).optional()
+  headers: z.record(z.string(), z.string()).optional()
 }).optional();
 
 const fastify = Fastify({
@@ -75,8 +79,6 @@ export const initApp = async () => {
     fastify.log.info('Connected to MongoDB');
 
     // Ensure screenshots directory exists
-    const fs = await import('fs/promises');
-    const path = await import('path');
     const screenshotsDir = config.screenshotsDir;
     try {
       await fs.access(screenshotsDir);
@@ -85,7 +87,6 @@ export const initApp = async () => {
     }
 
     // Serve static files
-    const fastifyStatic = await import('@fastify/static');
     await fastify.register(fastifyStatic, {
       root: screenshotsDir,
       prefix: '/screenshots/',
@@ -93,7 +94,6 @@ export const initApp = async () => {
 
     // In production, serve the frontend React application
     if (config.nodeEnv === 'production') {
-      const { fileURLToPath } = await import('url');
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = path.dirname(__filename);
       const clientDistDir = path.join(__dirname, '../client/dist');
@@ -193,7 +193,15 @@ export const initApp = async () => {
       }
     }, async (req, reply) => {
       const { url, name, schedule, standard, actions, overrides, categoryId } = req.body;
-      const newUrl = await UrlModel.create({ url, name, schedule, standard, actions, overrides, ...(categoryId ? { categoryId } : {}) });
+      const newUrl = await UrlModel.create({ 
+        url, 
+        name, 
+        schedule, 
+        standard, 
+        actions, 
+        overrides: overrides as any, 
+        ...(categoryId ? { categoryId } : {}) 
+      });
       return newUrl;
     });
 
@@ -207,7 +215,7 @@ export const initApp = async () => {
           id: z.string()
         }),
         response: {
-          204: z.null(),
+          204: z.any(),
           403: z.object({
             error: z.string(),
             message: z.string()
@@ -218,7 +226,7 @@ export const initApp = async () => {
       const { id } = req.params;
       await UrlModel.findByIdAndDelete(id);
       await ScanModel.deleteMany({ urlId: id });
-      reply.status(204).send();
+      reply.status(204).send({});
     });
 
     // CRUD: Update URL
@@ -258,13 +266,17 @@ export const initApp = async () => {
           403: z.object({
             error: z.string(),
             message: z.string()
+          }),
+          404: z.object({
+            error: z.string(),
+            message: z.string()
           })
         }
       }
     }, async (req, reply) => {
       const { id } = req.params;
       const updated = await UrlModel.findByIdAndUpdate(id, req.body, { new: true });
-      if (!updated) return reply.status(404).send({ error: 'Not found' });
+      if (!updated) return reply.status(404).send({ error: 'Not found', message: `URL with ID ${id} not found` });
       return updated;
     });
 
@@ -546,7 +558,7 @@ export const initApp = async () => {
           rootElement: z.string().optional(),
           userAgent: z.string().optional(),
           ignore: z.array(z.string()).optional(),
-          headers: z.record(z.string()).optional()
+          headers: z.record(z.string(), z.string()).optional()
         }),
         response: {
           200: z.object({

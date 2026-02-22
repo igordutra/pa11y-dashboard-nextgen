@@ -6,7 +6,9 @@
   "scripts": {
     "test": "vitest run",
     "start": "npx tsx index.ts",
-    "dev": "nodemon --exec 'npx tsx' index.ts"
+    "dev": "nodemon --exec 'npx tsx' index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
