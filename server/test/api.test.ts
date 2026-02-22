@@ -14,11 +14,12 @@ describe('API Tests', () => {
 
         // Inject MONGO_URI into process.env before initApp
         process.env.MONGO_URI = mongoUri;
+        process.env.NODE_ENV = 'test';
 
         // Wait for fastify to be ready
         await initApp();
         await app.ready();
-    }, 30000); // Increase timeout for CI
+    }, 60000); // 60s for slow CI
 
     beforeEach(async () => {
         // Clear database before each test
