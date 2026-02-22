@@ -66,11 +66,16 @@ export const startScheduler = () => {
             if (allDue.length > 0) {
                 console.log(`Found ${allDue.length} URLs due for scanning (${dueIntervalUrls.length} interval, ${dueCronUrls.length} cron).`);
 
-                // Use a set to avoid duplicates if any logic overlaps (unlikely with query but safe)
-                const uniqueIds = new Set(allDue.map(u => u._id.toString()));
+                // Simple concurrency control to avoid launching too many browsers at once
+                const MAX_CONCURRENT = 3;
+                const uniqueIds = Array.from(new Set(allDue.map(u => u._id.toString())));
 
-                for (const id of uniqueIds) {
-                    runScan(id).catch(err => console.error(`Scheduled scan failed for ${id}:`, err));
+                // Process in chunks
+                for (let i = 0; i < uniqueIds.length; i += MAX_CONCURRENT) {
+                    const chunk = uniqueIds.slice(i, i + MAX_CONCURRENT);
+                    await Promise.all(chunk.map(id => 
+                        runScan(id).catch(err => console.error(`Scheduled scan failed for ${id}:`, err))
+                    ));
                 }
             }
 

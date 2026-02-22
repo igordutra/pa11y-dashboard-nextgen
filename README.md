@@ -28,27 +28,44 @@ Pa11y Dashboard NextGen is a modern, high-performance web interface to the [Pa11
     -   **Screenshots**: View full-page screenshots of scanned pages at each step.
 -   **Scoring Algorithm**: Uses Lighthouse for initial load and a custom rule-based deduction for intermediate steps.
 
+## Scoring Algorithm
+
+Pa11y Dashboard NextGen uses a hybrid scoring system to provide accurate and meaningful accessibility metrics:
+
+### 1. Initial Load (Lighthouse)
+For the first page load, we use the official **Lighthouse Accessibility Score** (0-100). This is the industry standard and covers a wide range of automated checks.
+
+### 2. Multi-Step Actions (Custom Algorithm)
+Since Lighthouse typically requires a full page reload (which would lose the state of your scripted actions), intermediate steps use a **Custom Rule-Based Deduction Algorithm** based on Pa11y/Axe results:
+
+- **Base Score**: 100 points.
+- **Unique Rule Deductions**: We deduct points based on the *severity* of unique rules that failed, rather than the total number of issues. This prevents a single repetitive error (like a missing `alt` tag on many icons) from zeroing out the score.
+  - **Critical**: -15 points
+  - **Serious**: -8 points
+  - **Moderate**: -4 points
+  - **Minor**: -1 point
+- **Instance Penalty**: A small penalty of **0.1 points** is applied for every individual issue instance (capped at 20 points total) to reflect the scale of the problem.
+
+### 3. Overall Scan Score
+The final score displayed for a multi-step scan is the **average score** of all successful steps.
+
 ## Requirements
 
 - [Node.js][node]: Pa11y Dashboard NextGen requires Node.js 24 or above.
 - [MongoDB][mongodb]: This project stores test results in a MongoDB database and expects one to be available and running.
 - [Docker][docker] (Optional): Recommended for easy setup and deployment.
 
-## Setting up Pa11y Dashboard NextGen
+## Running the Application
 
-We recommend using Docker Compose for the quickest setup:
-
+### Using Docker (Recommended)
+The easiest way to get started is with Docker Compose:
 ```bash
 docker-compose up -d
 ```
-
 - **Dashboard**: [http://localhost:8080](http://localhost:8080)
 - **API**: [http://localhost:3000](http://localhost:3000)
 
 ### Manual Installation
-
-If you prefer to run it manually:
-
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/pa11y/pa11y-dashboard-nextgen.git
@@ -66,6 +83,29 @@ If you prefer to run it manually:
 4. **Run the application**:
    - **Backend**: `cd server && npm run dev`
    - **Frontend**: `cd client && npm run dev`
+
+## Testing
+
+We use [Vitest](https://vitest.dev/) for both frontend and backend testing.
+
+### Server Tests
+Includes API endpoint validation and scanning logic.
+```bash
+cd server
+npm run test
+```
+
+### Client Tests
+Includes component testing with React Testing Library.
+```bash
+cd client
+npm run test
+```
+
+## API Documentation
+
+The API includes built-in Swagger documentation. When the server is running, visit:
+`http://localhost:3000/documentation`
 
 ## Configuring Pa11y Dashboard NextGen
 

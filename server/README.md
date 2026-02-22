@@ -48,6 +48,24 @@ Configuration is managed via environment variables or a configuration loader in 
 The API includes built-in Swagger documentation. When the server is running, visit:
 `http://localhost:3000/documentation`
 
+### Core Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/urls` | List all monitored URLs |
+| `POST` | `/api/urls` | Add a new URL (Blocked in `readonly` mode) |
+| `PUT` | `/api/urls/:id` | Update a URL configuration |
+| `DELETE` | `/api/urls/:id` | Delete a URL and its history |
+| `POST` | `/api/urls/:id/scan` | Trigger an immediate manual scan |
+| `GET` | `/api/urls/:id/history` | Get the last 20 scan summaries for a URL |
+| `GET` | `/api/urls/:id/latest-scan` | Get full details for the most recent scan |
+| `GET` | `/api/scans/:scanId` | Get full details for a specific scan |
+| `GET` | `/api/categories` | List all categories |
+| `POST` | `/api/categories` | Create a new category |
+| `GET` | `/api/settings` | Get global scanning configuration |
+| `PUT` | `/api/settings` | Update global scanning configuration |
+| `GET` | `/api/environment` | Get server environment info (Pa11y/Node versions) |
+
 ## Architecture
 
 - **`index.ts`**: Fastify server setup and API route definitions.
