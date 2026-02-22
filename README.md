@@ -1,11 +1,11 @@
 # Pa11y Dashboard
 
-A modern, web-based dashboard for managing automated accessibility testing with Pa11y.
+A modern, web-based dashboard for managing automated accessibility testing with Pa11y and Lighthouse.
 
 ## Features
 
 -   **URL Management**: Add, edit, and delete URLs to monitor.
--   **Automated Scanning**: Schedule scans with Cron expressions (e.g., daily, hourly).
+-   **Automated Scanning**: Schedule scans with Cron expressions (e.g., daily, hourly) or intervals.
 -   **WCAG Standards**: Supports WCAG 2.0, 2.1, and 2.2 at levels A, AA, and AAA.
 -   **Scripted Multi-Step Scans**: Define user flows (click, type, wait) to test pages behind interactions like cookie banners or login forms.
 -   **Detailed Reports**: View comprehensive accessibility reports with issue breakdowns.
@@ -16,88 +16,86 @@ A modern, web-based dashboard for managing automated accessibility testing with 
     -   **Screenshots**: View full-page screenshots of scanned pages at each step.
     -   **Accessibility Scores**: Get a high-level score (0-100) based on Lighthouse/Pa11y metrics.
 -   **Categories**:
-    -   Organize URLs into categories with custom names, descriptions, icons (20 Lucide icons), and colors.
-    -   Sidebar navigation with category filtering — click a category to show only its URLs.
-    -   Manage categories (create, edit, delete) from the sidebar via a dialog.
-    -   Assign categories when adding or editing URLs.
+    -   Organize URLs into categories with custom names, descriptions, icons, and colors.
+    -   Sidebar navigation with category filtering.
 -   **Global Settings & Per-URL Overrides**:
     -   Configure Pa11y runner, viewport, timing, and reporting options globally.
     -   Override settings per URL for fine-grained control.
-    -   View environment info (Node.js version, Pa11y version, installed runners).
 
-### Scripted Actions
+## Scoring Algorithm
 
-Define a sequence of browser actions to execute before scanning:
+The dashboard uses a hybrid scoring system to provide meaningful accessibility metrics:
 
-| Action | Description | Example Value |
-|--------|-------------|---------------|
-| `wait` | Pause for milliseconds | `2000` |
-| `click` | Click a CSS selector | `#accept-cookies` |
-| `type` | Type into an input | `#search\|query text` |
-| `wait-for-url` | Wait for navigation | — |
+1.  **Initial Load**: Uses the official **Lighthouse Accessibility Score** (0-100).
+2.  **Scripted Steps**: Since Lighthouse usually forces a page reload (losing step state), intermediate steps use a **Custom Rule-Based Deduction Algorithm** based on Pa11y results:
+    -   **Base Score**: Starts at 100.
+    -   **Rule Deductions**: Deducts points based on unique rule failures (to prevent score zeroing from repetitive errors).
+        -   Critical: -15 pts
+        -   Serious: -8 pts
+        -   Moderate: -4 pts
+        -   Minor: -1 pt
+    -   **Instance Penalty**: A small penalty of 0.1 pts is applied per individual issue instance (max 20 pts).
+3.  **Overall Scan Score**: The final score for a multi-step scan is the **average score** across all successful steps.
 
-Each step captures its own screenshot, score, and issue list. Results are viewable via step-navigation tabs on the Report page.
-
-## Getting Started
+## Getting Started (Docker)
 
 The easiest way to run the dashboard is using Docker Compose.
 
-### Prerequisites
+```bash
+docker-compose up -d
+```
 
--   Docker and Docker Compose installed.
+-   **Dashboard**: [http://localhost:8080](http://localhost:8080)
+-   **API**: [http://localhost:3000](http://localhost:3000)
+-   **Swagger Docs**: [http://localhost:3000/documentation](http://localhost:3000/documentation)
 
-### Running the Dashboard
+## API Reference
 
-1.  Navigate to the project root.
-2.  Run the following command:
+The backend is built with Fastify and includes built-in Swagger documentation.
 
-    ```bash
-    docker-compose up -d
-    ```
-
-3.  Access the dashboard at [http://localhost:8080](http://localhost:8080).
-4.  The API is available at [http://localhost:3000](http://localhost:3000).
-
-## API Endpoints
+### Core Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/api/urls` | List all monitored URLs |
 | `POST` | `/api/urls` | Add a new URL |
-| `PUT` | `/api/urls/:id` | Update a URL |
-| `DELETE` | `/api/urls/:id` | Delete a URL |
-| `POST` | `/api/urls/:id/scan` | Trigger a scan |
-| `GET` | `/api/urls/:id/latest-scan` | Get latest scan results |
-| `GET` | `/api/urls/:id/history` | Get scan history |
-| `GET` | `/api/scans/:scanId` | Get a specific historical scan |
-| `GET` | `/api/categories` | List all categories |
-| `POST` | `/api/categories` | Create a category |
-| `PUT` | `/api/categories/:id` | Update a category |
-| `DELETE` | `/api/categories/:id` | Delete a category (unassigns URLs) |
-| `GET` | `/api/settings` | Get global settings |
-| `PUT` | `/api/settings` | Update global settings |
-| `GET` | `/api/environment` | Get environment info |
+| `PUT` | `/api/urls/:id` | Update a URL configuration |
+| `DELETE` | `/api/urls/:id` | Delete a URL and all its scan history |
+| `POST` | `/api/urls/:id/scan` | Trigger an immediate manual scan |
+| `GET` | `/api/urls/:id/history` | Get the last 20 scan summaries for a URL |
+| `GET` | `/api/scans/:scanId` | Get full details (including screenshots/steps) for a scan |
+| `GET` | `/api/settings` | Get global scanning configuration |
+| `PUT` | `/api/settings` | Update global scanning configuration |
+
+## Development Guide
+
+### Environment Setup
+1.  **Clone the repo**.
+2.  **Prerequisites**: Node.js 24+, MongoDB.
+3.  **Install Dependencies**:
+    ```bash
+    cd client && npm install
+    cd ../server && npm install
+    ```
+
+### Running Locally (with HMR)
+1.  Start MongoDB (e.g., `docker run -d -p 27017:27017 mongo`).
+2.  **Backend**: `cd server && npm run dev` (Runs on port 3000).
+3.  **Frontend**: `cd client && npm run dev` (Runs on port 8080).
+
+### Testing & Linting
+-   **Client**: `cd client && npm run test` and `npm run lint`.
+-   **Server**: `cd server && npm run test`.
+
+## Contribution Guide
+
+1.  **Fork the repository**.
+2.  **Create a feature branch**: `git checkout -b feature/your-feature`.
+3.  **Implement changes**: Ensure you follow the existing code style and add tests where appropriate.
+4.  **Verify**: Run all linting and test commands before committing.
+5.  **Submit a Pull Request**: Provide a clear description of the changes and the problem they solve.
 
 ## Tech Stack
 
--   **Frontend**: React, Vite, TailwindCSS, Shadcn UI, Recharts.
--   **Backend**: Node.js, Fastify, MongoDB, Mongoose, Puppeteer.
--   **Tools**: Pa11y, Lighthouse, Sharp.
-
-## Development
-
-To run in development mode with hot-reloading:
-
-1.  Ensure MongoDB is running (e.g., via Docker).
-2.  Start the server:
-    ```bash
-    cd server
-    npm install
-    npm run dev
-    ```
-3.  Start the client:
-    ```bash
-    cd client
-    npm install
-    npm run dev
-    ```
+-   **Frontend**: React 19, Vite, TailwindCSS 4, Radix UI, TanStack Query.
+-   **Backend**: Node.js, Fastify, MongoDB (Mongoose), Puppeteer, Pa11y, Lighthouse.
