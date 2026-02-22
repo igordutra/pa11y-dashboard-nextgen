@@ -23,7 +23,11 @@ export function ReportPage() {
     const { data: urlData, isLoading: isUrlLoading } = useQuery({
         queryKey: ['url', id],
         queryFn: async () => (await api.get(`/api/urls`)).data.find((u: Url) => u._id === id),
-        enabled: !!id
+        enabled: !!id,
+        refetchInterval: (query) => {
+            const url = (query.state.data as Url);
+            return url?.status === 'scanning' ? 5000 : false;
+        }
     });
 
     const { data: latestScan, isLoading: isLatestLoading } = useQuery({
@@ -165,8 +169,8 @@ export function ReportPage() {
                             <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" /> Latest Scan
                         </Button>
                     )}
-                    <Button onClick={() => scanMutation.mutate()} disabled={scanMutation.isPending}>
-                        {scanMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> : <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />}
+                    <Button onClick={() => scanMutation.mutate()} disabled={scanMutation.isPending || urlData.status === 'scanning'}>
+                        {scanMutation.isPending || urlData.status === 'scanning' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> : <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />}
                         Re-Scan
                     </Button>
                 </div>

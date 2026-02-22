@@ -32,7 +32,7 @@ export interface IUrl extends Document {
     lastScore?: number;
     lastScreenshot?: string;
     lastThumbnail?: string;
-    status: 'active' | 'error' | 'paused';
+    status: 'active' | 'error' | 'paused' | 'scanning';
     actions: IAction[];
     overrides?: IUrlOverrides;
     categoryId?: mongoose.Types.ObjectId;
@@ -56,7 +56,7 @@ const UrlSchema = new Schema<IUrl>({
     lastScore: { type: Number },
     lastScreenshot: { type: String }, // Path to full image
     lastThumbnail: { type: String },  // Path to thumbnail
-    status: { type: String, enum: ['active', 'error', 'paused'], default: 'active' },
+    status: { type: String, enum: ['active', 'error', 'paused', 'scanning'], default: 'active' },
     categoryId: { type: Schema.Types.ObjectId, ref: 'Category', default: null },
     actions: {
         type: [{

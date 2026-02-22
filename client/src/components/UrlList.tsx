@@ -14,6 +14,10 @@ export function UrlList() {
             const res = await api.get('/api/urls');
             return res.data;
         },
+        refetchInterval: (query) => {
+            const urls = query.state.data as Url[];
+            return urls?.some(u => u.status === 'scanning') ? 5000 : false;
+        }
     });
 
     if (isLoading) return <div className="p-4">Loading URLs...</div>;

@@ -43,7 +43,7 @@ export interface Url {
     name?: string;
     schedule: string;
     standard?: string;
-    status: 'active' | 'error' | 'paused';
+    status: 'active' | 'error' | 'paused' | 'scanning';
     lastScanAt?: string;
     lastIssueCount?: number;
     lastScore?: number;

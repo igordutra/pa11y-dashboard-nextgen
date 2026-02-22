@@ -248,6 +248,10 @@ export const runScan = async (urlId: string) => {
 
     console.log(`Starting advanced scan for ${urlDoc.url} with ${urlDoc.actions.length} actions`);
 
+    // Update status to scanning
+    urlDoc.status = 'scanning';
+    await urlDoc.save();
+
     // Load global settings and merge with per-URL overrides
     const globalSettings = await getSettings();
     const overrides = urlDoc.overrides || {};
@@ -406,11 +410,11 @@ export const runScan = async (urlId: string) => {
 
     } catch (error) {
         console.error(`Scan failed for ${urlDoc.url}:`, error);
-        // Only set status to 'error' if there's no previous successful scan data.
-        // Otherwise keep the existing status so the dashboard doesn't show
-        // contradictory "Score: 100 + Error" badges.
+        // Reset status from 'scanning'
         if (urlDoc.lastScore === undefined || urlDoc.lastScore === null) {
             urlDoc.status = 'error';
+        } else {
+            urlDoc.status = 'active'; // Or keep it as 'active' if it was working before
         }
         // Always record the failure time so the user knows when it last tried
         urlDoc.lastScanAt = new Date();

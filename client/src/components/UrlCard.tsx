@@ -55,6 +55,12 @@ export function UrlCard({ url }: UrlCardProps) {
                 <div className="flex justify-between items-start">
                     <CardTitle className="truncate pr-4">{url.name || url.url}</CardTitle>
                     <div className="flex gap-2">
+                        {url.status === 'scanning' && (
+                            <Badge variant="scanning" className="mr-2">
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                Scanning...
+                            </Badge>
+                        )}
                         {(url.lastScore !== undefined) && (
                             <Link to={`/report/${url._id}`}>
                                 <Badge variant={
@@ -122,10 +128,10 @@ export function UrlCard({ url }: UrlCardProps) {
                         variant="outline"
                         size="sm"
                         onClick={() => scanMutation.mutate()}
-                        disabled={scanMutation.isPending}
+                        disabled={scanMutation.isPending || url.status === 'scanning'}
                         aria-label={`Run new scan for ${url.name || url.url}`}
                     >
-                        {scanMutation.isPending ? (
+                        {scanMutation.isPending || url.status === 'scanning' ? (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                         ) : (
                             <Play className="mr-2 h-4 w-4" aria-hidden="true" />
