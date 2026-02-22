@@ -28,8 +28,9 @@ fastify.setSerializerCompiler(serializerCompiler);
 export const initApp = async () => {
   const currentConfig = getConfig();
   try {
+    const origins = currentConfig.clientUrl.split(',').map(url => url.trim());
     await fastify.register(cors, {
-      origin: [currentConfig.clientUrl],
+      origin: origins,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
     });
 

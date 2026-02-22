@@ -15,7 +15,7 @@ services:
       - key: MONGO_URI
         sync: false # Set this in Render Dashboard (Atlas URI)
       - key: CLIENT_URL
-        sync: false # Set this to your frontend URL
+        sync: false # Set this to your frontend URL (comma-separated for multiple origins)
       - key: PUPPETEER_EXECUTABLE_PATH
         value: /usr/bin/chromium
 
