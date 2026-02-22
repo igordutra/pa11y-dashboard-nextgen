@@ -1,7 +1,7 @@
 /**
  * Provides human-readable fix suggestions for common accessibility issue codes.
  */
-export function getIssueFixSuggestion(code: string, context?: string): string {
+export function getIssueFixSuggestion(code: string): string {
     if (!code) return "Review the issue details and follow WCAG guidelines for remediation.";
 
     // Axe Rules
@@ -13,7 +13,7 @@ export function getIssueFixSuggestion(code: string, context?: string): string {
         'button-name': "Ensure the button has a discernible name (text content or aria-label) so screen readers can announce its purpose.",
         'link-name': "Ensure the link has discernible text content so users know where it leads.",
         'empty-heading': "Headings must have text content to be useful for navigation.",
-        'html-has-lang': "Add a 'lang' attribute to the <html> element (e.g., <html lang="en">).",
+        'html-has-lang': "Add a 'lang' attribute to the <html> element (e.g., <html lang=\"en\">).",
         'valid-lang': "Ensure the 'lang' attribute has a valid BCP 47 language code.",
         'bypass': "Add a 'Skip to Main Content' link at the top of the page.",
         'region': "Ensure all content is contained within landmark regions (main, nav, header, footer).",

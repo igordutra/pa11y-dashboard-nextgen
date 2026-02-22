@@ -170,7 +170,6 @@ export function ReportPage() {
                             <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" /> Latest Scan
                         </Button>
                     )}
-                    {activeScan && <ExportReportModal url={urlData} scan={activeScan} />}
                     <Button onClick={() => scanMutation.mutate()} disabled={scanMutation.isPending || urlData.status === 'scanning'}>
                         {scanMutation.isPending || urlData.status === 'scanning' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> : <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />}
                         Re-Scan
@@ -441,17 +440,22 @@ export function ReportPage() {
                                     >
                                         <div className="font-medium">{new Date(scan.timestamp).toLocaleDateString()}</div>
                                         <div className="text-muted-foreground text-xs">{new Date(scan.timestamp).toLocaleTimeString()}</div>
-                                        <div className="mt-1">
-                                            <Badge variant={((scan.issuesCount ?? scan.issues?.length) ?? 0) > 0 ? 'destructive' : 'success'} className="active:scale-95 transition-transform">
-                                                {(scan.issuesCount ?? scan.issues?.length) ?? 0} Issues
-                                                <span className="sr-only"> found in this scan</span>
-                                            </Badge>
-                                            {scan.score !== undefined && (
-                                                <Badge variant={scan.score >= 90 ? 'success' : scan.score >= 50 ? 'warning' : 'destructive'} className="ml-2">
-                                                    Score: {scan.score}
-                                                    <span className="sr-only"> out of 100</span>
+                                        <div className="mt-1 flex items-center justify-between">
+                                            <div>
+                                                <Badge variant={((scan.issuesCount ?? scan.issues?.length) ?? 0) > 0 ? 'destructive' : 'success'} className="active:scale-95 transition-transform">
+                                                    {(scan.issuesCount ?? scan.issues?.length) ?? 0} Issues
+                                                    <span className="sr-only"> found in this scan</span>
                                                 </Badge>
-                                            )}
+                                                {scan.score !== undefined && (
+                                                    <Badge variant={scan.score >= 90 ? 'success' : scan.score >= 50 ? 'warning' : 'destructive'} className="ml-2">
+                                                        Score: {scan.score}
+                                                        <span className="sr-only"> out of 100</span>
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <div onClick={(e) => e.stopPropagation()}>
+                                                <ExportReportModal url={urlData} scan={scan} />
+                                            </div>
                                         </div>
                                         {scan.steps && scan.steps.length > 1 && (
                                             <div className="text-xs text-muted-foreground mt-1">

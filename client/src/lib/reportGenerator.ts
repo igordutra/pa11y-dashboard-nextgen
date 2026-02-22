@@ -237,7 +237,7 @@ export function generateHtmlReport(url: Url, scan: Scan): string {
     `;
 
     function renderIssue(issue: Issue) {
-        const fix = getIssueFixSuggestion(issue.code, issue.context);
+        const fix = getIssueFixSuggestion(issue.code);
         const docsUrl = getIssueDocsUrl(issue.code);
         const badgeClass = issue.type === 'error' ? 'badge-error' : issue.type === 'warning' ? 'badge-warning' : 'badge-notice';
 

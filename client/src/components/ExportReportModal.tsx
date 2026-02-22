@@ -11,7 +11,7 @@ import {
     DialogTrigger,
 } from './ui/dialog';
 import { Button } from './ui/button';
-import { FileDown, Eye, Loader2 } from 'lucide-react';
+import { FileDown, Eye } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 
 interface ExportReportModalProps {
@@ -21,7 +21,6 @@ interface ExportReportModalProps {
 
 export function ExportReportModal({ url, scan }: ExportReportModalProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const [isPreviewing, setIsPreviewing] = useState(false);
 
     const handleDownload = () => {
         const html = generateHtmlReport(url, scan);
