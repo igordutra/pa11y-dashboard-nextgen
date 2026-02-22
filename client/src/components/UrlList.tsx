@@ -2,17 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import api from '../lib/api';
 import { UrlCard } from './UrlCard';
-
-interface Url {
-    _id: string;
-    url: string;
-    name?: string;
-    frequency: number;
-    status: 'pass' | 'fail' | 'error' | 'pending';
-    lastScanAt?: string;
-    lastIssueCount?: number;
-    categoryId?: string | null;
-}
+import { Url } from '../types';
 
 export function UrlList() {
     const [searchParams] = useSearchParams();

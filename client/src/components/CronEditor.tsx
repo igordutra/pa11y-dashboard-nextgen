@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Input } from './ui/input';
-import { Label } from './ui/label';
 import { Button } from './ui/button';
 import cronstrue from 'cronstrue';
 import { Info } from 'lucide-react';

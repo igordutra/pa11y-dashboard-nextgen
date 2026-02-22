@@ -7,6 +7,7 @@ import { Button } from './ui/button';
 import { Play, Trash2, ExternalLink, Loader2 } from 'lucide-react';
 import { HistoryDialog } from './HistoryDialog';
 import { EditUrlDialog } from './EditUrlDialog';
+import { Url } from '../types';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -18,20 +19,6 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from './ui/alert-dialog';
-
-interface Url {
-    _id: string;
-    url: string;
-    name?: string;
-    frequency: number;
-    schedule?: string;
-    standard?: string;
-    status: 'pass' | 'fail' | 'error' | 'pending';
-    lastScanAt?: string;
-    lastIssueCount?: number;
-    lastScore?: number;
-    lastThumbnail?: string;
-}
 
 interface UrlCardProps {
     url: Url;
@@ -119,7 +106,7 @@ export function UrlCard({ url }: UrlCardProps) {
                 )}
                 <div className="text-sm text-muted-foreground space-y-1">
                     <p>Standard: <span className="font-medium">{url.standard || 'WCAG2AA'}</span></p>
-                    <p>Frequency: {url.schedule ? `Cron (${url.schedule})` : `Every ${url.frequency} mins`}</p>
+                    <p>Schedule: <span className="font-mono text-[10px]">{url.schedule}</span></p>
                     <p>Last Scan: {url.lastScanAt ? new Date(url.lastScanAt).toLocaleString() : 'Never'}</p>
                 </div>
             </CardContent>

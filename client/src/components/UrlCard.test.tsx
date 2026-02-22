@@ -31,10 +31,11 @@ const mockUrl = {
     _id: '123',
     url: 'https://example.com',
     name: 'Example Site',
-    frequency: 60,
-    status: 'pass' as const,
+    schedule: '0 * * * *',
+    status: 'active' as const,
     lastScore: 100,
-    lastIssueCount: 0
+    lastIssueCount: 0,
+    actions: []
 };
 
 describe('UrlCard Component', () => {

@@ -49,4 +49,5 @@ export interface Url {
     lastScore?: number;
     lastThumbnail?: string;
     actions: Action[];
+    categoryId?: string | null;
 }
