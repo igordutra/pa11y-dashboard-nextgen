@@ -34,8 +34,8 @@ export function TrendChart({ history, onSelectScan }: TrendChartProps) {
     };
 
     return (
-        <div className="h-[300px] w-full min-h-[300px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+        <div className="w-full">
+            <ResponsiveContainer width="100%" height={300} minWidth={0}>
                 <LineChart data={data} onClick={handleClick}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
