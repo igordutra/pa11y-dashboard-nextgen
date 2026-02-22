@@ -36,8 +36,8 @@ Fine-tune your accessibility scans at any level:
 
 ### 🎭 Scripted Multi-Step Actions
 Test complex user journeys, not just landing pages. Our script editor supports:
-- **`click`**: Interact with buttons, tabs, or menus.
-- **`type`**: Fill out forms (e.g., login, search).
+- **`click`**: Interact with buttons, tabs, or menus. Supports piercing iframes with `iframe_selector >>> element_selector`.
+- **`type`**: Fill out forms (e.g., login, search). Supports iframes with `iframe_selector >>> element_selector|text`.
 - **`wait`**: Pause for a specific duration to allow animations to finish.
 - **`wait-for-url`**: Synchronize with navigation events.
 - **Interactive Reports**: Each step generates its own score and screenshot, allowing you to pinpoint exactly where accessibility degrades in a user flow.
