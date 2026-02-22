@@ -8,6 +8,7 @@ import { UrlModel, ScanModel } from './models/index.js';
 import { SettingsModel, getSettings } from './models/settings.js';
 import { CategoryModel, CATEGORY_ICONS } from './models/category.js';
 import { z } from 'zod';
+import config from './config/index.js';
 
 // Shared Zod schema for per-URL overrides
 const overridesSchema = z.object({
@@ -35,16 +36,20 @@ const fastify = Fastify({
 fastify.setValidatorCompiler(validatorCompiler);
 fastify.setSerializerCompiler(serializerCompiler);
 
-// Database connection
-const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/pa11y-dashboard';
-
 import fastifyHelmet from '@fastify/helmet';
+
+// Middleware to check if dashboard is in readonly mode
+const checkReadonly = async (request: any, reply: any) => {
+  if (config.readonly) {
+    reply.status(403).send({ error: 'Forbidden', message: 'Dashboard is in read-only mode' });
+  }
+};
 
 // Initialize application (routes and plugins) without starting server
 export const initApp = async () => {
   try {
     await fastify.register(cors, {
-      origin: true, // Allow all origins (for development)
+      origin: [config.clientUrl],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
     });
 
@@ -55,11 +60,10 @@ export const initApp = async () => {
     await fastify.register(fastifySwagger, {
       openapi: {
         info: {
-          title: 'Pa11y Dashboard API',
+          title: 'Pa11y Dashboard NextGen API',
           description: 'API for managing Pa11y scans and results',
           version: '1.0.0',
         },
-        servers: [],
       },
     });
 
@@ -67,14 +71,13 @@ export const initApp = async () => {
       routePrefix: '/documentation',
     });
 
-    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/pa11y-dashboard';
-    await mongoose.connect(mongoUri);
+    await mongoose.connect(config.mongoUri);
     fastify.log.info('Connected to MongoDB');
 
     // Ensure screenshots directory exists
     const fs = await import('fs/promises');
     const path = await import('path');
-    const screenshotsDir = path.join(process.cwd(), 'screenshots');
+    const screenshotsDir = config.screenshotsDir;
     try {
       await fs.access(screenshotsDir);
     } catch {
@@ -89,7 +92,7 @@ export const initApp = async () => {
     });
 
     // In production, serve the frontend React application
-    if (process.env.NODE_ENV === 'production') {
+    if (config.nodeEnv === 'production') {
       const { fileURLToPath } = await import('url');
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = path.dirname(__filename);
@@ -111,7 +114,7 @@ export const initApp = async () => {
 
     // Basic Routes
     fastify.get('/', async function handler(request, reply) {
-      return { hello: 'world', service: 'pa11y-dashboard-api' };
+      return { hello: 'world', service: 'pa11y-dashboard-nextgen-api', readonly: config.readonly, noindex: config.noindex };
     });
 
     // CRUD: Get all URLs
@@ -150,6 +153,7 @@ export const initApp = async () => {
 
     // CRUD: Add URL
     fastify.post('/api/urls', {
+      preHandler: checkReadonly,
       schema: {
         description: 'Add a new URL to monitor',
         tags: ['urls'],
@@ -181,6 +185,10 @@ export const initApp = async () => {
             standard: z.string(),
             status: z.string()
           }),
+          403: z.object({
+            error: z.string(),
+            message: z.string()
+          }),
           404: z.object({
             error: z.string()
           })
@@ -194,6 +202,7 @@ export const initApp = async () => {
 
     // CRUD: Delete URL
     fastify.delete('/api/urls/:id', {
+      preHandler: checkReadonly,
       schema: {
         description: 'Delete a URL',
         tags: ['urls'],
@@ -201,7 +210,11 @@ export const initApp = async () => {
           id: z.string()
         }),
         response: {
-          204: z.null()
+          204: z.null(),
+          403: z.object({
+            error: z.string(),
+            message: z.string()
+          })
         }
       }
     }, async (req, reply) => {
@@ -213,6 +226,7 @@ export const initApp = async () => {
 
     // CRUD: Update URL
     fastify.put('/api/urls/:id', {
+      preHandler: checkReadonly,
       schema: {
         description: 'Update a URL',
         tags: ['urls'],
@@ -245,6 +259,10 @@ export const initApp = async () => {
             schedule: z.string().optional(),
             standard: z.string(),
             status: z.string()
+          }),
+          403: z.object({
+            error: z.string(),
+            message: z.string()
           })
         }
       }
@@ -257,6 +275,7 @@ export const initApp = async () => {
 
     // ACTION: Trigger Scan
     fastify.post('/api/urls/:id/scan', {
+      preHandler: checkReadonly,
       schema: {
         description: 'Trigger an immediate scan',
         tags: ['scans'],
@@ -265,6 +284,10 @@ export const initApp = async () => {
         }),
         response: {
           200: z.object({
+            message: z.string()
+          }),
+          403: z.object({
+            error: z.string(),
             message: z.string()
           })
         }
@@ -616,7 +639,7 @@ export const initApp = async () => {
 const start = async () => {
   try {
     await initApp();
-    await fastify.listen({ port: 3000, host: '0.0.0.0' });
+    await fastify.listen({ port: config.port, host: '0.0.0.0' });
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

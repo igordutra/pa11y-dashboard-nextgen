@@ -67,12 +67,15 @@ Ensure MongoDB is running (e.g., via Docker: `docker-compose up -d mongo`).
 
 ## Development Conventions
 
-1. **Type Safety**: Use Zod schemas for API validation in the backend and TypeScript types across the codebase.
-2. **Component Library**: Prefer Radix UI / Shadcn components for UI consistency.
-3. **Styling**: Use utility-first Tailwind CSS 4.
-4. **Testing**: Write Vitest tests for new features (especially scanner logic and API endpoints).
-5. **API Client**: Use Axios for backend communication, typically wrapped in TanStack Query hooks.
-6. **Environment Variables**: Managed via `.env` files and `docker-compose.yml`. Key variables include `MONGO_URI`, `PORT`, and `VITE_API_URL`.
+1.  **Type Safety**: Use Zod schemas for API validation in the backend and TypeScript types across the codebase.
+2.  **Component Library**: Prefer Radix UI / Shadcn components for UI consistency.
+3.  **Styling**: Use utility-first Tailwind CSS 4.
+4.  **Testing**: Write Vitest tests for new features (especially scanner logic and API endpoints).
+5.  **API Client**: Use Axios for backend communication, typically wrapped in TanStack Query hooks.
+6.  **Environment Variables**: Managed via `.env` files and `docker-compose.yml`. Key variables include `MONGO_URI`, `PORT`, and `VITE_API_URL`.
+7.  **Original Spirit**: Follow the documentation style and functional spirit of the original [pa11y-dashboard](https://github.com/pa11y/pa11y-dashboard). This includes clear requirement lists, configuration tables, and detailed setup guides.
+8.  **Coding Standards**: Maintain clean, modular code. Even while using modern frameworks, prioritize accessibility (a11y) in the dashboard itself, adhering to the mission of the project.
+
 
 ## Important Implementation Details
 

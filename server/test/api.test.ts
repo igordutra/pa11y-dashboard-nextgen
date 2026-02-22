@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { app, initApp } from '../index.js';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
@@ -12,11 +12,17 @@ describe('API Tests', () => {
         mongoServer = await MongoMemoryServer.create();
         const mongoUri = mongoServer.getUri();
 
+        // Inject MONGO_URI into process.env before initApp
         process.env.MONGO_URI = mongoUri;
 
         // Wait for fastify to be ready
         await initApp();
         await app.ready();
+    });
+
+    beforeEach(async () => {
+        // Clear database before each test
+        await UrlModel.deleteMany({});
     });
 
     afterAll(async () => {
@@ -34,7 +40,12 @@ describe('API Tests', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(JSON.parse(response.payload)).toEqual({ hello: 'world', service: 'pa11y-dashboard-api' });
+        expect(JSON.parse(response.payload)).toEqual({ 
+            hello: 'world', 
+            service: 'pa11y-dashboard-nextgen-api',
+            readonly: false,
+            noindex: true
+        });
     });
 
     it('GET /api/urls should return an empty array initially', async () => {

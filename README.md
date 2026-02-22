@@ -1,101 +1,103 @@
-# Pa11y Dashboard
+# Pa11y Dashboard NextGen
 
-A modern, web-based dashboard for managing automated accessibility testing with Pa11y and Lighthouse.
+Pa11y Dashboard NextGen is a modern, high-performance web interface to the [Pa11y][pa11y] and [Lighthouse][lighthouse] accessibility reporters; allowing you to focus on *fixing* issues rather than hunting them down.
+
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+[![Node.js version support](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org/)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+---
 
 ## Features
 
 -   **URL Management**: Add, edit, and delete URLs to monitor.
--   **Automated Scanning**: Schedule scans with Cron expressions (e.g., daily, hourly) or intervals.
--   **WCAG Standards**: Supports WCAG 2.0, 2.1, and 2.2 at levels A, AA, and AAA.
--   **Scripted Multi-Step Scans**: Define user flows (click, type, wait) to test pages behind interactions like cookie banners or login forms.
--   **Detailed Reports**: View comprehensive accessibility reports with issue breakdowns.
-    -   **Issue Fix Links**: Each issue includes a "How to fix" link to W3C technique pages (HTMLCS) or Deque University docs (axe).
+-   **Automated Scanning**: Schedule scans with Cron expressions or intervals.
+-   **Scripted Multi-Step Scans**: Define user flows (click, type, wait) to test pages behind interactions.
 -   **Visual History**:
-    -   **Trend Charts**: Track accessibility scores and issue counts over time with readable timestamps.
-    -   **Scan History Navigation**: Click any historical scan to view its full results — screenshots, scores, steps, and issues.
+    -   **Trend Charts**: Track accessibility scores and issue counts over time.
     -   **Screenshots**: View full-page screenshots of scanned pages at each step.
-    -   **Accessibility Scores**: Get a high-level score (0-100) based on Lighthouse/Pa11y metrics.
--   **Categories**:
-    -   Organize URLs into categories with custom names, descriptions, icons, and colors.
-    -   Sidebar navigation with category filtering.
--   **Global Settings & Per-URL Overrides**:
-    -   Configure Pa11y runner, viewport, timing, and reporting options globally.
-    -   Override settings per URL for fine-grained control.
+-   **Scoring Algorithm**: Uses Lighthouse for initial load and a custom rule-based deduction for intermediate steps.
 
-## Scoring Algorithm
+## Requirements
 
-The dashboard uses a hybrid scoring system to provide meaningful accessibility metrics:
+- [Node.js][node]: Pa11y Dashboard NextGen requires Node.js 24 or above.
+- [MongoDB][mongodb]: This project stores test results in a MongoDB database and expects one to be available and running.
+- [Docker][docker] (Optional): Recommended for easy setup and deployment.
 
-1.  **Initial Load**: Uses the official **Lighthouse Accessibility Score** (0-100).
-2.  **Scripted Steps**: Since Lighthouse usually forces a page reload (losing step state), intermediate steps use a **Custom Rule-Based Deduction Algorithm** based on Pa11y results:
-    -   **Base Score**: Starts at 100.
-    -   **Rule Deductions**: Deducts points based on unique rule failures (to prevent score zeroing from repetitive errors).
-        -   Critical: -15 pts
-        -   Serious: -8 pts
-        -   Moderate: -4 pts
-        -   Minor: -1 pt
-    -   **Instance Penalty**: A small penalty of 0.1 pts is applied per individual issue instance (max 20 pts).
-3.  **Overall Scan Score**: The final score for a multi-step scan is the **average score** across all successful steps.
+## Setting up Pa11y Dashboard NextGen
 
-## Getting Started (Docker)
-
-The easiest way to run the dashboard is using Docker Compose.
+We recommend using Docker Compose for the quickest setup:
 
 ```bash
 docker-compose up -d
 ```
 
--   **Dashboard**: [http://localhost:8080](http://localhost:8080)
--   **API**: [http://localhost:3000](http://localhost:3000)
--   **Swagger Docs**: [http://localhost:3000/documentation](http://localhost:3000/documentation)
+- **Dashboard**: [http://localhost:8080](http://localhost:8080)
+- **API**: [http://localhost:3000](http://localhost:3000)
 
-## API Reference
+### Manual Installation
 
-The backend is built with Fastify and includes built-in Swagger documentation.
+If you prefer to run it manually:
 
-### Core Endpoints
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/pa11y/pa11y-dashboard-nextgen.git
+   ```
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/urls` | List all monitored URLs |
-| `POST` | `/api/urls` | Add a new URL |
-| `PUT` | `/api/urls/:id` | Update a URL configuration |
-| `DELETE` | `/api/urls/:id` | Delete a URL and all its scan history |
-| `POST` | `/api/urls/:id/scan` | Trigger an immediate manual scan |
-| `GET` | `/api/urls/:id/history` | Get the last 20 scan summaries for a URL |
-| `GET` | `/api/scans/:scanId` | Get full details (including screenshots/steps) for a scan |
-| `GET` | `/api/settings` | Get global scanning configuration |
-| `PUT` | `/api/settings` | Update global scanning configuration |
+2. **Install dependencies**:
+   ```bash
+   cd client && npm install
+   cd ../server && npm install
+   ```
 
-## Development Guide
+3. **Configure environment**:
+   Create a `.env` file in the `server` directory (see [Configuring](#configuring-pa11y-dashboard-nextgen)).
 
-### Environment Setup
-1.  **Clone the repo**.
-2.  **Prerequisites**: Node.js 24+, MongoDB.
-3.  **Install Dependencies**:
-    ```bash
-    cd client && npm install
-    cd ../server && npm install
-    ```
+4. **Run the application**:
+   - **Backend**: `cd server && npm run dev`
+   - **Frontend**: `cd client && npm run dev`
 
-### Running Locally (with HMR)
-1.  Start MongoDB (e.g., `docker run -d -p 27017:27017 mongo`).
-2.  **Backend**: `cd server && npm run dev` (Runs on port 3000).
-3.  **Frontend**: `cd client && npm run dev` (Runs on port 8080).
+## Configuring Pa11y Dashboard NextGen
 
-### Testing & Linting
--   **Client**: `cd client && npm run test` and `npm run lint`.
--   **Server**: `cd server && npm run test`.
+Each configuration can be set with an environment variable in the `server` directory.
 
-## Contribution Guide
+### `PORT`
+*(number)* The port to run the API on (defaults to `3000`).
 
-1.  **Fork the repository**.
-2.  **Create a feature branch**: `git checkout -b feature/your-feature`.
-3.  **Implement changes**: Ensure you follow the existing code style and add tests where appropriate.
-4.  **Verify**: Run all linting and test commands before committing.
-5.  **Submit a Pull Request**: Provide a clear description of the changes and the problem they solve.
+### `MONGO_URI`
+*(string)* The MongoDB connection string (defaults to `mongodb://localhost:27017/pa11y-dashboard`).
 
-## Tech Stack
+### `CLIENT_URL`
+*(string)* The URL of the frontend application (for CORS).
 
--   **Frontend**: React 19, Vite, TailwindCSS 4, Radix UI, TanStack Query.
--   **Backend**: Node.js, Fastify, MongoDB (Mongoose), Puppeteer, Pa11y, Lighthouse.
+## Contributing
+
+There are many ways to contribute to Pa11y Dashboard NextGen. If you're ready to contribute some code:
+
+1. **Fork the repository**.
+2. **Create a feature branch**: `git checkout -b feature/your-feature`.
+3. **Run tests**:
+   - Client: `cd client && npm run test`
+   - Server: `cd server && npm run test`
+4. **Submit a Pull Request**.
+
+## Troubleshooting
+
+### Common issues
+
+- **MongoDB Connection**: Ensure MongoDB is running. If using Docker, check `docker-compose logs mongo`.
+- **Puppeteer/Chrome**: On Linux, you might need additional dependencies for Headless Chrome.
+
+## Support
+
+If you're experiencing issues, please [create a new issue](https://github.com/pa11y/pa11y-dashboard-nextgen/issues/new).
+
+## License
+
+Pa11y Dashboard NextGen is licensed under the [MIT License](LICENSE).
+
+[node]: http://nodejs.org/
+[mongodb]: http://www.mongodb.org/
+[pa11y]: https://github.com/pa11y/pa11y
+[lighthouse]: https://developers.google.com/web/tools/lighthouse
+[docker]: https://www.docker.com/
