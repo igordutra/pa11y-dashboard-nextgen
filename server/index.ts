@@ -36,8 +36,6 @@ export const initApp = async () => {
 
     await fastify.register(fastifyHelmet, {
       crossOriginResourcePolicy: false, // Required to serve images to the frontend
-      originAgentCluster: false,
-      crossOriginOpenerPolicy: false,
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
@@ -50,7 +48,6 @@ export const initApp = async () => {
           scriptSrc: ["'self'"],
           scriptSrcAttr: ["'none'"],
           styleSrc: ["'self'", "https:", "'unsafe-inline'"],
-          upgradeInsecureRequests: null,
           connectSrc: ["'self'", ...origins],
         },
       },
