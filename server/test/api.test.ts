@@ -34,10 +34,10 @@ describe('API Tests', () => {
         }
     }, 30000);
 
-    it('GET / should return hello world', async () => {
+    it('GET /api should return hello world', async () => {
         const response = await app.inject({
             method: 'GET',
-            url: '/'
+            url: '/api'
         });
 
         expect(response.statusCode).toBe(200);
