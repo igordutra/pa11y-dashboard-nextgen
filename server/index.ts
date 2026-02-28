@@ -38,6 +38,12 @@ export const initApp = async () => {
       crossOriginResourcePolicy: false, // Required to serve images to the frontend
       originAgentCluster: false,
       crossOriginOpenerPolicy: false,
+      contentSecurityPolicy: {
+        directives: {
+          ...fastifyHelmet.contentSecurityPolicy.getDefaultDirectives(),
+          "upgrade-insecure-requests": null,
+        },
+      },
     });
 
     await fastify.register(fastifySwagger, {
