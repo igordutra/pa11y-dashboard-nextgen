@@ -58,7 +58,7 @@ export function InteractiveScreenshot({ screenshotSrc, issues, stepName }: Inter
                     <div className="relative w-full h-auto max-w-full">
                         <img
                             ref={imgRef}
-                            src={screenshotSrc.startsWith('data:') ? screenshotSrc : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${screenshotSrc}`}
+                            src={screenshotSrc.startsWith('data:') ? screenshotSrc : `${import.meta.env.VITE_API_URL || ''}${screenshotSrc}`}
                             alt="Page Screenshot"
                             className="w-full h-auto block"
                         />

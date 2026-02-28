@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Save, RotateCcw, Server, Eye, Monitor, Clock, Shield, Info, CheckCircle2, Loader2 } from 'lucide-react';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API = import.meta.env.VITE_API_URL || '';
 
 interface Settings {
     _id: string;

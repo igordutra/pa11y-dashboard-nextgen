@@ -230,7 +230,7 @@ export function ReportPage() {
                             <CardContent>
                                 {currentData?.screenshot ? (
                                     <ScreenshotOverlay
-                                        screenshot={currentData.screenshot.startsWith('data:') ? currentData.screenshot : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${currentData.screenshot}`}
+                                        screenshot={currentData.screenshot.startsWith('data:') ? currentData.screenshot : `${import.meta.env.VITE_API_URL || ''}${currentData.screenshot}`}
                                         issues={issues}
                                         viewport={currentData.viewport}
                                         selectedIssueIndex={selectedIssueIndex}
@@ -404,7 +404,7 @@ export function ReportPage() {
                                                 {issue.snippetUrl && (
                                                     <div className="mt-2 rounded border overflow-hidden bg-muted/20">
                                                         <img 
-                                                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${issue.snippetUrl}`} 
+                                                            src={`${import.meta.env.VITE_API_URL || ''}${issue.snippetUrl}`} 
                                                             alt="Element snippet" 
                                                             className="max-h-32 w-auto object-contain"
                                                         />

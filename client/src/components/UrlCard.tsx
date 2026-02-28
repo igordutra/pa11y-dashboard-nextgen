@@ -107,7 +107,7 @@ export function UrlCard({ url }: UrlCardProps) {
                 {url.lastThumbnail && (
                     <div className="mb-4 rounded-md overflow-hidden border">
                         <img
-                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${url.lastThumbnail}`}
+                            src={`${import.meta.env.VITE_API_URL || ''}${url.lastThumbnail}`}
                             alt={`Thumbnail for ${url.name || url.url}`}
                             className="w-full h-32 object-cover object-top"
                             onError={(e) => {

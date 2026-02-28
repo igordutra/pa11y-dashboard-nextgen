@@ -7,7 +7,7 @@ import { getIssueFixSuggestion } from './issueFixes';
  */
 export function generateHtmlReport(url: Url, scan: Scan): string {
     const date = new Date(scan.timestamp).toLocaleString();
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const apiUrl = import.meta.env.VITE_API_URL || '';
     
     // Calculate stats across all steps if available, or just from the main issues list
     const allIssues = scan.steps && scan.steps.length > 0 
