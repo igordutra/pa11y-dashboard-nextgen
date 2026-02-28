@@ -6,6 +6,7 @@ import { Info } from 'lucide-react';
 interface CronEditorProps {
     value: string;
     onChange: (value: string) => void;
+    disabled?: boolean;
 }
 
 const PRESETS = [
@@ -15,7 +16,7 @@ const PRESETS = [
     { label: 'Monthly (1st)', cron: '0 0 1 * *' },
 ];
 
-export function CronEditor({ value, onChange }: CronEditorProps) {
+export function CronEditor({ value, onChange, disabled }: CronEditorProps) {
     // Derived state for human readable description
     let humanReadable = '';
     let error: string | null = null;
@@ -43,6 +44,7 @@ export function CronEditor({ value, onChange }: CronEditorProps) {
                         className="text-[10px] h-7"
                         onClick={() => onChange(preset.cron)}
                         aria-pressed={value === preset.cron}
+                        disabled={disabled}
                     >
                         {preset.label}
                     </Button>
@@ -58,6 +60,7 @@ export function CronEditor({ value, onChange }: CronEditorProps) {
                         }
                     }}
                     aria-pressed={!PRESETS.some(p => p.cron === value)}
+                    disabled={disabled}
                 >
                     Custom
                 </Button>
@@ -71,6 +74,7 @@ export function CronEditor({ value, onChange }: CronEditorProps) {
                     placeholder="0 * * * *"
                     className={`font-mono ${error ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                     required
+                    disabled={disabled}
                     aria-label="Cron expression"
                     aria-invalid={!!error}
                     aria-describedby={error ? "cron-error" : "cron-description"}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import { Button } from './ui/button';
 import {
@@ -13,7 +13,7 @@ import {
 } from './ui/dialog';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Pencil } from 'lucide-react';
+import { Pencil, AlertTriangle } from 'lucide-react';
 import { ActionEditor } from './ActionEditor';
 import { Action } from '../types';
 import { CategorySelect } from './CategorySelect';
@@ -58,6 +58,12 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
     const [categoryId, setCategoryId] = useState<string | null>(urlData.categoryId || null);
 
     const queryClient = useQueryClient();
+
+    const { data: apiStatus } = useQuery({
+        queryKey: ['apiStatus'],
+        queryFn: async () => (await api.get('/api')).data,
+    });
+    const isDemoMode = !!apiStatus?.demoMode;
 
     const mutation = useMutation({
         mutationFn: async (updatedUrl: { name?: string; standard?: string; schedule?: string; actions: Action[]; overrides?: UrlOverrides; categoryId?: string | null }) => {
@@ -174,7 +180,13 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
                                         Schedule (Cron)
                                     </Label>
                                     <div className="col-span-3">
-                                        <CronEditor value={schedule} onChange={setSchedule} />
+                                        {isDemoMode && (
+                                            <div className="mb-2 flex items-center gap-2 text-xs text-amber-600 bg-amber-500/10 p-2 rounded">
+                                                <AlertTriangle className="h-3 w-3" />
+                                                Background scheduling is disabled in Demo Mode to prevent server overload. You can still trigger manual scans.
+                                            </div>
+                                        )}
+                                        <CronEditor value={schedule} onChange={setSchedule} disabled={isDemoMode} />
                                     </div>
                                 </div>
                                 <CategorySelect value={categoryId} onChange={setCategoryId} />

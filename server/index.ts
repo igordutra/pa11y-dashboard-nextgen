@@ -106,7 +106,13 @@ export const initApp = async () => {
 
     // Basic Routes
     fastify.get('/api', async function handler(request, reply) {
-      return { hello: 'world', service: 'pa11y-dashboard-nextgen-api', readonly: currentConfig.readonly, noindex: currentConfig.noindex };
+      return { 
+        hello: 'world', 
+        service: 'pa11y-dashboard-nextgen-api', 
+        readonly: currentConfig.readonly, 
+        noindex: currentConfig.noindex,
+        demoMode: currentConfig.demoMode 
+      };
     });
 
     // Register modular routes
@@ -116,8 +122,12 @@ export const initApp = async () => {
     await fastify.register(settingsRoutes);
 
     // Start Scheduler
-    const { startScheduler } = await import('./lib/scheduler.js');
-    startScheduler();
+    if (currentConfig.demoMode) {
+      fastify.log.info('Running in DEMO MODE: Background scheduler disabled.');
+    } else {
+      const { startScheduler } = await import('./lib/scheduler.js');
+      startScheduler();
+    }
 
     await fastify.ready();
     return fastify;

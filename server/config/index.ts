@@ -13,6 +13,7 @@ const configSchema = z.object({
   readonly: z.coerce.boolean().default(false),
   nodeEnv: z.enum(['development', 'production', 'test']).default('development'),
   screenshotsDir: z.string().default(path.join(process.cwd(), 'screenshots')),
+  demoMode: z.coerce.boolean().default(false),
 });
 
 export type Config = z.infer<typeof configSchema>;
@@ -25,6 +26,7 @@ export const getConfig = (): Config => {
     noindex: process.env.NOINDEX,
     readonly: process.env.READONLY,
     nodeEnv: process.env.NODE_ENV,
+    demoMode: process.env.DEMO_MODE,
   });
 };
 

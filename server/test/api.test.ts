@@ -45,7 +45,8 @@ describe('API Tests', () => {
             hello: 'world', 
             service: 'pa11y-dashboard-nextgen-api',
             readonly: false,
-            noindex: true
+            noindex: true,
+            demoMode: false
         });
     });
 
