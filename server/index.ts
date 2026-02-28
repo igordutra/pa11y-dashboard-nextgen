@@ -40,9 +40,18 @@ export const initApp = async () => {
       crossOriginOpenerPolicy: false,
       contentSecurityPolicy: {
         directives: {
-          ...fastifyHelmet.contentSecurityPolicy.getDefaultDirectives(),
-          "upgrade-insecure-requests": null,
-          "connect-src": ["'self'", ...origins],
+          defaultSrc: ["'self'"],
+          baseUri: ["'self'"],
+          fontSrc: ["'self'", "https:", "data:"],
+          formAction: ["'self'"],
+          frameAncestors: ["'self'"],
+          imgSrc: ["'self'", "data:"],
+          objectSrc: ["'none'"],
+          scriptSrc: ["'self'"],
+          scriptSrcAttr: ["'none'"],
+          styleSrc: ["'self'", "https:", "'unsafe-inline'"],
+          upgradeInsecureRequests: null,
+          connectSrc: ["'self'", ...origins],
         },
       },
     });
