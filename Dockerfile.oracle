@@ -28,8 +28,10 @@ COPY server/ ./
 # The server index.ts expects the client at ../client/dist relative to server/
 COPY --from=client-builder /app/client/dist /app/client/dist
 
+# Create screenshots directory and ensure correct permissions for the node user
+RUN mkdir -p /app/server/screenshots && chown -R node:node /app
+
 # Switch to non-root user
-RUN chown -R node:node /app
 USER node
 
 EXPOSE 3000
