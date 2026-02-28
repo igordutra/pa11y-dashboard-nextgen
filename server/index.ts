@@ -90,7 +90,7 @@ export const initApp = async () => {
     }
 
     // Basic Routes
-    fastify.get('/', async function handler(request, reply) {
+    fastify.get('/api', async function handler(request, reply) {
       return { hello: 'world', service: 'pa11y-dashboard-nextgen-api', readonly: currentConfig.readonly, noindex: currentConfig.noindex };
     });
 
