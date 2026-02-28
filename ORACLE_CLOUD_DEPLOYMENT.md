@@ -137,7 +137,20 @@ Once the build finishes and the containers start up, open your web browser and n
 
 ---
 
-## Troubleshooting
+## Step 9: Securing with SSL (Highly Recommended)
+
+While accessing the dashboard via IP works, it is highly recommended to secure your application with a custom domain and an SSL certificate. The easiest way to do this with Docker is using a reverse proxy like **Caddy**, which automatically provisions and renews Let's Encrypt certificates.
+
+1. **Point your domain:** In your DNS provider (e.g., Cloudflare, Namecheap, Route53), create an `A Record` for a subdomain (e.g., `a11y.yourdomain.com`) pointing to your `<YOUR_PUBLIC_IP>`.
+2. **Open Port 443:** Go back to Oracle Cloud -> VCN -> Security List and add another Ingress Rule for Port `443` (just like you did for 80).
+3. **Open Ubuntu Firewall for 443:**
+   ```bash
+   sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+   sudo netfilter-persistent save
+   ```
+4. Modify your setup to place a proxy container in front of the `app` container.
+
+---
 
 ### "Out of capacity for shape VM.Standard.A1.Flex" Error
 This is a very common issue with Oracle's "Always Free" tier. The Ampere (ARM) instances are extremely popular, and regions occasionally run out of free capacity. 
