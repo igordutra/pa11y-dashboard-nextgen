@@ -1,0 +1,3 @@
+pa11ydash.mangaba.co.uk {
+    reverse_proxy app:3000
+}

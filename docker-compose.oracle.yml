@@ -2,19 +2,32 @@ services:
   # Database
   mongo:
     image: mongo:latest
-    ports:
-      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     restart: always
+
+  # Reverse Proxy (Auto SSL)
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
 
   # Unified App (Frontend + Backend)
   app:
     build:
       context: .
       dockerfile: Dockerfile.oracle
-    ports:
-      - "80:3000"
+    # Port 3000 is now only exposed internally to Caddy, not the host machine
+    expose:
+      - "3000"
     volumes:
       - screenshots_data:/app/server/screenshots
     depends_on:
@@ -23,7 +36,7 @@ services:
       - MONGO_URI=mongodb://mongo:27017/pa11y-dashboard
       - PORT=3000
       - NODE_ENV=production
-      - CLIENT_URL=http://140.238.77.175
+      - CLIENT_URL=https://pa11ydash.mangaba.co.uk
       - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
     cap_add:
@@ -33,3 +46,5 @@ services:
 volumes:
   mongodb_data:
   screenshots_data:
+  caddy_data:
+  caddy_config:
