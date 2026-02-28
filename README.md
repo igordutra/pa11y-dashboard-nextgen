@@ -8,6 +8,14 @@ Pa11y Dashboard NextGen is a modern, high-performance web interface to the [Pa11
 
 ---
 
+## 🚀 Live Demo
+
+**[Try the Live Demo Here!](https://pa11ydash.mangaba.co.uk)**
+
+*Note: The demo environment is secured and runs in "Demo Mode". Background scheduling of scans is disabled to prevent server overload, but you can freely add URLs and trigger manual scans. The database and screenshots are automatically wiped clean every night at 2:00 AM UTC.*
+
+---
+
 ## Screenshots
 
 ![Dashboard](https://placehold.co/800x450?text=Dashboard+Screenshot)
