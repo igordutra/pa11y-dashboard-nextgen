@@ -1,0 +1,8 @@
+# Global owners
+*       @igordutra
+
+# Backend specialists
+/server/ @igordutra
+
+# Frontend specialists
+/client/ @igordutra
