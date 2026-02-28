@@ -1,0 +1,37 @@
+# Stage 1: Build the React Client
+FROM node:24-alpine as client-builder
+WORKDIR /app/client
+COPY client/package*.json ./
+RUN npm ci
+COPY client/ ./
+# Empty VITE_API_URL ensures the frontend makes API calls to its own origin (the Node server)
+ENV VITE_API_URL=""
+RUN npm run build
+
+# Stage 2: Build the Fastify Server and bundle everything
+FROM node:24-bookworm-slim
+
+# Install Chromium and dependencies for Puppeteer
+RUN apt-get update && apt-get install -y chromium wget gnupg ca-certificates procps libxss1 libasound2 libnss3 libatk-bridge2.0-0 libgtk-3-0 libgbm-dev --no-install-recommends && rm -rf /var/lib/apt/lists/*
+
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+WORKDIR /app/server
+
+# Copy server dependencies and source
+COPY server/package*.json ./
+RUN npm ci
+COPY server/ ./
+
+# Copy the built client from Stage 1 into the location expected by the server
+# The server index.ts expects the client at ../client/dist relative to server/
+COPY --from=client-builder /app/client/dist /app/client/dist
+
+# Switch to non-root user
+RUN chown -R node:node /app
+USER node
+
+EXPOSE 3000
+
+CMD ["npm", "start"]

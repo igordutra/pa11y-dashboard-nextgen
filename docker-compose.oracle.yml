@@ -1,0 +1,33 @@
+services:
+  # Database
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: always
+
+  # Unified App (Frontend + Backend)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.oracle
+    ports:
+      - "80:3000"
+    volumes:
+      - screenshots_data:/app/server/screenshots
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/pa11y-dashboard
+      - PORT=3000
+      - NODE_ENV=production
+      - CLIENT_URL=http://140.238.77.175
+    cap_add:
+      - SYS_ADMIN
+    restart: always
+
+volumes:
+  mongodb_data:
+  screenshots_data:
