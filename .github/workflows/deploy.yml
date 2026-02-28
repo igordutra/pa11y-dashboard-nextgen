@@ -1,0 +1,30 @@
+name: Deploy to Oracle Cloud
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    # Wait for the CI pipeline to pass before deploying
+    needs: [] 
+
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_USERNAME }}
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          script: |
+            cd ~/pa11y-dashboard-nextgen
+            git pull origin main
+            
+            # Rebuild and restart the container
+            sudo docker compose -f docker-compose.oracle.yml up -d --build app
+            
+            # Clean up old docker images to prevent filling the disk over time
+            sudo docker image prune -f
