@@ -42,6 +42,7 @@ export const initApp = async () => {
         directives: {
           ...fastifyHelmet.contentSecurityPolicy.getDefaultDirectives(),
           "upgrade-insecure-requests": null,
+          "connect-src": ["'self'", ...origins],
         },
       },
     });
