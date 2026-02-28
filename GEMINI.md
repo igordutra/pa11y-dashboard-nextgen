@@ -44,9 +44,11 @@ Ensure MongoDB is running (e.g., via Docker: `docker-compose up -d mongo`).
   cd client && npm install && npm run dev
   ```
 
-### Docker
-- **Run all services**: `docker-compose up -d`
-- **Build services**: `docker-compose build`
+### Production Deployment
+The application is designed to be deployed as a single, unified container where the Fastify backend serves both the `/api` routes and the static compiled React frontend.
+
+- **Unified Docker Build**: `docker-compose -f docker-compose.oracle.yml up -d --build`
+- See `ORACLE_CLOUD_DEPLOYMENT.md` for full VPS hosting instructions.
 
 ### Testing
 - **Client**: `cd client && npm run test`
