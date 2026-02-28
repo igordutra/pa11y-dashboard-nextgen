@@ -1,6 +1,6 @@
 # Pa11y Dashboard NextGen - GEMINI.md
 
-This project is a modern accessibility monitoring dashboard built with React and Node.js. It allows users to schedule accessibility scans using `pa11y` and `lighthouse`, supporting multi-step scripted interactions.
+This project is a modern accessibility monitoring dashboard built with React and Node.js. It enables users to schedule accessibility scans using `pa11y` and `lighthouse`, supporting multi-step scripted interactions and automated issue tracking.
 
 ## Project Overview
 
@@ -33,7 +33,7 @@ This project is a modern accessibility monitoring dashboard built with React and
 ## Key Commands
 
 ### Development (Local)
-Ensure MongoDB is running (e.g., via Docker: `docker-compose up -d mongo`).
+Ensure MongoDB is running (e.g. via Docker: `docker-compose up -d mongo`).
 
 - **Server**: 
   ```bash
@@ -74,16 +74,14 @@ The application is designed to be deployed as a single, unified container where 
 3.  **Styling**: Use utility-first Tailwind CSS 4.2.
 4.  **Testing**: Write Vitest tests for new features (especially scanner logic and API endpoints).
 5.  **API Client**: Use Axios for backend communication, typically wrapped in TanStack Query hooks.
-6.  **Environment Variables**: Managed via `.env` files and `docker-compose.yml`. Key variables include `MONGO_URI`, `PORT`, and `VITE_API_URL`.
-7.  **Original Spirit**: Follow the documentation style and functional spirit of the original [pa11y-dashboard](https://github.com/pa11y/pa11y-dashboard). This includes clear requirement lists, configuration tables, and detailed setup guides.
-8.  **Coding Standards**: Maintain clean, modular code. Even while using modern frameworks, prioritize accessibility (a11y) in the dashboard itself, adhering to the mission of the project.
-
+6.  **Environment Variables**: Managed via `.env` files and `docker-compose.yml`. Key variables include `MONGO_URI`, `PORT`, and `CLIENT_URL`.
+7.  **Ethos**: Maintain a clean, modular codebase. Prioritise accessibility (a11y) within the dashboard itself, adhering to the mission of the project. Use British English for documentation.
 
 ## Important Implementation Details
 
 - **Screenshots**: Full-page screenshots are captured using Puppeteer by adjusting the viewport to match the document height.
 - **Multi-Step Scans**: Defined via actions (`wait`, `click`, `type`, `wait-for-url`) and processed sequentially in `runner.ts`.
-    - **Iframe Support**: Actions like `click` and `type` support a special syntax to interact with elements inside iframes: `iframe_selector >>> element_selector` (e.g., `#my-iframe >>> .login-btn`).
+    - **Iframe Support**: Actions like `click` and `type` support a special syntax to interact with elements inside iframes: `iframe_selector >>> element_selector` (e.g. `#my-iframe >>> .login-btn`).
 - **Focused Issue Snippets**: The scanner automatically crops screenshots to the bounding box of each identified issue (using `sharp`). These snippets are displayed in the UI and included in exported reports for easier remediation.
 - **Accessibility Score**: Calculated using Lighthouse for the initial load and a custom rule-based deduction algorithm for intermediate steps (based on Pa11y issue count and impact).
-- **Scheduler**: Runs every 60 seconds to check for URLs where `lastScanAt` is older than the most recent cron schedule execution.
+- **Scheduler**: Runs every 60 seconds to check for URLs where `lastScanAt` is older than the most recent cron schedule execution. Disabled if `DEMO_MODE=true`.

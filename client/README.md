@@ -14,12 +14,12 @@ The frontend application for the Pa11y Dashboard, built with React and Vite.
 
 ## Key Features
 
-- **Dashboard**: High-level overview of all monitored sites with real-time status and accessibility scores.
-- **Rich Categories**: Organize URLs with custom icons and colors for better manageability.
+- **Dashboard**: High-level overview of monitored sites with real-time status and accessibility scores.
+- **Rich Categories**: Organise URLs with custom icons and colours for better manageability.
 - **Interactive Reports**: 
-    - Full-page screenshots with issue mapping (click issue to highlight on image).
+    - Full-page screenshots with issue mapping (click an issue to highlight it on the image).
     - Historical trend charts per URL.
-    - Multi-step interaction results (see results for each click/type action).
+    - Multi-step interaction results (view results for each click/type action).
 - **Advanced Configuration**: UI for per-URL overrides (runners, viewports, headers, and element exclusion).
 - **Cron Editor**: Intuitive schedule management with presets and human-readable feedback.
 
@@ -30,7 +30,7 @@ The frontend application for the Pa11y Dashboard, built with React and Vite.
    npm install
    ```
 
-2. **Run dev server**:
+2. **Run development server**:
    ```bash
    npm run dev
    ```
@@ -48,4 +48,4 @@ The frontend application for the Pa11y Dashboard, built with React and Vite.
 
 ## Component Guidelines
 
-We use Radix UI and Tailwind CSS for accessible, consistent UI components. When adding new components, follow the existing patterns in `src/components/ui/`.
+We use Radix UI and Tailwind CSS for accessible, consistent UI components. When adding new components, please follow the existing patterns in `src/components/ui/`.
