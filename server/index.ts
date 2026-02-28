@@ -36,6 +36,8 @@ export const initApp = async () => {
 
     await fastify.register(fastifyHelmet, {
       crossOriginResourcePolicy: false, // Required to serve images to the frontend
+      originAgentCluster: false,
+      crossOriginOpenerPolicy: false,
     });
 
     await fastify.register(fastifySwagger, {
