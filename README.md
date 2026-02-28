@@ -108,6 +108,11 @@ docker-compose up -d
 - **Dashboard**: [http://localhost:8080](http://localhost:8080)
 - **API**: [http://localhost:3000](http://localhost:3000)
 
+### Production Deployment (Free Tier)
+We have provided a comprehensive, step-by-step guide for deploying this application completely for free on an **Oracle Cloud Ampere A1 instance**. This instance type provides enough memory (up to 24GB) and persistent storage to smoothly run Puppeteer and save generated screenshots.
+
+👉 **[View the Oracle Cloud Deployment Guide](ORACLE_CLOUD_DEPLOYMENT.md)**
+
 ### Manual Installation
 1. **Clone the repository**:
    ```bash
