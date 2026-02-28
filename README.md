@@ -193,6 +193,10 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for det
 - **MongoDB Connection**: Ensure MongoDB is running. If using Docker, check `docker-compose logs mongo`.
 - **Puppeteer/Chrome**: On Linux, ensure all Chromium dependencies are installed (included in our Dockerfiles).
 
+## Acknowledgements
+
+A special thank you to the [Pa11y project](https://github.com/pa11y) and its incredible community for providing the foundations and inspiration for this dashboard.
+
 ## License
 
 Pa11y Dashboard NextGen is licensed under the [MIT License](LICENSE).
