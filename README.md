@@ -18,11 +18,14 @@ Pa11y Dashboard NextGen is a modern, high-performance web interface to the [Pa11
 
 ## Screenshots
 
-![Dashboard](https://placehold.co/800x450?text=Dashboard+Screenshot)
+![Dashboard](docs/screenshots/dashboard.png)
 *The main dashboard showing URL cards, statuses, and scores.*
 
-![Report Page](https://placehold.co/800x450?text=Report+Screenshot)
+![Report Page](docs/screenshots/report.png)
 *Detailed accessibility report with multi-step scan results and screenshots.*
+
+![Settings Page](docs/screenshots/settings.png)
+*Global configuration for runners, viewports, and scanning rules.*
 
 ---
 
