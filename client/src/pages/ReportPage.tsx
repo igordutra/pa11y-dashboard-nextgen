@@ -5,7 +5,19 @@ import api from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, Info, Loader2, ExternalLink } from 'lucide-react';
+import { 
+    ArrowLeft, 
+    RefreshCw, 
+    AlertTriangle, 
+    AlertCircle, 
+    Info, 
+    Loader2, 
+    ExternalLink, 
+    Layers, 
+    Clock, 
+    CheckCircle2,
+    Activity 
+} from 'lucide-react';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { TrendChart } from '../components/TrendChart';
 import { getIssueDocsUrl } from '../lib/issueDocsUrl';
@@ -113,6 +125,7 @@ export function ReportPage() {
             queryClient.invalidateQueries({ queryKey: ['url', id] });
         }
     });
+
     // Update document title for SEO
     useEffect(() => {
         if (urlData) {
@@ -123,6 +136,17 @@ export function ReportPage() {
         };
     }, [urlData]);
 
+    const getScoreColor = (score: number) => {
+        if (score >= 90) return 'text-green-600 stroke-green-600';
+        if (score >= 50) return 'text-amber-500 stroke-amber-500';
+        return 'text-red-600 stroke-red-600';
+    };
+
+    const getScoreBg = (score: number) => {
+        if (score >= 90) return 'bg-green-50';
+        if (score >= 50) return 'bg-amber-50';
+        return 'bg-red-50';
+    };
 
     if (isUrlLoading || isLatestLoading) return <div className="p-8">Loading report...</div>;
     if (!urlData) return <div className="p-8">URL not found</div>;
@@ -138,7 +162,6 @@ export function ReportPage() {
     const noticeCount = issues.filter((i: Issue) => i.type === 'notice').length;
 
     const handleSelectScan = (scanId: string) => {
-        // If selecting the latest scan, clear selection to use the latestScan query
         if (history && history.length > 0 && history[0]._id === scanId) {
             setSelectedScanId(null);
         } else {
@@ -146,89 +169,136 @@ export function ReportPage() {
         }
     };
 
-
-
-    // Determine which scan ID is currently active for highlighting
     const activeScanId = selectedScanId || latestScan?._id;
+    const score = currentData?.score ?? 0;
+    const hasScore = currentData?.score !== undefined;
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" onClick={() => navigate('/')}>
-                    <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
-                    Back
-                </Button>
-                <div>
-                    <h1 className="text-2xl font-bold">{urlData.name || urlData.url}</h1>
-                    <a href={urlData.url} target="_blank" rel="noreferrer" className="text-muted-foreground hover:underline" aria-label={`Visit ${urlData.name || urlData.url} (opens in new tab)`}>
-                        {urlData.url}
-                    </a>
+        <div className="space-y-8 pb-10">
+            {/* Header Section */}
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                    <Button 
+                        variant="ghost" 
+                        onClick={() => navigate('/')}
+                        className="rounded-xl hover:bg-slate-100 text-slate-600 h-10 w-10 p-0"
+                        aria-label="Back to dashboard"
+                    >
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <h1 className="text-3xl font-bold tracking-tight text-slate-800">{urlData.name || urlData.url}</h1>
+                            <Badge variant="outline" className="bg-slate-100/50 border-slate-200 text-slate-600 font-bold px-2 py-0.5 rounded-lg">
+                                {urlData.standard || 'WCAG2AA'}
+                            </Badge>
+                        </div>
+                        <a 
+                            href={urlData.url} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="text-slate-500 flex items-center hover:text-blue-600 transition-colors text-sm font-medium" 
+                            aria-label={`Visit ${urlData.name || urlData.url} (opens in new tab)`}
+                        >
+                            {urlData.url} <ExternalLink className="h-3 w-3 ml-1.5 opacity-60" />
+                        </a>
+                    </div>
                 </div>
-                <div className="ml-auto flex items-center gap-2">
+
+                <div className="flex items-center gap-3">
                     {selectedScanId && (
-                        <Button variant="outline" onClick={() => setSelectedScanId(null)}>
-                            <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" /> Latest Scan
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setSelectedScanId(null)}
+                            className="rounded-xl border-slate-200 text-slate-700 font-bold shadow-sm"
+                        >
+                            <ArrowLeft className="mr-2 h-4 w-4" /> Latest Scan
                         </Button>
                     )}
-                    <Button onClick={() => scanMutation.mutate()} disabled={scanMutation.isPending || urlData.status === 'scanning'}>
-                        {scanMutation.isPending || urlData.status === 'scanning' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> : <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />}
-                        Re-Scan
+                    <Button 
+                        onClick={() => scanMutation.mutate()} 
+                        disabled={scanMutation.isPending || urlData.status === 'scanning'}
+                        className="rounded-xl bg-slate-800 hover:bg-slate-900 font-bold px-6 shadow-lg shadow-slate-200"
+                    >
+                        {scanMutation.isPending || urlData.status === 'scanning' ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                        )}
+                        Re-Scan Now
                     </Button>
                 </div>
-            </div>
+            </header>
 
             {/* Viewing historical scan indicator */}
             {selectedScanId && activeScan && (
-                <div className="bg-muted/50 border rounded-lg px-4 py-2 text-sm text-muted-foreground flex items-center gap-2" role="status">
-                    <Info className="h-4 w-4" aria-hidden="true" />
-                    Viewing scan from <span className="font-medium text-foreground">{new Date(activeScan.timestamp).toLocaleString()}</span>
-                    <Button variant="link" size="sm" className="h-auto p-0 ml-1" onClick={() => setSelectedScanId(null)}>
-                        View latest
+                <div className="bg-amber-50 border border-amber-100 rounded-2xl px-5 py-3 flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-2" role="status">
+                    <div className="flex items-center gap-3 text-amber-800 font-medium">
+                        <div className="bg-amber-100 p-1.5 rounded-lg">
+                            <Info className="h-4 w-4" />
+                        </div>
+                        <span>Viewing historical scan from <span className="font-bold">{new Date(activeScan.timestamp).toLocaleString()}</span></span>
+                    </div>
+                    <Button 
+                        variant="link" 
+                        size="sm" 
+                        className="text-amber-700 hover:text-amber-900 font-bold decoration-amber-200 hover:decoration-amber-400" 
+                        onClick={() => setSelectedScanId(null)}
+                    >
+                        Back to latest
                     </Button>
                 </div>
             )}
 
-            {/* Loading state for selected scan */}
-            {isScanLoading && (
-                <div className="flex items-center justify-center py-8 text-muted-foreground" role="status" aria-busy="true">
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
-                    Loading scan data...
-                </div>
-            )}
-
-            {!isScanLoading && activeScan && (
-                <>
+            {/* Main Grid Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Left Column: Screenshot and Issues */}
+                <div className="lg:col-span-8 space-y-8">
+                    {/* Steps Navigation */}
                     {hasSteps && (
-                        <div className="flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label="Scan steps">
+                        <nav className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide" role="tablist" aria-label="Scan steps">
                             {activeScan.steps.map((step: ScanStep, index: number) => (
-                                <Button
+                                <button
                                     key={index}
                                     role="tab"
                                     aria-selected={selectedStepIndex === index}
                                     aria-controls={`step-panel-${index}`}
-                                    variant={selectedStepIndex === index ? 'default' : 'outline'}
                                     onClick={() => setSelectedStepIndex(index)}
-                                    className="whitespace-nowrap"
-                                    size="sm"
+                                    className={`
+                                        flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap
+                                        ${selectedStepIndex === index 
+                                            ? 'bg-slate-800 text-white shadow-lg shadow-slate-200 scale-[1.02]' 
+                                            : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200/60 shadow-sm'}
+                                    `}
                                 >
-                                    <span className="mr-2 font-mono text-xs" aria-hidden="true">{index + 1}.</span>
+                                    <span className={`h-5 w-5 flex items-center justify-center rounded-lg text-[10px] ${selectedStepIndex === index ? 'bg-slate-700' : 'bg-slate-100 text-slate-400'}`}>
+                                        {index + 1}
+                                    </span>
                                     {step.stepName}
-                                    <Badge variant={step.issues.length > 0 ? "secondary" : "outline"} className="ml-2 h-5 px-1.5">
+                                    <Badge 
+                                        className={`
+                                            ml-1 h-5 px-1.5 rounded-md text-[10px] font-bold
+                                            ${selectedStepIndex === index ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-500'}
+                                        `}
+                                    >
                                         {step.issues.length}
-                                        <span className="sr-only"> issues</span>
                                     </Badge>
-                                </Button>
+                                </button>
                             ))}
-                        </div>
+                        </nav>
                     )}
 
-                    <div className="grid gap-6 md:grid-cols-3">
-                        <Card className="md:col-span-2" id={`step-panel-${selectedStepIndex}`} role="tabpanel">
-                            <CardHeader>
-                                <CardTitle>Screenshot {hasSteps && `- ${currentData.stepName}`}</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {currentData?.screenshot ? (
+                    {/* Screenshot Viewer */}
+                    <Card className="border-none bg-slate-50/50 rounded-2xl shadow-none overflow-hidden" id={`step-panel-${selectedStepIndex}`} role="tabpanel">
+                        <CardHeader className="px-6 py-5 border-b border-slate-200/50 flex flex-row items-center justify-between">
+                            <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <Layers className="h-5 w-5 text-slate-400" />
+                                Visual Report {hasSteps && <span className="text-slate-400 font-medium">— {currentData.stepName}</span>}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            {currentData?.screenshot ? (
+                                <div className="rounded-xl overflow-hidden border border-slate-200 bg-white shadow-inner">
                                     <ScreenshotOverlay
                                         screenshot={currentData.screenshot.startsWith('data:') ? currentData.screenshot : `${import.meta.env.VITE_API_URL || ''}${currentData.screenshot}`}
                                         issues={issues}
@@ -236,247 +306,287 @@ export function ReportPage() {
                                         selectedIssueIndex={selectedIssueIndex}
                                         onSelectIssue={setSelectedIssueIndex}
                                     />
-                                ) : (
-                                    <div className="flex items-center justify-center h-64 bg-muted text-muted-foreground" aria-hidden="true">
-                                        No screenshot available
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        <div className="flex flex-col gap-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Accessibility Score</CardTitle>
-                                </CardHeader>
-                                <CardContent className="flex flex-col items-center justify-center py-8">
-                                    {currentData?.score !== undefined ? (
-                                        <div className="text-center">
-                                            <div className={`text-6xl font-bold mb-2 ${currentData.score >= 90 ? 'text-green-500' :
-                                                currentData.score >= 50 ? 'text-yellow-500' : 'text-red-500'
-                                                }`}>
-                                                {currentData.score}
-                                            </div>
-                                            <div className="text-muted-foreground">out of 100</div>
-                                        </div>
-                                    ) : (
-                                        <div className="text-muted-foreground">No score available</div>
-                                    )}
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Trend History</CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-2">
-                                    <TrendChart history={history || []} onSelectScan={handleSelectScan} />
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-4" role="tablist" aria-label="Issue filters">
-                        <Card
-                            role="tab"
-                            aria-selected={activeFilter === 'all'}
-                            tabIndex={0}
-                            className={`cursor-pointer transition-all ${activeFilter === 'all' ? 'ring-2 ring-primary' : 'hover:bg-muted/50'}`}
-                            onClick={() => setActiveFilter('all')}
-                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setActiveFilter('all')}
-                        >
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Total Issues</CardTitle>
-                                <AlertCircle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{issues.length}</div>
-                            </CardContent>
-                        </Card>
-                        <Card
-                            role="tab"
-                            aria-selected={activeFilter === 'error'}
-                            tabIndex={0}
-                            className={`cursor-pointer transition-all ${activeFilter === 'error' ? 'ring-2 ring-red-500' : 'hover:bg-muted/50'}`}
-                            onClick={() => setActiveFilter('error')}
-                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setActiveFilter('error')}
-                        >
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Errors</CardTitle>
-                                <AlertCircle className="h-4 w-4 text-red-500" aria-hidden="true" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-red-500">{errorCount}</div>
-                            </CardContent>
-                        </Card>
-                        <Card
-                            role="tab"
-                            aria-selected={activeFilter === 'warning'}
-                            tabIndex={0}
-                            className={`cursor-pointer transition-all ${activeFilter === 'warning' ? 'ring-2 ring-yellow-500' : 'hover:bg-muted/50'}`}
-                            onClick={() => setActiveFilter('warning')}
-                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setActiveFilter('warning')}
-                        >
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Warnings</CardTitle>
-                                <AlertTriangle className="h-4 w-4 text-yellow-500" aria-hidden="true" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-yellow-500">{warningCount}</div>
-                            </CardContent>
-                        </Card>
-                        <Card
-                            role="tab"
-                            aria-selected={activeFilter === 'notice'}
-                            tabIndex={0}
-                            className={`cursor-pointer transition-all ${activeFilter === 'notice' ? 'ring-2 ring-blue-500' : 'hover:bg-muted/50'}`}
-                            onClick={() => setActiveFilter('notice')}
-                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setActiveFilter('notice')}
-                        >
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Notices</CardTitle>
-                                <Info className="h-4 w-4 text-blue-500" aria-hidden="true" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-blue-500">{noticeCount}</div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </>
-            )}
-
-            <div className="grid gap-6 md:grid-cols-4">
-
-                <Card className="md:col-span-3">
-                    <CardHeader>
-                        <CardTitle>Issues {hasSteps && `- ${currentData?.stepName}`}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ScrollArea className="h-[600px] pr-4">
-                            {filteredIssues.length === 0 ? (
-                                <div className="text-center py-8 text-muted-foreground">No issues found for this filter! 🎉</div>
+                                </div>
                             ) : (
-                                <div className="space-y-4">
-                                    {filteredIssues.map((issue: Issue) => {
-                                        const originalIndex = issues.indexOf(issue);
-                                        return (
-                                            <div
-                                                key={originalIndex}
-                                                ref={(el) => { issueRefs.current[originalIndex] = el; }}
-                                                role="button"
-                                                tabIndex={0}
-                                                aria-expanded={selectedIssueIndex === originalIndex}
-                                                className={`border rounded-lg p-4 space-y-2 cursor-pointer transition-all duration-150 ${selectedIssueIndex === originalIndex
-                                                    ? 'ring-2 ring-primary border-primary bg-primary/5'
-                                                    : 'hover:border-primary/50'
-                                                    }`}
-                                                onClick={() => setSelectedIssueIndex(selectedIssueIndex === originalIndex ? null : originalIndex)}
-                                                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setSelectedIssueIndex(selectedIssueIndex === originalIndex ? null : originalIndex)}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <Badge
-                                                        variant={issue.type === 'error' ? 'destructive' : issue.type === 'warning' ? 'warning' : 'default'}
-                                                    >
-                                                        {issue.type}
-                                                    </Badge>
-                                                    <span className="font-mono text-xs text-muted-foreground">{issue.code}</span>
-                                                    {issue.boundingBox && (
-                                                        <span className="text-[10px] text-muted-foreground" title="This issue has a visual overlay on the screenshot" aria-label="Has visual overlay">📍</span>
-                                                    )}
-                                                    {(() => {
-                                                        const docsUrl = getIssueDocsUrl(issue.code);
-                                                        return docsUrl ? (
-                                                            <a
-                                                                href={docsUrl}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="inline-flex items-center gap-1 text-xs text-primary hover:underline ml-auto"
-                                                                onClick={(e) => e.stopPropagation()}
-                                                                aria-label={`Learn how to fix issue ${issue.code} (opens in new tab)`}
-                                                            >
-                                                                How to fix
-                                                                <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                                                            </a>
-                                                        ) : null;
-                                                    })()}
-                                                </div>
-                                                <p className="text-sm font-medium">{issue.message}</p>
-                                                {issue.snippetUrl && (
-                                                    <div className="mt-2 rounded border overflow-hidden bg-muted/20">
-                                                        <img 
-                                                            src={`${import.meta.env.VITE_API_URL || ''}${issue.snippetUrl}`} 
-                                                            alt="Element snippet" 
-                                                            className="max-h-32 w-auto object-contain"
-                                                        />
-                                                    </div>
-                                                )}
-                                                <div className="bg-muted p-2 rounded text-xs font-mono break-all">
-                                                    <span className="sr-only">Selector: </span>
-                                                    {issue.selector}
-                                                </div>
-                                                <div className="bg-muted/50 p-2 rounded text-xs font-mono break-all text-muted-foreground">
-                                                    <span className="sr-only">Context: </span>
-                                                    {issue.context}
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
+                                <div className="flex flex-col items-center justify-center h-80 bg-slate-100/50 rounded-xl text-slate-400 border-2 border-dashed border-slate-200">
+                                    <ExternalLink className="h-10 w-10 mb-3 opacity-20" />
+                                    <span className="font-bold opacity-50">Screenshot rendering in progress...</span>
                                 </div>
                             )}
-                        </ScrollArea>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>History</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ScrollArea className="h-[600px]">
-                            <div className="space-y-2">
-                                {history?.map((scan: Scan) => (
-                                    <div
-                                        key={scan._id}
-                                        role="button"
-                                        tabIndex={0}
-                                        aria-pressed={activeScanId === scan._id}
-                                        className={`p-2 border rounded cursor-pointer text-sm transition-colors ${activeScanId === scan._id
-                                            ? 'bg-primary/10 border-primary ring-1 ring-primary/20'
-                                            : 'hover:bg-muted'
-                                            }`}
-                                        onClick={() => handleSelectScan(scan._id)}
-                                        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSelectScan(scan._id)}
-                                    >
-                                        <div className="font-medium">{new Date(scan.timestamp).toLocaleDateString()}</div>
-                                        <div className="text-muted-foreground text-xs">{new Date(scan.timestamp).toLocaleTimeString()}</div>
-                                        <div className="mt-1 flex items-center justify-between">
-                                            <div>
-                                                <Badge variant={((scan.issuesCount ?? scan.issues?.length) ?? 0) > 0 ? 'destructive' : 'success'} className="active:scale-95 transition-transform">
-                                                    {(scan.issuesCount ?? scan.issues?.length) ?? 0} Issues
-                                                    <span className="sr-only"> found in this scan</span>
+                    {/* Issues List Card */}
+                    <Card className="border-none bg-slate-50/50 rounded-2xl shadow-none overflow-hidden">
+                        <CardHeader className="px-6 py-5 border-b border-slate-200/50 flex flex-row items-center justify-between">
+                            <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <AlertCircle className="h-5 w-5 text-slate-400" />
+                                Identified Issues
+                            </CardTitle>
+                            <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="bg-white border border-slate-200 text-slate-600 font-bold rounded-lg px-2">
+                                    {filteredIssues.length} Shown
+                                </Badge>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <ScrollArea className="h-[650px] px-6 py-6">
+                                {filteredIssues.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                                        <CheckCircle2 className="h-16 w-16 mb-4 text-green-500/30" />
+                                        <p className="text-xl font-bold text-slate-500">No issues detected! 🎉</p>
+                                        <p className="text-sm">Great job, your page meets the selected standard.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {filteredIssues.map((issue: Issue) => {
+                                            const originalIndex = issues.indexOf(issue);
+                                            const isSelected = selectedIssueIndex === originalIndex;
+                                            return (
+                                                <div
+                                                    key={originalIndex}
+                                                    ref={(el) => { issueRefs.current[originalIndex] = el; }}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    aria-expanded={isSelected}
+                                                    className={`
+                                                        group p-5 rounded-2xl transition-all duration-300 border-2 cursor-pointer
+                                                        ${isSelected 
+                                                            ? 'bg-white border-blue-500 shadow-xl shadow-blue-100 scale-[1.01]' 
+                                                            : 'bg-white border-transparent hover:border-slate-200 shadow-sm'}
+                                                    `}
+                                                    onClick={() => setSelectedIssueIndex(isSelected ? null : originalIndex)}
+                                                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setSelectedIssueIndex(isSelected ? null : originalIndex)}
+                                                >
+                                                    <div className="flex items-start justify-between gap-4 mb-3">
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <Badge
+                                                                className={`
+                                                                    rounded-lg font-bold px-2.5 py-1 text-[10px] uppercase tracking-wider
+                                                                    ${issue.type === 'error' ? 'bg-red-500 text-white' : issue.type === 'warning' ? 'bg-amber-500 text-white' : 'bg-blue-500 text-white'}
+                                                                `}
+                                                            >
+                                                                {issue.type}
+                                                            </Badge>
+                                                            <span className="font-mono text-[11px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-md">
+                                                                {issue.code}
+                                                            </span>
+                                                        </div>
+                                                        
+                                                        {(() => {
+                                                            const docsUrl = getIssueDocsUrl(issue.code);
+                                                            return docsUrl ? (
+                                                                <a
+                                                                    href={docsUrl}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="flex items-center gap-1.5 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    REMEDIATION GUIDE
+                                                                    <ExternalLink className="h-3.5 w-3.5" />
+                                                                </a>
+                                                            ) : null;
+                                                        })()}
+                                                    </div>
+
+                                                    <h4 className="font-bold text-slate-800 leading-tight mb-4 group-hover:text-blue-700 transition-colors">
+                                                        {issue.message}
+                                                    </h4>
+
+                                                    {issue.snippetUrl && (
+                                                        <div className="mb-4 rounded-xl border border-slate-100 overflow-hidden bg-slate-50 p-2 group-hover:border-slate-200 transition-colors">
+                                                            <img 
+                                                                src={`${import.meta.env.VITE_API_URL || ''}${issue.snippetUrl}`} 
+                                                                alt="Element causing the issue" 
+                                                                className="max-h-24 w-auto object-contain mx-auto"
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Selector</p>
+                                                            <code className="text-[11px] font-mono break-all text-slate-600 leading-relaxed">{issue.selector}</code>
+                                                        </div>
+                                                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Code Context</p>
+                                                            <code className="text-[11px] font-mono break-all text-slate-600 leading-relaxed">{issue.context}</code>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </ScrollArea>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Right Column: Score, Trend, History */}
+                <div className="lg:col-span-4 space-y-8">
+                    {/* Large Score Card */}
+                    <Card className="border-none bg-slate-800 rounded-3xl shadow-xl shadow-slate-200 text-white overflow-hidden relative">
+                        <div className="absolute top-0 right-0 p-6 opacity-10" aria-hidden="true">
+                            <Activity className="h-32 w-32" />
+                        </div>
+                        <CardContent className="p-8 flex flex-col items-center justify-center relative z-10">
+                            <div className="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-6">Accessibility Score</div>
+                            <div className="relative group/score-large">
+                                <div className={`h-48 w-48 rounded-full flex items-center justify-center ${hasScore ? 'bg-white/5' : 'bg-white/10'} backdrop-blur-sm transition-transform group-hover/score-large:scale-105 duration-500`}>
+                                    <svg className="h-48 w-48 -rotate-90 transform">
+                                        <circle
+                                            cx="96"
+                                            cy="96"
+                                            r="88"
+                                            fill="none"
+                                            stroke="rgba(255,255,255,0.05)"
+                                            strokeWidth="10"
+                                        />
+                                        {hasScore && (
+                                            <circle
+                                                cx="96"
+                                                cy="96"
+                                                r="88"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="10"
+                                                strokeDasharray={552.9}
+                                                strokeDashoffset={552.9 * (1 - score / 100)}
+                                                strokeLinecap="round"
+                                                className={`${score >= 90 ? 'text-green-400' : score >= 50 ? 'text-amber-400' : 'text-red-400'} transition-all duration-1000 ease-out`}
+                                            />
+                                        )}
+                                    </svg>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        <span className={`text-6xl font-bold tracking-tighter ${hasScore ? 'text-white' : 'text-white/30'}`}>
+                                            {hasScore ? score : '--'}
+                                        </span>
+                                        <span className="text-xs font-bold text-white/40 tracking-widest mt-1">PERCENT</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="mt-8 flex gap-4 w-full">
+                                <div className="flex-1 bg-white/5 rounded-2xl p-4 text-center border border-white/10">
+                                    <div className="text-2xl font-bold text-red-400">{errorCount}</div>
+                                    <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Errors</div>
+                                </div>
+                                <div className="flex-1 bg-white/5 rounded-2xl p-4 text-center border border-white/10">
+                                    <div className="text-2xl font-bold text-amber-400">{warningCount}</div>
+                                    <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Warnings</div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Quick Filters */}
+                    <div className="grid grid-cols-2 gap-3" role="tablist" aria-label="Issue filters">
+                        {[
+                            { id: 'all', label: 'Total', count: issues.length, icon: Layers, color: 'slate' },
+                            { id: 'error', label: 'Errors', count: errorCount, icon: AlertCircle, color: 'red' },
+                            { id: 'warning', label: 'Warnings', count: warningCount, icon: AlertTriangle, color: 'amber' },
+                            { id: 'notice', label: 'Notices', count: noticeCount, icon: Info, color: 'blue' },
+                        ].map((filter) => (
+                            <button
+                                key={filter.id}
+                                role="tab"
+                                aria-selected={activeFilter === filter.id}
+                                className={`
+                                    p-4 rounded-2xl transition-all duration-300 border-2 text-left flex flex-col justify-between group
+                                    ${activeFilter === filter.id 
+                                        ? `bg-white border-${filter.color}-500 shadow-lg shadow-${filter.color}-100` 
+                                        : 'bg-white border-transparent hover:border-slate-200 shadow-sm'}
+                                `}
+                                onClick={() => setActiveFilter(filter.id as any)}
+                            >
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className={`p-1.5 rounded-lg ${activeFilter === filter.id ? `bg-${filter.color}-50 text-${filter.color}-500` : 'bg-slate-50 text-slate-400 group-hover:text-slate-600'}`}>
+                                        <filter.icon className="h-4 w-4" aria-hidden="true" />
+                                    </div>
+                                    <span className={`text-xl font-bold ${activeFilter === filter.id ? `text-${filter.color}-600` : 'text-slate-700'}`}>
+                                        {filter.count}
+                                    </span>
+                                </div>
+                                <span className={`text-[10px] font-bold uppercase tracking-widest ${activeFilter === filter.id ? `text-${filter.color}-700` : 'text-slate-400'}`}>
+                                    {filter.label}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Trend Chart Card */}
+                    <Card className="border-none bg-slate-50/50 rounded-2xl shadow-none overflow-hidden">
+                        <CardHeader className="px-6 py-5 border-b border-slate-200/50">
+                            <CardTitle className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-slate-400" />
+                                Score Trend
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-4">
+                            <div className="bg-white rounded-xl p-2 shadow-sm border border-slate-200/50">
+                                <TrendChart history={history || []} onSelectScan={handleSelectScan} />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* History List Card */}
+                    <Card className="border-none bg-slate-50/50 rounded-2xl shadow-none overflow-hidden">
+                        <CardHeader className="px-6 py-5 border-b border-slate-200/50 flex items-center justify-between">
+                            <CardTitle className="text-lg font-bold text-slate-800">Scan History</CardTitle>
+                            <Badge variant="outline" className="text-[10px] font-bold rounded-lg border-slate-200">20 Latest</Badge>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <ScrollArea className="h-[400px] p-6">
+                                <div className="space-y-3">
+                                    {history?.map((scan: Scan) => (
+                                        <div
+                                            key={scan._id}
+                                            role="button"
+                                            tabIndex={0}
+                                            aria-pressed={activeScanId === scan._id}
+                                            className={`
+                                                p-4 rounded-xl border-2 transition-all duration-300
+                                                ${activeScanId === scan._id
+                                                    ? 'bg-white border-blue-500 shadow-md shadow-blue-100 ring-1 ring-blue-100 scale-[1.02]'
+                                                    : 'bg-white border-transparent hover:border-slate-200 shadow-sm'}
+                                            `}
+                                            onClick={() => handleSelectScan(scan._id)}
+                                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSelectScan(scan._id)}
+                                        >
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <div className="font-bold text-slate-800 text-sm">{new Date(scan.timestamp).toLocaleDateString()}</div>
+                                                    <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{new Date(scan.timestamp).toLocaleTimeString()}</div>
+                                                </div>
+                                                <div className="flex flex-col items-end gap-1.5">
+                                                    <div className={`text-sm font-black ${scan.score && scan.score >= 90 ? 'text-green-500' : scan.score && scan.score >= 50 ? 'text-amber-500' : 'text-red-500'}`}>
+                                                        {scan.score ?? '--'}%
+                                                    </div>
+                                                    <div onClick={(e) => e.stopPropagation()}>
+                                                        <ExportReportModal url={urlData} scan={scan} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex flex-wrap gap-1.5">
+                                                <Badge className={`text-[9px] font-bold rounded px-1.5 h-4 ${((scan.issuesCount ?? scan.issues?.length) ?? 0) > 0 ? 'bg-red-50 text-red-600 border-red-100' : 'bg-green-50 text-green-600 border-green-100'} border`}>
+                                                    {((scan.issuesCount ?? scan.issues?.length) ?? 0)} Issues
                                                 </Badge>
-                                                {scan.score !== undefined && (
-                                                    <Badge variant={scan.score >= 90 ? 'success' : scan.score >= 50 ? 'warning' : 'destructive'} className="ml-2">
-                                                        Score: {scan.score}
-                                                        <span className="sr-only"> out of 100</span>
+                                                {scan.steps && scan.steps.length > 0 && (
+                                                    <Badge className="text-[9px] font-bold rounded px-1.5 h-4 bg-slate-50 text-slate-500 border border-slate-100">
+                                                        {scan.steps.length} Steps
                                                     </Badge>
                                                 )}
                                             </div>
-                                            <div onClick={(e) => e.stopPropagation()}>
-                                                <ExportReportModal url={urlData} scan={scan} />
-                                            </div>
                                         </div>
-                                        {scan.steps && scan.steps.length > 1 && (
-                                            <div className="text-xs text-muted-foreground mt-1">
-                                                {scan.steps.length} steps
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </ScrollArea>
-                    </CardContent>
-                </Card>
+                                    ))}
+                                </div>
+                            </ScrollArea>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </div >
     );
