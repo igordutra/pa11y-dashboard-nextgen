@@ -44,10 +44,22 @@ interface EditUrlDialogProps {
         overrides?: UrlOverrides;
         categoryId?: string | null;
     };
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    showTrigger?: boolean;
 }
 
-export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
-    const [open, setOpen] = useState(false);
+export function EditUrlDialog({ urlData, open: externalOpen, onOpenChange: externalOnOpenChange, showTrigger = true }: EditUrlDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false);
+    
+    const open = externalOpen !== undefined ? externalOpen : internalOpen;
+    const setOpen = (val: boolean) => {
+        if (externalOnOpenChange) {
+            externalOnOpenChange(val);
+        } else {
+            setInternalOpen(val);
+        }
+    };
     const [activeTab, setActiveTab] = useState<'basic' | 'script' | 'overrides'>('basic');
     const [name, setName] = useState(urlData.name || '');
     const [standard, setStandard] = useState(urlData.standard || 'WCAG2AA');
@@ -83,11 +95,13 @@ export function EditUrlDialog({ urlData }: EditUrlDialogProps) {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline" size="sm" aria-label={`Edit configuration for ${urlData.url}`}>
-                    <Pencil className="h-4 w-4" aria-hidden="true" />
-                </Button>
-            </DialogTrigger>
+            {showTrigger && (
+                <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" aria-label={`Edit configuration for ${urlData.url}`}>
+                        <Pencil className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[600px]">
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>

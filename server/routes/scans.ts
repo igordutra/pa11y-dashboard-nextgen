@@ -41,6 +41,41 @@ export default async function scanRoutes(fastify: FastifyInstance) {
         return { message: 'Scan enqueued' };
     });
 
+    // ACTION: Delete All Scans for a URL
+    f.delete('/api/urls/:id/scans', {
+        preHandler: checkReadonly,
+        schema: {
+            description: 'Delete all scan history for a URL',
+            tags: ['scans'],
+            params: z.object({
+                id: z.string()
+            }),
+            response: {
+                204: z.any(),
+                403: z.object({
+                    error: z.string(),
+                    message: z.string()
+                })
+            }
+        }
+    }, async (req, reply) => {
+        const { id } = req.params;
+        const { UrlModel } = await import('../models/index.js');
+        
+        await ScanModel.deleteMany({ urlId: id });
+        await UrlModel.findByIdAndUpdate(id, {
+            $unset: {
+                lastScanAt: 1,
+                lastIssueCount: 1,
+                lastScore: 1,
+                lastThumbnail: 1,
+                lastScreenshot: 1
+            }
+        });
+        
+        reply.status(204).send({});
+    });
+
     // READ: Get History
     f.get('/api/urls/:id/history', {
         schema: {
