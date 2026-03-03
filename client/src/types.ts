@@ -36,6 +36,7 @@ export interface Scan {
     thumbnail: string;
     steps?: ScanStep[];
     issuesCount?: number;
+    stepsCount?: number;
 }
 
 export interface Url {

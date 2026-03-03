@@ -1,13 +1,24 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../lib/api';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { Play, Trash2, ExternalLink, Loader2 } from 'lucide-react';
-import { HistoryDialog } from './HistoryDialog';
+import { 
+    Play, 
+    Trash2, 
+    ExternalLink, 
+    Loader2, 
+    MoreHorizontal, 
+    Edit, 
+    AlertCircle,
+    Layers,
+    Clock,
+    CheckCircle2
+} from 'lucide-react';
 import { EditUrlDialog } from './EditUrlDialog';
 import { Url } from '../types';
+import { formatDistanceToNow } from 'date-fns';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -19,6 +30,13 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from './ui/alert-dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from './ui/dropdown-menu';
+import { useState } from 'react';
 
 interface UrlCardProps {
     url: Url;
@@ -26,17 +44,16 @@ interface UrlCardProps {
 
 export function UrlCard({ url }: UrlCardProps) {
     const queryClient = useQueryClient();
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isDeleteScansDialogOpen, setIsDeleteScansDialogOpen] = useState(false);
 
     const scanMutation = useMutation({
         mutationFn: async () => {
-            console.log('Sending scan request for:', url._id);
             return api.post(`/api/urls/${url._id}/scan`);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['urls'] });
-        },
-        onError: (error) => {
-            console.error('Scan request failed:', error);
         }
     });
 
@@ -49,124 +66,280 @@ export function UrlCard({ url }: UrlCardProps) {
         }
     });
 
-    return (
-        <Card className="flex flex-col">
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <CardTitle className="truncate pr-4">{url.name || url.url}</CardTitle>
-                    <div className="flex gap-2">
-                        {url.status === 'scanning' && (
-                            <Badge variant="scanning" className="mr-2">
-                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                                Scanning...
-                            </Badge>
-                        )}
-                        {(url.lastScore !== undefined) && (
-                            <Link to={`/report/${url._id}`}>
-                                <Badge variant={
-                                    url.lastScore >= 90 ? 'success' :
-                                        url.lastScore >= 50 ? 'warning' : 'destructive'
-                                } className="mr-2 cursor-pointer hover:opacity-80">
-                                    Score: {url.lastScore}
-                                    <span className="sr-only">. View detailed report for {url.name || url.url}</span>
-                                </Badge>
-                            </Link>
-                        )}
+    const deleteScansMutation = useMutation({
+        mutationFn: async () => {
+            return api.delete(`/api/urls/${url._id}/scans`);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['urls'] });
+        }
+    });
 
-                        {url.status === 'error' && url.lastScore === undefined ? (
-                            <Link to={`/report/${url._id}`}>
-                                <Badge variant="destructive" className="cursor-pointer hover:opacity-80">
-                                    Error
-                                    <span className="sr-only">. View error details for {url.name || url.url}</span>
+    const getScoreColor = (score: number) => {
+        if (score >= 90) return 'text-green-600 stroke-green-600';
+        if (score >= 50) return 'text-amber-500 stroke-amber-500';
+        return 'text-red-600 stroke-red-600';
+    };
+
+    const getScoreBg = (score: number) => {
+        if (score >= 90) return 'bg-green-50';
+        if (score >= 50) return 'bg-amber-50';
+        return 'bg-red-50';
+    };
+
+    const score = url.lastScore ?? 0;
+    const hasScore = url.lastScore !== undefined;
+
+    return (
+        <Card className="flex flex-col border-none bg-slate-50/50 rounded-2xl shadow-none hover:shadow-md transition-all duration-300 group overflow-hidden">
+            <CardContent className="p-0 flex flex-col h-full">
+                {/* Header Section with Score and Info */}
+                <div className="p-5 pb-0 flex justify-between items-start gap-4">
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-bold text-lg text-slate-800 truncate" title={url.name || url.url}>
+                                {url.name || url.url}
+                            </h3>
+                            {url.status === 'scanning' && (
+                                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                            )}
+                            {url.status === 'error' && (
+                                <AlertCircle className="h-4 w-4 text-red-500" />
+                            )}
+                        </div>
+                        <a 
+                            href={url.url} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="text-sm text-slate-600 flex items-center hover:text-blue-700 transition-colors truncate mb-3"
+                            aria-label={`Visit ${url.url} (opens in new tab)`}
+                        >
+                            {url.url.replace(/^https?:\/\//, '')} <ExternalLink className="h-3 w-3 ml-1 flex-shrink-0" aria-hidden="true" />
+                        </a>
+
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            <Badge variant="outline" className="bg-white/50 border-slate-200 text-slate-700 font-medium py-0.5">
+                                {url.standard || 'WCAG2AA'}
+                            </Badge>
+                            {url.actions && url.actions.length > 0 && (
+                                <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 border-indigo-100 font-medium py-0.5">
+                                    <Layers className="h-3 w-3 mr-1" />
+                                    {url.actions.length} {url.actions.length === 1 ? 'Step' : 'Steps'}
                                 </Badge>
-                            </Link>
-                        ) : url.lastIssueCount !== undefined && url.lastIssueCount > 0 ? (
-                            <Link to={`/report/${url._id}`}>
-                                <Badge variant="destructive" className="cursor-pointer hover:bg-destructive/80">
-                                    {url.lastIssueCount} Issues
-                                    <span className="sr-only"> found on {url.name || url.url}. View report.</span>
-                                </Badge>
-                            </Link>
-                        ) : url.lastScore !== undefined ? (
-                            <Link to={`/report/${url._id}`}>
-                                <Badge variant="success" className="cursor-pointer hover:opacity-80">
-                                    Pass
-                                    <span className="sr-only">. All checks passed for {url.name || url.url}. View report.</span>
-                                </Badge>
-                            </Link>
-                        ) : null}
+                            )}
+                        </div>
                     </div>
+
+                    {/* Circular Score Indicator */}
+                    <Link 
+                        to={`/report/${url._id}`} 
+                        className="flex-shrink-0 relative group/score"
+                        aria-label={`View detailed accessibility report for ${url.name || url.url}. Current score: ${hasScore ? score : 'not scanned'}`}
+                    >
+                        <div className={`h-16 w-16 rounded-full flex items-center justify-center ${hasScore ? getScoreBg(score) : 'bg-slate-100'} transition-transform group-hover/score:scale-105`}>
+                            <svg className="h-16 w-16 -rotate-90 transform">
+                                <circle
+                                    cx="32"
+                                    cy="32"
+                                    r="28"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                    className="text-slate-200"
+                                />
+                                {hasScore && (
+                                    <circle
+                                        cx="32"
+                                        cy="32"
+                                        r="28"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                        strokeDasharray={175.9}
+                                        strokeDashoffset={175.9 * (1 - score / 100)}
+                                        strokeLinecap="round"
+                                        className={`${getScoreColor(score)} transition-all duration-1000 ease-out`}
+                                    />
+                                )}
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className={`text-lg font-bold ${hasScore ? getScoreColor(score).split(' ')[0] : 'text-slate-400'}`}>
+                                    {hasScore ? score : '--'}
+                                </span>
+                                <span className="text-[8px] uppercase font-bold text-slate-400 -mt-1">Score</span>
+                            </div>
+                        </div>
+                    </Link>
                 </div>
-                <CardDescription className="truncate">
-                    <a href={url.url} target="_blank" rel="noreferrer" className="flex items-center hover:underline" aria-label={`Visit ${url.name || url.url} (opens in new tab)`}>
-                        {url.url} <ExternalLink className="h-3 w-3 ml-1" aria-hidden="true" />
-                    </a>
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1">
-                {url.lastThumbnail && (
-                    <div className="mb-4 rounded-md overflow-hidden border">
-                        <img
-                            src={`${import.meta.env.VITE_API_URL || ''}${url.lastThumbnail}`}
-                            alt={`Thumbnail for ${url.name || url.url}`}
-                            className="w-full h-32 object-cover object-top"
-                            onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                        />
+
+                {/* Thumbnail Section */}
+                <div className="px-5 mb-4">
+                    <Link 
+                        to={`/report/${url._id}`}
+                        className="block relative aspect-video rounded-xl overflow-hidden bg-slate-200 border border-slate-200/50 group-hover:border-slate-300 transition-all hover:ring-2 hover:ring-blue-600/20"
+                        aria-label={`View detailed report for ${url.name || url.url}`}
+                    >
+                        {url.lastThumbnail ? (
+                            <img
+                                src={`${import.meta.env.VITE_API_URL || ''}${url.lastThumbnail}`}
+                                alt={`Screenshot of ${url.name || url.url}`}
+                                className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                            />
+                        ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                                <ExternalLink className="h-8 w-8 mb-2 opacity-20" aria-hidden="true" />
+                                <span className="text-xs font-medium opacity-50">No screenshot yet</span>
+                            </div>
+                        )}
+                        
+                        {/* Status Overlay */}
+                        {url.status === 'scanning' && (
+                            <div className="absolute inset-0 bg-blue-600/10 backdrop-blur-[1px] flex items-center justify-center">
+                                <div className="bg-white/90 px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+                                    <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                                    <span className="text-xs font-bold text-blue-700">Scanning...</span>
+                                </div>
+                            </div>
+                        )}
+                        {url.status === 'error' && (
+                            <div className="absolute inset-0 bg-red-600/5 flex items-end p-2">
+                                <div className="bg-red-600 text-white px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1 shadow-sm">
+                                    <AlertCircle className="h-3 w-3" />
+                                    Scan Failed
+                                </div>
+                            </div>
+                        )}
+                    </Link>
+                </div>
+
+                {/* Info Footer */}
+                <div className="px-5 pb-5 flex-1 flex flex-col justify-end">
+                    <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600 mb-4">
+                        <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" aria-hidden="true" />
+                            <span>Last scan: {url.lastScanAt ? formatDistanceToNow(new Date(url.lastScanAt), { addSuffix: true }) : 'Never'}</span>
+                        </div>
+                        {url.lastIssueCount !== undefined && (
+                            <div className="flex items-center gap-1">
+                                {url.lastIssueCount === 0 ? (
+                                    <>
+                                        <CheckCircle2 className="h-3 w-3 text-green-500" />
+                                        <span className="text-green-600">No issues</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <AlertCircle className="h-3 w-3 text-red-500" />
+                                        <span className="text-red-600">{url.lastIssueCount} {url.lastIssueCount === 1 ? 'Issue' : 'Issues'}</span>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
-                )}
-                <div className="text-sm text-muted-foreground space-y-1">
-                    <p>Standard: <span className="font-medium">{url.standard || 'WCAG2AA'}</span></p>
-                    <p>Schedule: <span className="font-mono text-[10px]">{url.schedule}</span></p>
-                    <p>Last Scan: {url.lastScanAt ? new Date(url.lastScanAt).toLocaleString() : 'Never'}</p>
+
+                    <div className="flex items-center gap-2">
+                        <Button
+                            className="flex-1 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 shadow-sm rounded-xl font-bold transition-all active:scale-[0.98]"
+                            variant="outline"
+                            onClick={() => scanMutation.mutate()}
+                            disabled={scanMutation.isPending || url.status === 'scanning'}
+                        >
+                            {scanMutation.isPending || url.status === 'scanning' ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <Play className="mr-2 h-4 w-4 fill-current" />
+                            )}
+                            {url.status === 'scanning' ? 'Scanning' : 'Run Scan'}
+                        </Button>
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button 
+                                    variant="outline" 
+                                    className="w-10 px-0 bg-white hover:bg-slate-100 border border-slate-200 shadow-sm rounded-xl text-slate-600"
+                                    aria-label="More actions"
+                                >
+                                    <MoreHorizontal className="h-5 w-5" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48 p-1 rounded-xl border-slate-200 shadow-xl">
+                                <DropdownMenuItem 
+                                    onClick={() => setIsEditDialogOpen(true)}
+                                    className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-slate-700"
+                                >
+                                    <Edit className="h-4 w-4" />
+                                    <span className="font-medium">Edit Details</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                    onClick={() => setIsDeleteScansDialogOpen(true)}
+                                    className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span className="font-medium">Clear History</span>
+                                </DropdownMenuItem>
+                                <div className="h-px bg-slate-100 my-1 mx-1" />
+                                <DropdownMenuItem 
+                                    onClick={() => setIsDeleteDialogOpen(true)}
+                                    className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span className="font-medium">Delete URL</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
             </CardContent>
-            <CardFooter className="flex justify-between items-center gap-2">
-                <div className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => scanMutation.mutate()}
-                        disabled={scanMutation.isPending || url.status === 'scanning'}
-                        aria-label={`Run new scan for ${url.name || url.url}`}
-                    >
-                        {scanMutation.isPending || url.status === 'scanning' ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-                        ) : (
-                            <Play className="mr-2 h-4 w-4" aria-hidden="true" />
-                        )}
-                        Scan
-                    </Button>
-                    <HistoryDialog urlId={url._id} urlName={url.name || url.url} />
-                    <EditUrlDialog urlData={url} />
-                </div>
 
-                <div className="flex gap-2">
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm" aria-label={`Delete ${url.name || url.url}`}>
-                                <Trash2 className="h-4 w-4" aria-hidden="true" />
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent className="z-50">
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This will permanently delete the URL "{url.name || url.url}" and all its history.
-                                    This action cannot be undone.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => deleteMutation.mutate()}>
-                                    {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </div>
-            </CardFooter>
+            {/* Hidden Dialogs triggered by Dropdown */}
+            <EditUrlDialog 
+                urlData={url} 
+                open={isEditDialogOpen} 
+                onOpenChange={setIsEditDialogOpen} 
+                showTrigger={false}
+            />
+            
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent className="rounded-2xl border-none shadow-2xl">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-xl font-bold text-slate-800">Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-slate-600">
+                            This will permanently delete <span className="font-bold text-slate-800">{url.name || url.url}</span> and all its historical scan data. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-2">
+                        <AlertDialogCancel className="rounded-xl font-bold border-slate-200">Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={() => deleteMutation.mutate()}
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold shadow-lg shadow-red-200 border-none"
+                        >
+                            {deleteMutation.isPending ? 'Deleting...' : 'Yes, Delete URL'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={isDeleteScansDialogOpen} onOpenChange={setIsDeleteScansDialogOpen}>
+                <AlertDialogContent className="rounded-2xl border-none shadow-2xl">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-xl font-bold text-slate-800">Clear Scan History?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-slate-600">
+                            This will delete all previous scan results for <span className="font-bold text-slate-800">{url.name || url.url}</span>. The URL itself and its configuration will be preserved.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-2">
+                        <AlertDialogCancel className="rounded-xl font-bold border-slate-200">Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={() => deleteScansMutation.mutate()}
+                            className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold shadow-lg shadow-amber-200 border-none"
+                        >
+                            {deleteScansMutation.isPending ? 'Clearing...' : 'Yes, Clear History'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Card>
     );
 }

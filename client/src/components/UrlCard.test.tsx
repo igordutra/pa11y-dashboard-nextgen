@@ -42,32 +42,32 @@ describe('UrlCard Component', () => {
     it('renders the URL name and the parsed url string', () => {
         renderWithProviders(<UrlCard url={mockUrl} />);
         expect(screen.getByText('Example Site')).toBeInTheDocument();
-        expect(screen.getByText('https://example.com')).toBeInTheDocument();
+        // The URL is displayed without the protocol prefix in our new design
+        expect(screen.getByText('example.com')).toBeInTheDocument();
     });
 
     it('displays the score and status correctly', () => {
         renderWithProviders(<UrlCard url={mockUrl} />);
-        expect(screen.getByText('Score: 100')).toBeInTheDocument();
-        expect(screen.getByText('Pass')).toBeInTheDocument();
+        // Score is now a large number 100 with 'Score' label in circular indicator
+        expect(screen.getByText('100')).toBeInTheDocument();
+        expect(screen.getByText(/score/i)).toBeInTheDocument();
+        expect(screen.getByText('No issues')).toBeInTheDocument();
     });
 
     it('renders the scan button', () => {
         renderWithProviders(<UrlCard url={mockUrl} />);
-        // Use a more specific name that matches our new aria-label
-        const scanBtn = screen.getByRole('button', { name: /run new scan/i });
+        // The button text is now 'Run Scan'
+        const scanBtn = screen.getByRole('button', { name: /run scan/i });
         expect(scanBtn).toBeInTheDocument();
     });
 
     it('renders accessibility features like aria-labels', () => {
         renderWithProviders(<UrlCard url={mockUrl} />);
         
-        // Check for delete button aria-label
-        expect(screen.getByRole('button', { name: /delete example site/i })).toBeInTheDocument();
+        // Check for report link aria-label (more descriptive now)
+        expect(screen.getByRole('link', { name: /view detailed accessibility report for example site. current score: 100/i })).toBeInTheDocument();
         
-        // Check for history button aria-label
-        expect(screen.getByRole('button', { name: /view scan history for example site/i })).toBeInTheDocument();
-        
-        // Check for edit button aria-label
-        expect(screen.getByRole('button', { name: /edit configuration for https:\/\/example.com/i })).toBeInTheDocument();
+        // More actions button
+        expect(screen.getByRole('button', { name: /more actions/i })).toBeInTheDocument();
     });
 });
