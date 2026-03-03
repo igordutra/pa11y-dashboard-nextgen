@@ -16,7 +16,8 @@ import {
     Layers, 
     Clock, 
     CheckCircle2,
-    Activity 
+    Activity,
+    FileDown 
 } from 'lucide-react';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { TrendChart } from '../components/TrendChart';
@@ -251,9 +252,9 @@ export function ReportPage() {
             )}
 
             {/* Main Grid Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
                 {/* Left Column: Screenshot and Issues */}
-                <div className="lg:col-span-8 space-y-8">
+                <div className="xl:col-span-8 space-y-8">
                     {/* Steps Navigation */}
                     {hasSteps && (
                         <nav className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide" role="tablist" aria-label="Scan steps">
@@ -265,19 +266,19 @@ export function ReportPage() {
                                     aria-controls={`step-panel-${index}`}
                                     onClick={() => setSelectedStepIndex(index)}
                                     className={`
-                                        flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap
+                                        flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap
                                         ${selectedStepIndex === index 
-                                            ? 'bg-slate-800 text-white shadow-lg shadow-slate-200 scale-[1.02]' 
+                                            ? 'bg-slate-800 text-white shadow-md scale-[1.02]' 
                                             : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200/60 shadow-sm'}
                                     `}
                                 >
-                                    <span className={`h-5 w-5 flex items-center justify-center rounded-lg text-[10px] ${selectedStepIndex === index ? 'bg-slate-700' : 'bg-slate-100 text-slate-400'}`}>
+                                    <span className={`h-4 w-4 flex items-center justify-center rounded-md text-[9px] ${selectedStepIndex === index ? 'bg-slate-700' : 'bg-slate-100 text-slate-400'}`}>
                                         {index + 1}
                                     </span>
                                     {step.stepName}
                                     <Badge 
                                         className={`
-                                            ml-1 h-5 px-1.5 rounded-md text-[10px] font-bold
+                                            ml-1 h-4 px-1 rounded text-[9px] font-bold border-none
                                             ${selectedStepIndex === index ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-500'}
                                         `}
                                     >
@@ -290,15 +291,15 @@ export function ReportPage() {
 
                     {/* Screenshot Viewer */}
                     <Card className="border-none bg-slate-50/50 rounded-2xl shadow-none overflow-hidden" id={`step-panel-${selectedStepIndex}`} role="tabpanel">
-                        <CardHeader className="px-6 py-5 border-b border-slate-200/50 flex flex-row items-center justify-between">
-                            <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                                <Layers className="h-5 w-5 text-slate-400" />
+                        <CardHeader className="px-6 py-4 border-b border-slate-200/50 flex flex-row items-center justify-between">
+                            <CardTitle className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <Layers className="h-4 w-4 text-slate-400" />
                                 Visual Report {hasSteps && <span className="text-slate-400 font-medium">— {currentData.stepName}</span>}
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6">
                             {currentData?.screenshot ? (
-                                <div className="rounded-xl overflow-hidden border border-slate-200 bg-white shadow-inner">
+                                <div className="rounded-xl overflow-hidden border border-slate-200 bg-white shadow-inner max-h-[600px] overflow-y-auto">
                                     <ScreenshotOverlay
                                         screenshot={currentData.screenshot.startsWith('data:') ? currentData.screenshot : `${import.meta.env.VITE_API_URL || ''}${currentData.screenshot}`}
                                         issues={issues}
@@ -315,6 +316,41 @@ export function ReportPage() {
                             )}
                         </CardContent>
                     </Card>
+
+                    {/* Quick Filters - MOVED ABOVE ISSUES */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3" role="tablist" aria-label="Issue filters">
+                        {[
+                            { id: 'all', label: 'Total', count: issues.length, icon: Layers, color: 'slate' },
+                            { id: 'error', label: 'Errors', count: errorCount, icon: AlertCircle, color: 'red' },
+                            { id: 'warning', label: 'Warnings', count: warningCount, icon: AlertTriangle, color: 'amber' },
+                            { id: 'notice', label: 'Notices', count: noticeCount, icon: Info, color: 'blue' },
+                        ].map((filter) => (
+                            <button
+                                key={filter.id}
+                                role="tab"
+                                aria-selected={activeFilter === filter.id}
+                                className={`
+                                    p-4 rounded-2xl transition-all duration-300 border text-left flex flex-col justify-between group
+                                    ${activeFilter === filter.id 
+                                        ? 'bg-white border-blue-400 shadow-md ring-1 ring-blue-50' 
+                                        : 'bg-white border-transparent hover:border-slate-200 shadow-sm opacity-70 hover:opacity-100'}
+                                `}
+                                onClick={() => setActiveFilter(filter.id as any)}
+                            >
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className={`p-1.5 rounded-lg ${activeFilter === filter.id ? `bg-${filter.color}-50 text-${filter.color}-500` : 'bg-slate-50 text-slate-400 group-hover:text-slate-600'}`}>
+                                        <filter.icon className="h-4 w-4" aria-hidden="true" />
+                                    </div>
+                                    <span className={`text-xl font-bold ${activeFilter === filter.id ? `text-${filter.color}-600` : 'text-slate-700'}`}>
+                                        {filter.count}
+                                    </span>
+                                </div>
+                                <span className={`text-[10px] font-bold uppercase tracking-widest ${activeFilter === filter.id ? `text-${filter.color}-700` : 'text-slate-400'}`}>
+                                    {filter.label}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
 
                     {/* Issues List Card */}
                     <Card className="border-none bg-slate-50/50 rounded-2xl shadow-none overflow-hidden">
@@ -350,9 +386,9 @@ export function ReportPage() {
                                                     tabIndex={0}
                                                     aria-expanded={isSelected}
                                                     className={`
-                                                        group p-5 rounded-2xl transition-all duration-300 border-2 cursor-pointer
+                                                        group p-5 rounded-2xl transition-all duration-300 cursor-pointer border
                                                         ${isSelected 
-                                                            ? 'bg-white border-blue-500 shadow-xl shadow-blue-100 scale-[1.01]' 
+                                                            ? 'bg-blue-50/40 border-blue-400 shadow-sm' 
                                                             : 'bg-white border-transparent hover:border-slate-200 shadow-sm'}
                                                     `}
                                                     onClick={() => setSelectedIssueIndex(isSelected ? null : originalIndex)}
@@ -425,24 +461,24 @@ export function ReportPage() {
                 </div>
 
                 {/* Right Column: Score, Trend, History */}
-                <div className="lg:col-span-4 space-y-8">
-                    {/* Large Score Card */}
-                    <Card className="border-none bg-slate-800 rounded-3xl shadow-xl shadow-slate-200 text-white overflow-hidden relative">
-                        <div className="absolute top-0 right-0 p-6 opacity-10" aria-hidden="true">
-                            <Activity className="h-32 w-32" />
+                <div className="xl:col-span-4 space-y-8">
+                    {/* Large Score Card - LIGHT THEME */}
+                    <Card className="border-none bg-slate-50/50 rounded-3xl shadow-none overflow-hidden relative border border-slate-200/60">
+                        <div className="absolute top-0 right-0 p-6 opacity-5" aria-hidden="true">
+                            <Activity className="h-32 w-32 text-slate-900" />
                         </div>
                         <CardContent className="p-8 flex flex-col items-center justify-center relative z-10">
-                            <div className="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-6">Accessibility Score</div>
+                            <div className="text-slate-400 text-[10px] font-black uppercase tracking-[0.25em] mb-6">Accessibility Score</div>
                             <div className="relative group/score-large">
-                                <div className={`h-48 w-48 rounded-full flex items-center justify-center ${hasScore ? 'bg-white/5' : 'bg-white/10'} backdrop-blur-sm transition-transform group-hover/score-large:scale-105 duration-500`}>
+                                <div className={`h-48 w-48 rounded-full flex items-center justify-center bg-white shadow-xl shadow-slate-200/50 transition-transform group-hover/score-large:scale-105 duration-500`}>
                                     <svg className="h-48 w-48 -rotate-90 transform">
                                         <circle
                                             cx="96"
                                             cy="96"
                                             r="88"
                                             fill="none"
-                                            stroke="rgba(255,255,255,0.05)"
-                                            strokeWidth="10"
+                                            stroke="#f1f5f9"
+                                            strokeWidth="12"
                                         />
                                         {hasScore && (
                                             <circle
@@ -451,143 +487,121 @@ export function ReportPage() {
                                                 r="88"
                                                 fill="none"
                                                 stroke="currentColor"
-                                                strokeWidth="10"
+                                                strokeWidth="12"
                                                 strokeDasharray={552.9}
                                                 strokeDashoffset={552.9 * (1 - score / 100)}
                                                 strokeLinecap="round"
-                                                className={`${score >= 90 ? 'text-green-400' : score >= 50 ? 'text-amber-400' : 'text-red-400'} transition-all duration-1000 ease-out`}
+                                                className={`${score >= 90 ? 'text-green-500' : score >= 50 ? 'text-amber-500' : 'text-red-500'} transition-all duration-1000 ease-out`}
                                             />
                                         )}
                                     </svg>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span className={`text-6xl font-bold tracking-tighter ${hasScore ? 'text-white' : 'text-white/30'}`}>
+                                        <span className={`text-6xl font-black tracking-tighter ${hasScore ? 'text-slate-800' : 'text-slate-300'}`}>
                                             {hasScore ? score : '--'}
                                         </span>
-                                        <span className="text-xs font-bold text-white/40 tracking-widest mt-1">PERCENT</span>
+                                        <span className="text-[10px] font-black text-slate-400 tracking-[0.2em] mt-1 uppercase">Percent</span>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div className="mt-8 flex gap-4 w-full">
-                                <div className="flex-1 bg-white/5 rounded-2xl p-4 text-center border border-white/10">
-                                    <div className="text-2xl font-bold text-red-400">{errorCount}</div>
-                                    <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Errors</div>
+                            <div className="mt-8 flex gap-3 w-full">
+                                <div className="flex-1 bg-white rounded-2xl p-4 text-center border border-slate-100 shadow-sm">
+                                    <div className="text-2xl font-black text-red-500">{errorCount}</div>
+                                    <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Errors</div>
                                 </div>
-                                <div className="flex-1 bg-white/5 rounded-2xl p-4 text-center border border-white/10">
-                                    <div className="text-2xl font-bold text-amber-400">{warningCount}</div>
-                                    <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Warnings</div>
+                                <div className="flex-1 bg-white rounded-2xl p-4 text-center border border-slate-100 shadow-sm">
+                                    <div className="text-2xl font-black text-amber-500">{warningCount}</div>
+                                    <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Warnings</div>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    {/* Quick Filters */}
-                    <div className="grid grid-cols-2 gap-3" role="tablist" aria-label="Issue filters">
-                        {[
-                            { id: 'all', label: 'Total', count: issues.length, icon: Layers, color: 'slate' },
-                            { id: 'error', label: 'Errors', count: errorCount, icon: AlertCircle, color: 'red' },
-                            { id: 'warning', label: 'Warnings', count: warningCount, icon: AlertTriangle, color: 'amber' },
-                            { id: 'notice', label: 'Notices', count: noticeCount, icon: Info, color: 'blue' },
-                        ].map((filter) => (
-                            <button
-                                key={filter.id}
-                                role="tab"
-                                aria-selected={activeFilter === filter.id}
-                                className={`
-                                    p-4 rounded-2xl transition-all duration-300 border-2 text-left flex flex-col justify-between group
-                                    ${activeFilter === filter.id 
-                                        ? `bg-white border-${filter.color}-500 shadow-lg shadow-${filter.color}-100` 
-                                        : 'bg-white border-transparent hover:border-slate-200 shadow-sm'}
-                                `}
-                                onClick={() => setActiveFilter(filter.id as any)}
-                            >
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className={`p-1.5 rounded-lg ${activeFilter === filter.id ? `bg-${filter.color}-50 text-${filter.color}-500` : 'bg-slate-50 text-slate-400 group-hover:text-slate-600'}`}>
-                                        <filter.icon className="h-4 w-4" aria-hidden="true" />
-                                    </div>
-                                    <span className={`text-xl font-bold ${activeFilter === filter.id ? `text-${filter.color}-600` : 'text-slate-700'}`}>
-                                        {filter.count}
-                                    </span>
-                                </div>
-                                <span className={`text-[10px] font-bold uppercase tracking-widest ${activeFilter === filter.id ? `text-${filter.color}-700` : 'text-slate-400'}`}>
-                                    {filter.label}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-
                     {/* Trend Chart Card */}
-                    <Card className="border-none bg-slate-50/50 rounded-2xl shadow-none overflow-hidden">
-                        <CardHeader className="px-6 py-5 border-b border-slate-200/50">
-                            <CardTitle className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                <Clock className="h-4 w-4 text-slate-400" />
+                    <Card className="border-none bg-slate-50/50 rounded-2xl shadow-none overflow-hidden border border-slate-200/60">
+                        <CardHeader className="px-6 py-4 border-b border-slate-200/50">
+                            <CardTitle className="text-[10px] font-black text-slate-400 flex items-center gap-2 uppercase tracking-[0.2em]">
+                                <Clock className="h-4 w-4 text-slate-300" />
                                 Score Trend
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4">
-                            <div className="bg-white rounded-xl p-2 shadow-sm border border-slate-200/50">
+                        <CardContent className="p-0">
+                            <div className="px-2 pt-4 pb-2">
                                 <TrendChart history={history || []} onSelectScan={handleSelectScan} />
                             </div>
                         </CardContent>
                     </Card>
 
                     {/* History List Card */}
-                    <Card className="border-none bg-slate-50/50 rounded-2xl shadow-none overflow-hidden">
-                        <CardHeader className="px-6 py-5 border-b border-slate-200/50 flex items-center justify-between">
-                            <CardTitle className="text-lg font-bold text-slate-800">Scan History</CardTitle>
-                            <Badge variant="outline" className="text-[10px] font-bold rounded-lg border-slate-200">20 Latest</Badge>
+                    <Card className="border-none bg-slate-50/50 rounded-2xl shadow-none overflow-hidden border border-slate-200/60">
+                        <CardHeader className="px-6 py-4 border-b border-slate-200/50 flex items-center justify-between">
+                            <CardTitle className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Scan History</CardTitle>
+                            <Badge variant="outline" className="text-[9px] font-black rounded-lg border-slate-200 text-slate-400 uppercase">20 Latest</Badge>
                         </CardHeader>
                         <CardContent className="p-0">
                             <ScrollArea className="h-[400px] p-6">
                                 <div className="space-y-3">
-                                    {history?.map((scan: Scan) => (
-                                        <div
-                                            key={scan._id}
-                                            role="button"
-                                            tabIndex={0}
-                                            aria-pressed={activeScanId === scan._id}
-                                            className={`
-                                                p-4 rounded-xl border-2 transition-all duration-300
-                                                ${activeScanId === scan._id
-                                                    ? 'bg-white border-blue-500 shadow-md shadow-blue-100 ring-1 ring-blue-100 scale-[1.02]'
-                                                    : 'bg-white border-transparent hover:border-slate-200 shadow-sm'}
-                                            `}
-                                            onClick={() => handleSelectScan(scan._id)}
-                                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSelectScan(scan._id)}
-                                        >
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <div className="font-bold text-slate-800 text-sm">{new Date(scan.timestamp).toLocaleDateString()}</div>
-                                                    <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{new Date(scan.timestamp).toLocaleTimeString()}</div>
-                                                </div>
-                                                <div className="flex flex-col items-end gap-1.5">
+                                    {history?.map((scan: Scan) => {
+                                        // Ensure we get the correct count from backend provided issuesCount
+                                        const totalIssuesCount = scan.issuesCount !== undefined 
+                                            ? scan.issuesCount 
+                                            : (scan.steps && scan.steps.length > 0 
+                                                ? scan.steps.reduce((sum, step) => sum + (step.issues?.length || 0), 0)
+                                                : (scan.issues?.length || 0));
+
+                                        return (
+                                            <div
+                                                key={scan._id}
+                                                role="button"
+                                                tabIndex={0}
+                                                aria-pressed={activeScanId === scan._id}
+                                                className={`
+                                                    p-4 rounded-xl transition-all duration-300 border
+                                                    ${activeScanId === scan._id
+                                                        ? 'bg-blue-50/40 border-blue-500 shadow-sm opacity-100 z-10'
+                                                        : 'bg-white border-transparent opacity-50 hover:opacity-100 hover:border-slate-200 shadow-sm'}
+                                                `}
+                                                onClick={() => handleSelectScan(scan._id)}
+                                                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSelectScan(scan._id)}
+                                            >
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <div>
+                                                        <div className="font-bold text-slate-800 text-sm">{new Date(scan.timestamp).toLocaleDateString()}</div>
+                                                        <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{new Date(scan.timestamp).toLocaleTimeString()}</div>
+                                                    </div>
                                                     <div className={`text-sm font-black ${scan.score && scan.score >= 90 ? 'text-green-500' : scan.score && scan.score >= 50 ? 'text-amber-500' : 'text-red-500'}`}>
                                                         {scan.score ?? '--'}%
                                                     </div>
+                                                </div>
+                                                
+                                                <div className="flex items-end justify-between mt-3">
+                                                    <div className="flex flex-wrap gap-1">
+                                                        <Badge className={`text-[9px] font-bold rounded px-1.5 h-4 border-none shadow-none ${totalIssuesCount > 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                                                            {totalIssuesCount} Issues
+                                                        </Badge>
+                                                    </div>
                                                     <div onClick={(e) => e.stopPropagation()}>
-                                                        <ExportReportModal url={urlData} scan={scan} />
+                                                        <ExportReportModal 
+                                                            url={urlData} 
+                                                            scan={scan} 
+                                                            trigger={
+                                                                <Button variant="outline" size="sm" className="h-7 px-2 text-[10px] font-bold rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50">
+                                                                    <FileDown className="mr-1 h-3 w-3" />
+                                                                    REPORT
+                                                                </Button>
+                                                            }
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
-                                            
-                                            <div className="flex flex-wrap gap-1.5">
-                                                <Badge className={`text-[9px] font-bold rounded px-1.5 h-4 ${((scan.issuesCount ?? scan.issues?.length) ?? 0) > 0 ? 'bg-red-50 text-red-600 border-red-100' : 'bg-green-50 text-green-600 border-green-100'} border`}>
-                                                    {((scan.issuesCount ?? scan.issues?.length) ?? 0)} Issues
-                                                </Badge>
-                                                {scan.steps && scan.steps.length > 0 && (
-                                                    <Badge className="text-[9px] font-bold rounded px-1.5 h-4 bg-slate-50 text-slate-500 border border-slate-100">
-                                                        {scan.steps.length} Steps
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </ScrollArea>
                         </CardContent>
                     </Card>
                 </div>
             </div>
-        </div >
+        </div>
     );
 }

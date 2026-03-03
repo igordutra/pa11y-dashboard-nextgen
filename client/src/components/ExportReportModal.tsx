@@ -19,9 +19,10 @@ import { ScrollArea } from './ui/scroll-area';
 interface ExportReportModalProps {
     url: Url;
     scan: Scan;
+    trigger?: React.ReactNode;
 }
 
-export function ExportReportModal({ url, scan }: ExportReportModalProps) {
+export function ExportReportModal({ url, scan, trigger }: ExportReportModalProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     // Fetch full scan details if the passed scan object is simplified (e.g. from history list)
@@ -51,12 +52,14 @@ export function ExportReportModal({ url, scan }: ExportReportModalProps) {
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                    <FileDown className="mr-2 h-4 w-4" aria-hidden="true" />
-                    Export Report
-                </Button>
+                {trigger || (
+                    <Button variant="outline" size="sm">
+                        <FileDown className="mr-2 h-4 w-4" aria-hidden="true" />
+                        Report
+                    </Button>
+                )}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col">
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col rounded-2xl border-none shadow-2xl">
                 <DialogHeader>
                     <DialogTitle>Export Accessibility Report</DialogTitle>
                     <DialogDescription>

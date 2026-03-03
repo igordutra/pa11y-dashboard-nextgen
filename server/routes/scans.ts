@@ -90,20 +90,28 @@ export default async function scanRoutes(fastify: FastifyInstance) {
                     timestamp: z.date(),
                     issuesCount: z.number(),
                     documentTitle: z.string().optional(),
-                    score: z.number().optional()
+                    score: z.number().optional(),
+                    stepsCount: z.number().optional()
                 }))
             }
         }
     }, async (req, reply) => {
         const { id } = req.params;
         const scans = await ScanModel.find({ urlId: id }).sort({ timestamp: -1 }).limit(20);
-        return scans.map(s => ({
-            _id: s._id,
-            timestamp: s.timestamp,
-            issuesCount: s.issues.length,
-            documentTitle: s.documentTitle,
-            score: s.score
-        }));
+        return scans.map(s => {
+            const totalIssues = (s.steps && s.steps.length > 0)
+                ? s.steps.reduce((sum, step) => sum + (step.issues?.length || 0), 0)
+                : (s.issues?.length || 0);
+                
+            return {
+                _id: s._id,
+                timestamp: s.timestamp,
+                issuesCount: totalIssues,
+                documentTitle: s.documentTitle,
+                score: s.score,
+                stepsCount: s.steps?.length || 0
+            };
+        });
     });
 
     // READ: Get Latest Scan Details
