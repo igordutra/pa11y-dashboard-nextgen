@@ -59,10 +59,13 @@ Generate and share professional accessibility reports with stakeholders.
 - **Actionable**: Includes code snippets, selectors, and specific fix suggestions for every issue.
 - **Visual Evidence**: Automatically embeds focused screenshots of the problematic elements.
 
-### 📈 Visual Intelligence
-- **Trend Charts**: Interactive Recharts-powered graphs show accessibility health over time.
+### 📉 Visual Intelligence
+- **High-Impact Dashboard**: Modern URL cards with circular accessibility score gauges and relative "Last scan" times.
+- **Smart Sorting**: Sort your monitored targets by Recently Added, Name (A-Z), or Accessibility Score (Lowest First) to prioritise remediation efforts.
+- **Trend Charts**: Interactive Area-style graphs with blue gradients and subtle axis lines showing accessibility health over time.
 - **Focused Issue Snippets**: NextGen automatically crops the page screenshot around each identified issue. You can see the exact problematic element directly in the issue list and exported reports.
-- **Screenshot Overlays**: Maps Pa11y issues directly onto full-page screenshots. Click an issue in the list to see exactly where it is on the page.
+- **Screenshot Overlays**: Maps Pa11y issues directly onto full-page screenshots with scrollable viewports for long pages.
+- **Integrated Filters**: One-click filtering for Errors, Warnings, and Notices directly integrated into the issues list.
 - **Hybrid Scoring**: Combines Lighthouse's industry-standard metrics with a custom rule-based algorithm for intermediate scripted steps.
 
 ---
