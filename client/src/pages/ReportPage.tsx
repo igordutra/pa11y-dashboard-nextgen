@@ -51,7 +51,7 @@ export function ReportPage() {
     });
 
     // Fetch a specific scan when user clicks on history
-    const { data: selectedScan, isLoading: isSelectedLoading } = useQuery({
+    const { data: selectedScan } = useQuery({
         queryKey: ['scan', selectedScanId],
         queryFn: async () => (await api.get(`/api/scans/${selectedScanId}`)).data,
         enabled: !!selectedScanId
@@ -65,7 +65,6 @@ export function ReportPage() {
 
     // The active scan is either the selected historical scan or the latest
     const activeScan = selectedScanId ? selectedScan : latestScan;
-    const isScanLoading = selectedScanId ? isSelectedLoading : isLatestLoading;
 
     // Stable state synchronization
     const [selectedIssueIndex, setSelectedIssueIndex] = useState<number | null>(null);
@@ -136,18 +135,6 @@ export function ReportPage() {
             document.title = 'Pa11y Dashboard - Web Accessibility Auditor';
         };
     }, [urlData]);
-
-    const getScoreColor = (score: number) => {
-        if (score >= 90) return 'text-green-600 stroke-green-600';
-        if (score >= 50) return 'text-amber-500 stroke-amber-500';
-        return 'text-red-600 stroke-red-600';
-    };
-
-    const getScoreBg = (score: number) => {
-        if (score >= 90) return 'bg-green-50';
-        if (score >= 50) return 'bg-amber-50';
-        return 'bg-red-50';
-    };
 
     if (isUrlLoading || isLatestLoading) return <div className="p-8">Loading report...</div>;
     if (!urlData) return <div className="p-8">URL not found</div>;
@@ -320,10 +307,10 @@ export function ReportPage() {
                     {/* Quick Filters - MOVED ABOVE ISSUES */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3" role="tablist" aria-label="Issue filters">
                         {[
-                            { id: 'all', label: 'Total', count: issues.length, icon: Layers, color: 'slate' },
-                            { id: 'error', label: 'Errors', count: errorCount, icon: AlertCircle, color: 'red' },
-                            { id: 'warning', label: 'Warnings', count: warningCount, icon: AlertTriangle, color: 'amber' },
-                            { id: 'notice', label: 'Notices', count: noticeCount, icon: Info, color: 'blue' },
+                            { id: 'all' as const, label: 'Total', count: issues.length, icon: Layers, color: 'slate' },
+                            { id: 'error' as const, label: 'Errors', count: errorCount, icon: AlertCircle, color: 'red' },
+                            { id: 'warning' as const, label: 'Warnings', count: warningCount, icon: AlertTriangle, color: 'amber' },
+                            { id: 'notice' as const, label: 'Notices', count: noticeCount, icon: Info, color: 'blue' },
                         ].map((filter) => (
                             <button
                                 key={filter.id}
@@ -335,7 +322,7 @@ export function ReportPage() {
                                         ? 'bg-white border-blue-400 shadow-md ring-1 ring-blue-50' 
                                         : 'bg-white border-transparent hover:border-slate-200 shadow-sm opacity-70 hover:opacity-100'}
                                 `}
-                                onClick={() => setActiveFilter(filter.id as any)}
+                                onClick={() => setActiveFilter(filter.id)}
                             >
                                 <div className="flex items-center justify-between mb-2">
                                     <div className={`p-1.5 rounded-lg ${activeFilter === filter.id ? `bg-${filter.color}-50 text-${filter.color}-500` : 'bg-slate-50 text-slate-400 group-hover:text-slate-600'}`}>

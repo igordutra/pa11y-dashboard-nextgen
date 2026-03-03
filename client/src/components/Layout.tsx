@@ -49,10 +49,11 @@ export function Layout({ children }: LayoutProps) {
 
     // Close mobile menu on route change
     useEffect(() => {
-        setIsMobileMenuOpen(false);
+        // Defer to next tick to avoid "setState in effect" warning
+        setTimeout(() => setIsMobileMenuOpen(false), 0);
     }, [location.pathname, searchParams]);
 
-    const NavContent = () => (
+    const navContent = (
         <nav className="flex flex-col gap-2 h-full">
             <Link to="/"
                 className={`
@@ -140,7 +141,7 @@ export function Layout({ children }: LayoutProps) {
                         </div>
                         <span>Pa11y<span className="text-blue-600">Dash</span></span>
                     </Link>
-                    <NavContent />
+                    {navContent}
                 </aside>
 
                 {/* Mobile Header */}
@@ -167,7 +168,7 @@ export function Layout({ children }: LayoutProps) {
                                 </Button>
                             </DialogHeader>
                             <div className="flex-1 overflow-y-auto pr-2">
-                                <NavContent />
+                                {navContent}
                             </div>
                         </DialogContent>
                     </Dialog>
