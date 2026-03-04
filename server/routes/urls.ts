@@ -63,7 +63,7 @@ export default async function urlRoutes(fastify: FastifyInstance) {
                 }))
             }
         }
-    }, async (req, reply) => {
+    }, async (_req, _reply) => {
         const urls = await UrlModel.find().sort({ createdAt: -1 });
         return urls;
     });
@@ -109,7 +109,7 @@ export default async function urlRoutes(fastify: FastifyInstance) {
                 })
             }
         }
-    }, async (req, reply) => {
+    }, async (req, _reply) => {
         const { url, name, schedule, standard, actions, overrides, categoryId } = req.body;
         const newUrl = await UrlModel.create({
             url,

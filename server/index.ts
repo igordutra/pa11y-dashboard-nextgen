@@ -105,7 +105,7 @@ export const initApp = async () => {
     }
 
     // Basic Routes
-    fastify.get('/api', async function handler(request, reply) {
+    fastify.get('/api', async function handler(_request, _reply) {
       return { 
         hello: 'world', 
         service: 'pa11y-dashboard-nextgen-api', 
@@ -153,3 +153,4 @@ export const app = fastify;
 if (process.env.NODE_ENV !== 'test') {
   start();
 }
+ 

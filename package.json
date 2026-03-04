@@ -1,0 +1,43 @@
+{
+  "name": "pa11y-dashboard-nextgen",
+  "version": "1.0.0",
+  "description": "Pa11y Dashboard NextGen is a modern web interface for the [Pa11y][pa11y] and [Lighthouse][lighthouse] accessibility reporters. It enables teams to monitor accessibility health, track trends over time, and identify issues through interactive reports and scripted user journeys.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "npm run test --prefix client -- run && npm run test --prefix server -- run",
+    "lint": "npm run lint --prefix client -- . && npm run lint --prefix server -- .",
+    "typecheck": "npm run typecheck --prefix client && npm run typecheck --prefix server",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "client/**/*.{ts,tsx}": [
+      "npm run lint --prefix client --",
+      "bash -c 'npm run typecheck --prefix client'",
+      "npm run test --prefix client -- related --run --passWithNoTests"
+    ],
+    "server/**/*.ts": [
+      "npm run lint --prefix server --",
+      "bash -c 'npm run typecheck --prefix server'",
+      "npm run test --prefix server -- related --run --passWithNoTests"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/igordutra/pa11y-dashboard-nextgen.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/igordutra/pa11y-dashboard-nextgen/issues"
+  },
+  "homepage": "https://github.com/igordutra/pa11y-dashboard-nextgen#readme",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.2"
+  }
+}

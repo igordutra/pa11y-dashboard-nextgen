@@ -24,7 +24,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
                 }))
             }
         }
-    }, async (req, reply) => {
+    }, async (_req, _reply) => {
         const categories = await CategoryModel.find().sort({ order: 1, name: 1 });
         return categories;
     });
@@ -42,7 +42,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
                 order: z.number().optional()
             })
         }
-    }, async (req, reply) => {
+    }, async (req, _reply) => {
         const category = new CategoryModel(req.body);
         await category.save();
         return category;

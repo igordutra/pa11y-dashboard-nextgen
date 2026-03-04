@@ -32,7 +32,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
                 })
             }
         }
-    }, async (req, reply) => {
+    }, async (_req, _reply) => {
         const settings = await getSettings();
         return settings;
     });
@@ -80,7 +80,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
                 })
             }
         }
-    }, async (req, reply) => {
+    }, async (req, _reply) => {
         // Ensure settings document exists
         let settings = await SettingsModel.findOne();
         if (!settings) {
@@ -106,7 +106,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
                 })
             }
         }
-    }, async (req, reply) => {
+    }, async (_req, _reply) => {
         let pa11yVersion = 'unknown';
         try {
             const pa11yPkg = await import('pa11y/package.json', { with: { type: 'json' } });

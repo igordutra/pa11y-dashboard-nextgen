@@ -1,4 +1,3 @@
-// @ts-ignore
 import pa11y from 'pa11y';
 import { UrlModel, ScanModel } from '../models/index.js';
 import { getSettings } from '../models/settings.js';
@@ -334,10 +333,11 @@ export const runScan = async (urlId: string) => {
             console.log(`Executing action: ${action.type} - ${action.value}`);
             try {
                 switch (action.type) {
-                    case 'wait':
+                    case 'wait': {
                         const ms = parseInt(action.value, 10);
                         await new Promise(r => setTimeout(r, ms));
                         break;
+                    }
                     case 'click':
                         if (action.value.includes(' >>> ')) {
                             const [frameSelector, elementSelector] = action.value.split(' >>> ');
@@ -351,7 +351,7 @@ export const runScan = async (urlId: string) => {
                             await page.click(action.value);
                         }
                         break;
-                    case 'type':
+                    case 'type': {
                         // Format: "selector|text" OR "iframe >>> selector|text"
                         const [fullSelector, text] = action.value.split('|');
                         if (fullSelector && text) {
@@ -368,6 +368,7 @@ export const runScan = async (urlId: string) => {
                             }
                         }
                         break;
+                    }
                     case 'wait-for-url':
                         // Ensure we don't block forever if already on URL, but waitForNavigation is tricky.
                         // Usually used after a click.

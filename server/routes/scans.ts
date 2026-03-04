@@ -34,7 +34,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
                 })
             }
         }
-    }, async (req, reply) => {
+    }, async (req, _reply) => {
         const { id } = req.params;
         const { scanQueue } = await import('../lib/scheduler.js');
         scanQueue.enqueue(id, true);
@@ -95,7 +95,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
                 }))
             }
         }
-    }, async (req, reply) => {
+    }, async (req, _reply) => {
         const { id } = req.params;
         const scans = await ScanModel.find({ urlId: id }).sort({ timestamp: -1 }).limit(20);
         return scans.map(s => {
@@ -147,7 +147,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
                 }).nullable()
             }
         }
-    }, async (req, reply) => {
+    }, async (req, _reply) => {
         const { id } = req.params;
         const scan = await ScanModel.findOne({ urlId: id }).sort({ timestamp: -1 });
         if (!scan) return null;
@@ -188,7 +188,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
                 }).nullable()
             }
         }
-    }, async (req, reply) => {
+    }, async (req, _reply) => {
         const { scanId } = req.params;
         const scan = await ScanModel.findById(scanId);
         if (!scan) return null;
