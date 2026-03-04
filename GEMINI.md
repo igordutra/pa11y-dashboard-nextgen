@@ -56,6 +56,23 @@ The application is designed to be deployed as a single, unified container where 
 
 ### Linting & Formatting
 - **Client**: `cd client && npm run lint`
+- **Server**: `cd server && npm run lint`
+
+### Pre-commit Hooks
+The project uses **Husky** and **lint-staged** to ensure code quality. Before every commit, the following tasks are automatically executed on staged files:
+- **Linting**: Runs ESLint to check for code style and potential errors.
+- **Typechecking**: Runs `tsc --noEmit` to ensure TypeScript types are valid.
+- **Tests**: Runs Vitest for related tests using the `--related` flag.
+
+To manually trigger the pre-commit checks on all staged files, run:
+```bash
+npx lint-staged
+```
+
+To initialise or repair hooks (e.g. after a fresh clone):
+```bash
+npm run prepare
+```
 
 ## Core Directory Structure
 
