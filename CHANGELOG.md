@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.2.0] - 2026-03-03
 ### Added
-- Pre-commit hooks with Husky and lint-staged.
+- Pre-commit hooks with Husky and lint-staged (Closes #25).
 - Type-checking and linting in CI.
 
 ## [0.1.0] - 2026-02-25
