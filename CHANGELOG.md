@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.1] - 2026-03-07
+
+### Added
+- **Configurable Concurrency**: Moved the hardcoded scan limit to a global setting, allowing users to adjust system load (1-10 simultaneous scans) via the Settings page.
+
 ## [0.5.0] - 2026-03-07
 
 ### Added
