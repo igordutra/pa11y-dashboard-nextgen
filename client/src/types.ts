@@ -37,6 +37,9 @@ export interface Scan {
     steps?: ScanStep[];
     issuesCount?: number;
     stepsCount?: number;
+    browserVersion?: string;
+    standard?: string;
+    runners?: string[];
 }
 
 export interface Url {

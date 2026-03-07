@@ -110,6 +110,10 @@ export interface IScan extends Document {
     screenshot?: string; // Path to full image (Legacy / Main result)
     thumbnail?: string;   // Path to thumbnail (Legacy / Main result)
     steps: IScanStep[]; // Multi-step results
+    // Meta details for enriched reporting
+    runners?: string[];
+    standard?: string;
+    browserVersion?: string;
 }
 
 const ScanSchema = new Schema<IScan>({
@@ -121,6 +125,9 @@ const ScanSchema = new Schema<IScan>({
     score: { type: Number },
     screenshot: { type: String },
     thumbnail: { type: String },
+    runners: { type: [String] },
+    standard: { type: String },
+    browserVersion: { type: String },
     steps: {
         type: [{
             stepName: { type: String, required: true },

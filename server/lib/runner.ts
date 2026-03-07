@@ -427,7 +427,11 @@ export const runScan = async (urlId: string) => {
             screenshot: lastStep.screenshot,
             thumbnail: lastStep.thumbnail,
             pageUrl: lastStep.pageUrl,
-            documentTitle: await page.title()
+            documentTitle: await page.title(),
+            // Enriched Meta
+            runners: config.runners,
+            standard: urlDoc.standard,
+            browserVersion: await browser.version()
         });
 
         // 5. Update URL Status and Last Result

@@ -173,6 +173,9 @@ export default async function scanRoutes(fastify: FastifyInstance) {
                     score: z.number().optional(),
                     screenshot: z.string().optional(),
                     thumbnail: z.string().optional(),
+                    runners: z.array(z.string()).optional(),
+                    standard: z.string().optional(),
+                    browserVersion: z.string().optional(),
                     steps: z.array(z.object({
                         stepName: z.string(),
                         issues: z.array(z.any()),
@@ -193,5 +196,62 @@ export default async function scanRoutes(fastify: FastifyInstance) {
         const scan = await ScanModel.findById(scanId);
         if (!scan) return null;
         return scan;
+    });
+
+    // ACTION: Export Scan as PDF
+    f.get('/api/scans/:scanId/pdf', {
+        schema: {
+            description: 'Export a specific scan as a PDF report',
+            tags: ['scans'],
+            params: z.object({
+                scanId: z.string()
+            })
+        }
+    }, async (req, reply) => {
+        const { scanId } = req.params;
+        const scan = await ScanModel.findById(scanId);
+        if (!scan) return reply.status(404).send({ error: 'Not found', message: 'Scan not found' });
+
+        const { UrlModel } = await import('../models/index.js');
+        const url = await UrlModel.findById(scan.urlId);
+        if (!url) return reply.status(404).send({ error: 'Not found', message: 'URL not found' });
+
+        const { generateHtmlReport } = await import('../lib/reportGenerator.js');
+        const html = generateHtmlReport(url, scan);
+
+        const puppeteer = (await import('puppeteer')).default;
+        let browser;
+        try {
+            const launchOptions: any = {
+                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--headless=new']
+            };
+            if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+                launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+            }
+            browser = await puppeteer.launch(launchOptions);
+            const page = await browser.newPage();
+            
+            // Wait for all assets (images) to load
+            await page.setContent(html, { waitUntil: 'networkidle0' });
+            
+            const pdfBuffer = await page.pdf({
+                format: 'A4',
+                printBackground: true,
+                margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' }
+            });
+
+            const filename = `accessibility-report-${url.name?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'site'}-${new Date(scan.timestamp).toISOString().split('T')[0]}.pdf`;
+
+            reply
+                .header('Content-Type', 'application/pdf')
+                .header('Content-Disposition', `attachment; filename="${filename}"`)
+                .send(pdfBuffer);
+
+        } catch (err) {
+            req.log.error(err);
+            return reply.status(500).send({ error: 'PDF Generation Failed', message: (err as Error).message });
+        } finally {
+            if (browser) await browser.close();
+        }
     });
 }

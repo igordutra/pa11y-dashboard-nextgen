@@ -1,16 +1,79 @@
-import { Scan, Url, Issue } from '../types';
-import { getIssueDocsUrl } from './issueDocsUrl';
-import { getIssueFixSuggestion } from './issueFixes';
+import { IScan, IUrl } from '../models/index.js';
+import { getConfig } from '../config/index.js';
 
 /**
- * Generates a self-contained HTML accessibility report.
+ * Provides human-readable fix suggestions for common accessibility issue codes.
  */
-export function generateHtmlReport(url: Url, scan: Scan): string {
+function getIssueFixSuggestion(code: string): string {
+    if (!code) return "Review the issue details and follow WCAG guidelines for remediation.";
+
+    const axeFixes: Record<string, string> = {
+        'aria-prohibited-attr': "This element does not support the ARIA attribute used. Remove the prohibited attribute or change the element's role to one that supports it.",
+        'color-contrast': "Increase the contrast ratio between the text and its background to at least 4.5:1 (or 3:1 for large text).",
+        'image-alt': "Add a meaningful 'alt' attribute to the <img> element that describes the image's purpose.",
+        'label': "Ensure this form field has a programmatically associated <label> using 'for' and 'id' attributes.",
+        'button-name': "Ensure the button has a discernible name (text content or aria-label) so screen readers can announce its purpose.",
+        'link-name': "Ensure the link has discernible text content so users know where it leads.",
+        'empty-heading': "Headings must have text content to be useful for navigation.",
+        'html-has-lang': "Add a 'lang' attribute to the <html> element (e.g., <html lang=\"en\">).",
+        'valid-lang': "Ensure the 'lang' attribute has a valid BCP 47 language code.",
+        'bypass': "Add a 'Skip to Main Content' link at the top of the page.",
+        'region': "Ensure all content is contained within landmark regions (main, nav, header, footer).",
+        'page-has-main': "The page must have a <main> landmark.",
+        'document-title': "Add a descriptive <title> to the document.",
+        'heading-order': "Ensure headings follow a logical nested order (h1, then h2, etc.).",
+        'aria-roles': "Ensure ARIA roles used are valid for the element.",
+        'aria-valid-attr': "Ensure ARIA attributes used are valid and correctly spelled.",
+        'duplicate-id': "The 'id' attribute must be unique in the document. Rename or remove duplicate IDs."
+    };
+
+    if (axeFixes[code]) return axeFixes[code];
+
+    if (code.includes('G18') || code.includes('1_4_3')) return "Ensure the contrast ratio between text and background is at least 4.5:1.";
+    if (code.includes('H37') || code.includes('1_1_1')) return "Provide a text alternative for non-text content using the 'alt' attribute.";
+    if (code.includes('H44') || code.includes('1_3_1')) return "Associate labels with form controls using the 'for' and 'id' attributes.";
+
+    return "Review the element's implementation and ensure it meets the relevant WCAG success criteria.";
+}
+
+/**
+ * Returns a URL to documentation explaining how to fix the given issue.
+ */
+function getIssueDocsUrl(code: string): string | null {
+    if (!code) return null;
+    if (code.startsWith('WCAG2')) {
+        const segments = code.split('.');
+        for (let i = segments.length - 1; i >= 0; i--) {
+            if (/^[A-Z]+\d+$/.test(segments[i])) {
+                return `https://www.w3.org/TR/WCAG20-TECHS/${segments[i]}.html`;
+            }
+        }
+    }
+    if (/^[a-z][a-z0-9-]+$/.test(code)) {
+        return `https://dequeuniversity.com/rules/axe/4.10/${code}`;
+    }
+    return null;
+}
+
+interface ReportIssue {
+    type: string;
+    code: string;
+    message: string;
+    selector: string;
+    context?: string;
+    snippetUrl?: string;
+    runnerExtras?: { impact?: string };
+}
+
+/**
+ * Generates an enhanced HTML report suitable for PDF conversion.
+ */
+export function generateHtmlReport(url: IUrl, scan: IScan): string {
+    const config = getConfig();
     const date = new Date(scan.timestamp).toLocaleString();
-    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const baseUrl = process.env.BASE_URL || `http://localhost:${config.port}`;
     
-    // Calculate stats across all steps if available
-    const allIssues = scan.steps && scan.steps.length > 0 
+    const allIssues: ReportIssue[] = scan.steps && scan.steps.length > 0 
         ? scan.steps.flatMap(s => s.issues || []) 
         : (scan.issues || []);
         
@@ -18,9 +81,8 @@ export function generateHtmlReport(url: Url, scan: Scan): string {
     const warnings = allIssues.filter(i => i.type === 'warning').length;
     const notices = allIssues.filter(i => i.type === 'notice').length;
 
-    // Calculate Impact Breakdown
-    const impactCounts = allIssues.reduce((acc: Record<string, number>, curr: Issue) => {
-        const impact = (curr.runnerExtras as { impact?: string })?.impact || 'moderate';
+    const impactCounts = allIssues.reduce((acc: Record<string, number>, curr: ReportIssue) => {
+        const impact = curr.runnerExtras?.impact || 'moderate';
         acc[impact] = (acc[impact] || 0) + 1;
         return acc;
     }, {});
@@ -76,7 +138,7 @@ export function generateHtmlReport(url: Url, scan: Scan): string {
         .brand {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
             margin-bottom: 1rem;
             font-weight: 900;
             font-size: 1.1rem;
@@ -343,12 +405,6 @@ export function generateHtmlReport(url: Url, scan: Scan): string {
             .code-block { font-size: 0.55rem; }
             .fix-suggestion { font-size: 0.7rem; }
         }
-
-        @media (max-width: 768px) {
-            .summary-grid { grid-template-cols: repeat(2, 1fr); }
-            .meta-grid { grid-template-cols: repeat(2, 1fr); }
-            .code-container { grid-template-cols: 1fr; }
-        }
     </style>
 </head>
 <body>
@@ -433,14 +489,14 @@ export function generateHtmlReport(url: Url, scan: Scan): string {
                     </div>
                     
                     ${(step.issues && step.issues.length > 0) ? 
-                        step.issues.map((issue: Issue) => renderIssue(issue, apiUrl)).join('') : 
+                        step.issues.map((issue: ReportIssue) => renderIssue(issue, baseUrl)).join('') : 
                         '<div class="fix-suggestion" style="background-color: #f0fdf4; border-color: #dcfce7; color: #166534; text-align: center; font-weight: 700; padding: 0.5rem;">No accessibility issues found! 🎉</div>'
                     }
                 </div>
                 `).join('')
                 : 
                 (allIssues.length > 0 ? 
-                    allIssues.map((issue: Issue) => renderIssue(issue, apiUrl)).join('') :
+                    allIssues.map((issue: ReportIssue) => renderIssue(issue, baseUrl)).join('') :
                     '<div class="fix-suggestion" style="text-align: center; font-weight: 700; padding: 0.5rem;">No accessibility issues were found.</div>'
                 )
             }
@@ -458,11 +514,11 @@ export function generateHtmlReport(url: Url, scan: Scan): string {
     return html;
 }
 
-function renderIssue(issue: Issue, apiUrl: string) {
+function renderIssue(issue: ReportIssue, baseUrl: string) {
     const fix = getIssueFixSuggestion(issue.code);
     const docsUrl = getIssueDocsUrl(issue.code);
     const badgeClass = issue.type === 'error' ? 'badge-error' : issue.type === 'warning' ? 'badge-warning' : 'badge-notice';
-    const impact = (issue.runnerExtras as { impact?: string })?.impact;
+    const impact = issue.runnerExtras?.impact;
 
     return `
         <div class="issue-card">
@@ -471,7 +527,7 @@ function renderIssue(issue: Issue, apiUrl: string) {
                     <span class="badge ${badgeClass}">${issue.type}</span>
                     ${impact ? `<span class="impact-tag ${impact === 'critical' || impact === 'serious' ? `impact-${impact}` : ''}">${impact} impact</span>` : ''}
                 </div>
-                <span style="font-family: monospace; font-size: 0.6rem; font-weight: 700; color: var(--text-light);">${issue.code}</span>
+                <span style="font-family: monospace; font-size: 0.55rem; font-weight: 700; color: var(--text-light);">${issue.code}</span>
             </div>
             <div class="issue-body">
                 <div class="issue-message">${issue.message}</div>
@@ -479,7 +535,7 @@ function renderIssue(issue: Issue, apiUrl: string) {
                 ${issue.snippetUrl ? `
                 <div class="screenshot-container">
                     <div class="screenshot-label">Visual Evidence</div>
-                    <img src="${apiUrl}${issue.snippetUrl}" alt="Visual snippet of the issue" style="max-width: 100%; height: auto; display: block;">
+                    <img src="${baseUrl}${issue.snippetUrl}" alt="Visual snippet of the issue" style="max-width: 100%; height: auto; display: block;">
                 </div>
                 ` : ''}
 
