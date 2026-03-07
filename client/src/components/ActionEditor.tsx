@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -10,23 +11,23 @@ interface ActionEditorProps {
 }
 
 export function ActionEditor({ actions, onChange }: ActionEditorProps) {
-    const addAction = () => {
+    const addAction = useCallback(() => {
         onChange([...actions, { type: 'wait', value: '1000', label: '' }]);
-    };
+    }, [actions, onChange]);
 
-    const removeAction = (index: number) => {
+    const removeAction = useCallback((index: number) => {
         const newActions = [...actions];
         newActions.splice(index, 1);
         onChange(newActions);
-    };
+    }, [actions, onChange]);
 
-    const updateAction = (index: number, field: keyof Action, value: string) => {
+    const updateAction = useCallback((index: number, field: keyof Action, value: string) => {
         const newActions = [...actions];
         newActions[index] = { ...newActions[index], [field]: value };
         onChange(newActions);
-    };
+    }, [actions, onChange]);
 
-    const moveAction = (index: number, direction: 'up' | 'down') => {
+    const moveAction = useCallback((index: number, direction: 'up' | 'down') => {
         if (direction === 'up' && index === 0) return;
         if (direction === 'down' && index === actions.length - 1) return;
 
@@ -36,7 +37,7 @@ export function ActionEditor({ actions, onChange }: ActionEditorProps) {
         [newActions[index], newActions[targetIndex]] = [newActions[targetIndex], newActions[index]];
 
         onChange(newActions);
-    };
+    }, [actions, onChange]);
 
     return (
         <div className="space-y-4">
@@ -66,6 +67,7 @@ export function ActionEditor({ actions, onChange }: ActionEditorProps) {
                                     <select
                                         value={action.type}
                                         onChange={(e) => updateAction(index, 'type', e.target.value)}
+                                        aria-label={`Action ${index + 1} type`}
                                         className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <option value="wait">Wait (ms)</option>
@@ -78,6 +80,7 @@ export function ActionEditor({ actions, onChange }: ActionEditorProps) {
                                     <Input
                                         value={action.value}
                                         onChange={(e) => updateAction(index, 'value', e.target.value)}
+                                        aria-label={`Action ${index + 1} value`}
                                         placeholder={
                                             action.type === 'wait' ? '1000' :
                                                 action.type === 'click' ? '#btn or iframe >>> #btn' :
@@ -91,6 +94,7 @@ export function ActionEditor({ actions, onChange }: ActionEditorProps) {
                                 <Input
                                     value={action.label || ''}
                                     onChange={(e) => updateAction(index, 'label', e.target.value)}
+                                    aria-label={`Action ${index + 1} optional label`}
                                     placeholder="Label (optional, e.g., 'Submit Login')"
                                     className="h-7 text-xs"
                                 />

@@ -9,6 +9,7 @@ class ScanQueue {
     private queue: string[] = [];
     private running: Set<string> = new Set();
     private processing = false;
+    private queueTimes: Map<string, number> = new Map();
 
     // Add a URL to the queue if not already there or running
     enqueue(urlId: string, priority = false) {
@@ -24,6 +25,7 @@ class ScanQueue {
             this.queue.push(id);
         }
         
+        this.queueTimes.set(id, Date.now());
         console.log(`Enqueued URL ${id}. Queue size: ${this.queue.length}`);
         this.process();
     }
@@ -39,15 +41,20 @@ class ScanQueue {
             const id = this.queue.shift();
             if (!id) break;
 
+            const waitTime = Date.now() - (this.queueTimes.get(id) || Date.now());
+            this.queueTimes.delete(id);
+
             this.running.add(id);
-            console.log(`Starting scan for ${id}. Concurrent: ${this.running.size}`);
+            const startTime = Date.now();
+            console.log(`Starting scan for ${id} (waited ${waitTime}ms). Concurrent: ${this.running.size}`);
 
             // Run scan in background (no await here to keep the loop going)
             runScan(id)
                 .catch(err => console.error(`Scan failed for ${id}:`, err))
                 .finally(() => {
+                    const executionTime = Date.now() - startTime;
                     this.running.delete(id);
-                    console.log(`Finished scan for ${id}. Concurrent: ${this.running.size}`);
+                    console.log(`Finished scan for ${id} (took ${executionTime}ms). Concurrent: ${this.running.size}`);
                     this.process(); // Try to process next item
                 });
         }

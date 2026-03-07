@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import cronstrue from 'cronstrue';
@@ -16,6 +17,8 @@ const PRESETS = [
 ];
 
 export function CronEditor({ value, onChange, disabled }: CronEditorProps) {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const isCustom = !PRESETS.some(p => p.cron === value);
     // Derived state for human readable description
     let humanReadable = '';
     let error: string | null = null;
@@ -50,13 +53,13 @@ export function CronEditor({ value, onChange, disabled }: CronEditorProps) {
                 ))}
                 <Button
                     type="button"
-                    variant={PRESETS.some(p => p.cron === value) ? 'outline' : 'default'}
+                    variant={isCustom ? 'default' : 'outline'}
                     size="xs"
                     className="text-[10px] h-7"
                     onClick={() => {
-                        // Custom highlight logic
+                        inputRef.current?.focus();
                     }}
-                    aria-pressed={!PRESETS.some(p => p.cron === value)}
+                    aria-pressed={isCustom}
                     disabled={disabled}
                 >
                     Custom
@@ -66,6 +69,7 @@ export function CronEditor({ value, onChange, disabled }: CronEditorProps) {
             <div className="space-y-1.5">
                 <Input
                     id="cron-input"
+                    ref={inputRef}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     placeholder="None (Manual only)"

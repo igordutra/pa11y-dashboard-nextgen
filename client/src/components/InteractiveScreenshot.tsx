@@ -86,6 +86,10 @@ export function InteractiveScreenshot({ screenshotSrc, issues, stepName }: Inter
                             return (
                                 <div
                                     key={`overlay-${idx}`}
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label={`${issue.type}: ${issue.code}. ${issue.message}`}
+                                    aria-expanded={isVisible}
                                     className={`absolute border-2 transition-all duration-200 cursor-help ${colorClass} ${isVisible ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                                     style={{
                                         left: `${issue.position.left}%`,
@@ -95,6 +99,14 @@ export function InteractiveScreenshot({ screenshotSrc, issues, stepName }: Inter
                                     }}
                                     onMouseEnter={() => setHoveredIssueIndex(issue.originalIndex)}
                                     onMouseLeave={() => setHoveredIssueIndex(null)}
+                                    onFocus={() => setHoveredIssueIndex(issue.originalIndex)}
+                                    onBlur={() => setHoveredIssueIndex(null)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            setShowAllOverlays(!showAllOverlays);
+                                        }
+                                    }}
                                 >
                                     {isVisible && (
                                         <div className="absolute -top-8 left-0 bg-background/90 backdrop-blur-sm border shadow-sm p-1 rounded whitespace-nowrap z-20 pointer-events-none transform -translate-x-1/2 ml-[50%]">

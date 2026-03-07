@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { SettingsModel, getSettings } from '../models/settings.js';
+import { settingsSchema } from '../types/schemas.js';
 
 export default async function settingsRoutes(fastify: FastifyInstance) {
     const f = fastify.withTypeProvider<ZodTypeProvider>();
@@ -9,26 +10,27 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
     // GET global settings
     f.get('/api/settings', {
         schema: {
-            description: 'Get global Pa11y settings',
+            description: 'Retrieve global Pa11y/Lighthouse configuration used as defaults for all scans',
+            summary: 'Get settings',
             tags: ['settings'],
             response: {
                 200: z.object({
                     _id: z.any(),
-                    runners: z.array(z.string()),
-                    includeNotices: z.boolean(),
-                    includeWarnings: z.boolean(),
+                    runners: z.array(z.string()).describe('Default accessibility runners (axe, htmlcs)'),
+                    includeNotices: z.boolean().describe('Include Pa11y notices in results'),
+                    includeWarnings: z.boolean().describe('Include Pa11y warnings in results'),
                     viewport: z.object({
-                        width: z.number(),
-                        height: z.number(),
-                        isMobile: z.boolean().optional()
+                        width: z.number().describe('Default viewport width'),
+                        height: z.number().describe('Default viewport height'),
+                        isMobile: z.boolean().optional().describe('Simulate mobile device')
                     }),
-                    timeout: z.number(),
-                    wait: z.number(),
-                    hideElements: z.string(),
-                    rootElement: z.string(),
-                    userAgent: z.string(),
-                    ignore: z.array(z.string()),
-                    headers: z.any()
+                    timeout: z.number().describe('Maximum time (ms) allowed for each scan step'),
+                    wait: z.number().describe('Fixed delay (ms) before starting each step'),
+                    hideElements: z.string().describe('CSS selectors for elements to hide during scan'),
+                    rootElement: z.string().describe('Restrict scan to this CSS selector'),
+                    userAgent: z.string().describe('Custom User-Agent header string'),
+                    ignore: z.array(z.string()).describe('Accessibility rules/codes to ignore'),
+                    headers: z.any().describe('Key-value pairs for custom HTTP headers')
                 })
             }
         }
@@ -40,25 +42,10 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
     // PUT update global settings
     f.put('/api/settings', {
         schema: {
-            description: 'Update global Pa11y settings',
+            description: 'Modify global configuration parameters. Changes apply to all future scans.',
+            summary: 'Update settings',
             tags: ['settings'],
-            body: z.object({
-                runners: z.array(z.enum(['axe', 'htmlcs'])).optional(),
-                includeNotices: z.boolean().optional(),
-                includeWarnings: z.boolean().optional(),
-                viewport: z.object({
-                    width: z.number(),
-                    height: z.number(),
-                    isMobile: z.boolean().optional()
-                }).optional(),
-                timeout: z.number().optional(),
-                wait: z.number().optional(),
-                hideElements: z.string().optional(),
-                rootElement: z.string().optional(),
-                userAgent: z.string().optional(),
-                ignore: z.array(z.string()).optional(),
-                headers: z.record(z.string(), z.string()).optional()
-            }),
+            body: settingsSchema,
             response: {
                 200: z.object({
                     _id: z.any(),
@@ -95,14 +82,15 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
     // GET environment info
     f.get('/api/environment', {
         schema: {
-            description: 'Get environment details (Pa11y version, Node, Chromium)',
+            description: 'Retrieve technical details about the server environment, versions, and supported standards',
+            summary: 'Get environment',
             tags: ['settings'],
             response: {
                 200: z.object({
-                    pa11yVersion: z.string(),
-                    nodeVersion: z.string(),
-                    availableRunners: z.array(z.string()),
-                    availableStandards: z.array(z.string())
+                    pa11yVersion: z.string().describe('Installed version of pa11y'),
+                    nodeVersion: z.string().describe('Node.js runtime version'),
+                    availableRunners: z.array(z.string()).describe('List of supported audit engines'),
+                    availableStandards: z.array(z.string()).describe('List of supported WCAG versions')
                 })
             }
         }

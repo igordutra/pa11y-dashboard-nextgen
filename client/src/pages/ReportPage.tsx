@@ -242,6 +242,30 @@ export function ReportPage() {
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
                 {/* Left Column: Screenshot and Issues */}
                 <div className="xl:col-span-8 space-y-8">
+                    {/* Scan Details Card */}
+                    <Card className="border-none bg-slate-50/50 rounded-2xl shadow-none border border-slate-200/60">
+                        <CardContent className="p-6">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                <div>
+                                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Standard</span>
+                                    <span className="font-bold text-slate-700">{activeScan?.standard || urlData.standard}</span>
+                                </div>
+                                <div>
+                                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Runners</span>
+                                    <span className="font-bold text-slate-700 capitalize">{activeScan?.runners?.join(', ') || 'axe'}</span>
+                                </div>
+                                <div>
+                                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Environment</span>
+                                    <span className="font-bold text-slate-700">{activeScan?.browserVersion ? `Chrome ${activeScan.browserVersion.split('/')[1]}` : 'Chromium'}</span>
+                                </div>
+                                <div>
+                                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Viewport</span>
+                                    <span className="font-bold text-slate-700">{currentData?.viewport ? `${currentData.viewport.width}x${currentData.viewport.height}` : '1280x1024'}</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     {/* Steps Navigation */}
                     {hasSteps && (
                         <nav className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide" role="tablist" aria-label="Scan steps">

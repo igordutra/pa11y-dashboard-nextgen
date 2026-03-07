@@ -34,6 +34,8 @@ export function ExportReportModal({ url, scan, trigger }: ExportReportModalProps
 
     const activeScan = fullScan || scan;
 
+    const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
     const handleDownload = () => {
         const html = generateHtmlReport(url, activeScan);
         const blob = new Blob([html], { type: 'text/html' });
@@ -45,6 +47,26 @@ export function ExportReportModal({ url, scan, trigger }: ExportReportModalProps
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(urlObj);
+    };
+
+    const handleDownloadPdf = async () => {
+        setIsDownloadingPdf(true);
+        try {
+            const response = await api.get(`/api/scans/${activeScan._id}/pdf`, {
+                responseType: 'blob'
+            });
+            const urlObj = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = urlObj;
+            link.setAttribute('download', `accessibility-report-${url.name || 'site'}-${new Date(activeScan.timestamp).toISOString().split('T')[0]}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            console.error('Failed to download PDF:', error);
+        } finally {
+            setIsDownloadingPdf(false);
+        }
     };
 
     const reportHtml = generateHtmlReport(url, activeScan);
@@ -63,7 +85,7 @@ export function ExportReportModal({ url, scan, trigger }: ExportReportModalProps
                 <DialogHeader>
                     <DialogTitle>Export Accessibility Report</DialogTitle>
                     <DialogDescription>
-                        Generate a standalone HTML report following the WCAG-EM structure.
+                        Generate a standalone report following the WCAG-EM structure.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -107,12 +129,18 @@ export function ExportReportModal({ url, scan, trigger }: ExportReportModalProps
                     )}
                 </div>
 
-                <DialogFooter className="gap-2">
+                <DialogFooter className="gap-2 sm:justify-between">
                     <Button variant="ghost" onClick={() => setIsOpen(false)}>Cancel</Button>
-                    <Button onClick={handleDownload} disabled={isLoading}>
-                        <FileDown className="mr-2 h-4 w-4" />
-                        Download HTML Report
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button variant="outline" onClick={handleDownload} disabled={isLoading}>
+                            <FileDown className="mr-2 h-4 w-4" />
+                            HTML
+                        </Button>
+                        <Button onClick={handleDownloadPdf} disabled={isLoading || isDownloadingPdf} className="bg-blue-600 hover:bg-blue-700">
+                            {isDownloadingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                            Download PDF
+                        </Button>
+                    </div>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
