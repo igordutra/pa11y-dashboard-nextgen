@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import mongoose from 'mongoose';
-import { serializerCompiler, validatorCompiler, ZodTypeProvider } from 'fastify-type-provider-zod';
+import { serializerCompiler, validatorCompiler, ZodTypeProvider, jsonSchemaTransform } from 'fastify-type-provider-zod';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
 import { getConfig } from './config/index.js';
@@ -62,9 +62,10 @@ export const initApp = async () => {
         info: {
           title: 'Pa11y Dashboard NextGen API',
           description: 'API for managing Pa11y scans and results',
-          version: '0.4.0',
+          version: '0.4.2',
         },
       },
+      transform: jsonSchemaTransform,
     });
 
     await fastify.register(fastifySwaggerUi, {
