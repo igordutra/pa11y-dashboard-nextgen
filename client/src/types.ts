@@ -1,3 +1,19 @@
+export interface Job {
+    urlId: string;
+    url?: string;
+    name?: string;
+    enqueuedAt: string;
+    startedAt?: string;
+    priority: boolean;
+    status: 'pending' | 'running';
+    durationMs?: number;
+}
+
+export interface JobsResponse {
+    running: Job[];
+    queue: Job[];
+}
+
 export interface Action {
     type: 'click' | 'wait' | 'type' | 'wait-for-url' | 'screen-capture';
     value: string;

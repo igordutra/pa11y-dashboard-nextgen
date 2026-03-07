@@ -5,11 +5,20 @@ import { CronExpressionParser } from 'cron-parser';
 const SCAN_INTERVAL_MS = 60 * 1000; // Check every minute
 const MAX_CONCURRENT = 3;
 
+interface QueueMetadata {
+    urlId: string;
+    enqueuedAt: number;
+    priority: boolean;
+}
+
+interface RunningMetadata extends QueueMetadata {
+    startedAt: number;
+}
+
 class ScanQueue {
-    private queue: string[] = [];
-    private running: Set<string> = new Set();
+    private queue: QueueMetadata[] = [];
+    private running: Map<string, RunningMetadata> = new Map();
     private processing = false;
-    private queueTimes: Map<string, number> = new Map();
 
     // Add a URL to the queue if not already there or running
     enqueue(urlId: string, priority = false) {
@@ -17,15 +26,20 @@ class ScanQueue {
         if (this.running.has(id)) return;
         
         // Remove from existing queue if it's there to re-add with priority or just avoid duplicates
-        this.queue = this.queue.filter(qId => qId !== id);
+        this.queue = this.queue.filter(q => q.urlId !== id);
         
+        const metadata: QueueMetadata = {
+            urlId: id,
+            enqueuedAt: Date.now(),
+            priority
+        };
+
         if (priority) {
-            this.queue.unshift(id);
+            this.queue.unshift(metadata);
         } else {
-            this.queue.push(id);
+            this.queue.push(metadata);
         }
         
-        this.queueTimes.set(id, Date.now());
         console.log(`Enqueued URL ${id}. Queue size: ${this.queue.length}`);
         this.process();
     }
@@ -38,21 +52,25 @@ class ScanQueue {
         this.processing = true;
 
         while (this.running.size < MAX_CONCURRENT && this.queue.length > 0) {
-            const id = this.queue.shift();
-            if (!id) break;
+            const metadata = this.queue.shift();
+            if (!metadata) break;
 
-            const waitTime = Date.now() - (this.queueTimes.get(id) || Date.now());
-            this.queueTimes.delete(id);
+            const waitTime = Date.now() - metadata.enqueuedAt;
+            const id = metadata.urlId;
 
-            this.running.add(id);
-            const startTime = Date.now();
+            const runningMetadata: RunningMetadata = {
+                ...metadata,
+                startedAt: Date.now()
+            };
+            this.running.set(id, runningMetadata);
+
             console.log(`Starting scan for ${id} (waited ${waitTime}ms). Concurrent: ${this.running.size}`);
 
             // Run scan in background (no await here to keep the loop going)
             runScan(id)
                 .catch(err => console.error(`Scan failed for ${id}:`, err))
                 .finally(() => {
-                    const executionTime = Date.now() - startTime;
+                    const executionTime = Date.now() - runningMetadata.startedAt;
                     this.running.delete(id);
                     console.log(`Finished scan for ${id} (took ${executionTime}ms). Concurrent: ${this.running.size}`);
                     this.process(); // Try to process next item
@@ -66,6 +84,25 @@ class ScanQueue {
         return {
             queueLength: this.queue.length,
             runningCount: this.running.size
+        };
+    }
+
+    getJobs() {
+        return {
+            queue: this.queue.map(q => ({
+                urlId: q.urlId,
+                enqueuedAt: new Date(q.enqueuedAt),
+                priority: q.priority,
+                status: 'pending'
+            })),
+            running: Array.from(this.running.values()).map(r => ({
+                urlId: r.urlId,
+                enqueuedAt: new Date(r.enqueuedAt),
+                startedAt: new Date(r.startedAt),
+                priority: r.priority,
+                status: 'running',
+                durationMs: Date.now() - r.startedAt
+            }))
         };
     }
 
