@@ -57,20 +57,22 @@ export const initApp = async () => {
       },
     });
 
-    await fastify.register(fastifySwagger, {
-      openapi: {
-        info: {
-          title: 'Pa11y Dashboard NextGen API',
-          description: 'API for managing Pa11y scans and results',
-          version: '0.4.2',
+    if (currentConfig.nodeEnv !== 'production') {
+      await fastify.register(fastifySwagger, {
+        openapi: {
+          info: {
+            title: 'Pa11y Dashboard NextGen API',
+            description: 'API for managing Pa11y scans and results',
+            version: '0.4.2',
+          },
         },
-      },
-      transform: jsonSchemaTransform,
-    });
+        transform: jsonSchemaTransform,
+      });
 
-    await fastify.register(fastifySwaggerUi, {
-      routePrefix: '/documentation',
-    });
+      await fastify.register(fastifySwaggerUi, {
+        routePrefix: '/documentation',
+      });
+    }
 
     await mongoose.connect(currentConfig.mongoUri);
     fastify.log.info('Connected to MongoDB');
