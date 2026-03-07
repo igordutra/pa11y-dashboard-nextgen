@@ -16,7 +16,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
             tags: ['categories'],
             response: {
                 200: z.array(z.object({
-                    _id: z.preprocess((val: any) => val?.toString(), z.string()).describe('Unique identifier for the category'),
+                    _id: z.string().describe('Unique identifier for the category'),
                     name: z.string().describe('Display name of the category'),
                     description: z.string().optional().describe('Optional descriptive text'),
                     icon: z.string().describe('Lucide icon name (e.g., "Globe", "Briefcase")'),
@@ -27,7 +27,10 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
         }
     }, async (_req, _reply) => {
         const categories = await CategoryModel.find().sort({ order: 1, name: 1 });
-        return categories;
+        return categories.map(c => ({
+            ...c.toObject(),
+            _id: c._id.toString()
+        }));
     });
 
     // POST create category
@@ -45,7 +48,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
             }),
             response: {
                 200: z.object({
-                    _id: z.preprocess((val: any) => val?.toString(), z.string()),
+                    _id: z.string(),
                     name: z.string(),
                     description: z.string().optional(),
                     icon: z.string(),
@@ -57,7 +60,10 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
     }, async (req, _reply) => {
         const category = new CategoryModel(req.body);
         await category.save();
-        return category;
+        return {
+            ...category.toObject(),
+            _id: category._id.toString()
+        };
     });
 
     // PUT update category
@@ -78,7 +84,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
             }),
             response: {
                 200: z.object({
-                    _id: z.preprocess((val: any) => val?.toString(), z.string()),
+                    _id: z.string(),
                     name: z.string(),
                     description: z.string().optional(),
                     icon: z.string(),
@@ -97,7 +103,10 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
             { new: true }
         );
         if (!category) return reply.status(404).send({ error: 'Category not found' });
-        return category;
+        return {
+            ...category.toObject(),
+            _id: category._id.toString()
+        };
     });
 
     // DELETE category (unassigns URLs, does not delete them)

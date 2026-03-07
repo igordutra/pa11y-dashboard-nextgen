@@ -201,7 +201,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
             }),
             response: {
                 200: z.array(z.object({
-                    _id: z.preprocess((val: any) => val?.toString(), z.string()).describe('Scan ID'),
+                    _id: z.string().describe('Scan ID'),
                     timestamp: z.any().describe('When the scan was performed'),
                     issuesCount: z.number().describe('Total number of issues found across all steps'),
                     documentTitle: z.string().nullable().optional().describe('HTML document title captured during scan'),
@@ -219,7 +219,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
                 : (s.issues?.length || 0);
                 
             return {
-                _id: s._id,
+                _id: s._id.toString(),
                 timestamp: s.timestamp,
                 issuesCount: totalIssues,
                 documentTitle: s.documentTitle,
@@ -240,7 +240,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
             }),
             response: {
                 200: z.object({
-                    _id: z.preprocess((val: any) => val?.toString(), z.string()),
+                    _id: z.string(),
                     timestamp: z.any(),
                     issues: z.array(z.unknown()),
                     documentTitle: z.string().nullable().optional(),
@@ -256,7 +256,11 @@ export default async function scanRoutes(fastify: FastifyInstance) {
         const { id } = req.params;
         const scan = await ScanModel.findOne({ urlId: id }).sort({ timestamp: -1 });
         if (!scan) return null;
-        return scan;
+        return {
+            ...scan.toObject(),
+            _id: scan._id.toString(),
+            urlId: scan.urlId?.toString()
+        };
     });
 
     // READ: Get a specific scan by scan ID
@@ -270,8 +274,8 @@ export default async function scanRoutes(fastify: FastifyInstance) {
             }),
             response: {
                 200: z.object({
-                    _id: z.preprocess((val: any) => val?.toString(), z.string()),
-                    urlId: z.preprocess((val: any) => val?.toString(), z.string()).describe('The parent URL ID'),
+                    _id: z.string(),
+                    urlId: z.string().describe('The parent URL ID'),
                     timestamp: z.any(),
                     issues: z.array(z.unknown()).describe('Primary issues list (legacy/last step)'),
                     documentTitle: z.string().nullable().optional(),
@@ -290,7 +294,11 @@ export default async function scanRoutes(fastify: FastifyInstance) {
         const { scanId } = req.params;
         const scan = await ScanModel.findById(scanId);
         if (!scan) return null;
-        return scan;
+        return {
+            ...scan.toObject(),
+            _id: scan._id.toString(),
+            urlId: scan.urlId?.toString()
+        };
     });
 
     // ACTION: Export Scan as PDF

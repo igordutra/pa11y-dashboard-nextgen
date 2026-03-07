@@ -15,7 +15,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
             tags: ['settings'],
             response: {
                 200: z.object({
-                    _id: z.preprocess((val: any) => val?.toString(), z.string()),
+                    _id: z.string(),
                     runners: z.array(z.string()).describe('Default accessibility runners (axe, htmlcs)'),
                     includeNotices: z.boolean().describe('Include Pa11y notices in results'),
                     includeWarnings: z.boolean().describe('Include Pa11y warnings in results'),
@@ -39,6 +39,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
         const settings = await getSettings();
         return {
             ...settings.toObject(),
+            _id: settings._id.toString(),
             headers: Object.fromEntries(settings.headers || new Map())
         };
     });
@@ -52,7 +53,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
             body: settingsSchema,
             response: {
                 200: z.object({
-                    _id: z.preprocess((val: any) => val?.toString(), z.string()),
+                    _id: z.string(),
                     runners: z.array(z.string()),
                     includeNotices: z.boolean(),
                     includeWarnings: z.boolean(),
@@ -83,6 +84,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
         }
         return {
             ...settings.toObject(),
+            _id: settings._id.toString(),
             headers: Object.fromEntries(settings.headers || new Map())
         };
     });
