@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.4.0] - 2026-03-07
 
 ### Added
 - **Automated A11y Testing**: Integrated `vitest-axe` into the client test suite for automated accessibility audits of UI components.
