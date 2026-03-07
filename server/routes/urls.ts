@@ -79,7 +79,7 @@ export default async function urlRoutes(fastify: FastifyInstance) {
             }),
             response: {
                 200: z.object({
-                    _id: z.any(),
+                    _id: z.preprocess((val: any) => val?.toString(), z.string()),
                     url: z.string(),
                     name: z.string().optional(),
                     schedule: z.string(),
@@ -131,7 +131,7 @@ export default async function urlRoutes(fastify: FastifyInstance) {
                 id: z.string().describe('The URL ID to delete')
             }),
             response: {
-                204: z.any().describe('Successfully deleted'),
+                204: z.null().describe('Successfully deleted'),
                 403: z.object({
                     error: z.string(),
                     message: z.string()
@@ -142,7 +142,7 @@ export default async function urlRoutes(fastify: FastifyInstance) {
         const { id } = req.params;
         await UrlModel.findByIdAndDelete(id);
         await ScanModel.deleteMany({ urlId: id });
-        reply.status(204).send({});
+        reply.status(204).send(null);
     });
 
     // CRUD: Update URL
@@ -173,7 +173,7 @@ export default async function urlRoutes(fastify: FastifyInstance) {
             }),
             response: {
                 200: z.object({
-                    _id: z.any(),
+                    _id: z.preprocess((val: any) => val?.toString(), z.string()),
                     url: z.string(),
                     name: z.string().optional(),
                     schedule: z.string(),

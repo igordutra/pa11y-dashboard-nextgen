@@ -57,7 +57,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
                 id: z.string().describe('The URL ID to clear')
             }),
             response: {
-                204: z.any().describe('Successfully cleared'),
+                204: z.null().describe('Successfully cleared'),
                 403: z.object({
                     error: z.string(),
                     message: z.string()
@@ -83,7 +83,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
             }
         });
         
-        reply.status(204).send({});
+        reply.status(204).send(null);
     });
 
     // READ: Get History
@@ -183,7 +183,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
                     _id: z.preprocess((val: any) => val?.toString(), z.string()),
                     urlId: z.preprocess((val: any) => val?.toString(), z.string()).describe('The parent URL ID'),
                     timestamp: z.date(),
-                    issues: z.array(z.any()).describe('Primary issues list (legacy/last step)'),
+                    issues: z.array(z.unknown()).describe('Primary issues list (legacy/last step)'),
                     documentTitle: z.string().optional(),
                     pageUrl: z.string().optional(),
                     score: z.number().optional(),
@@ -213,7 +213,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
                 scanId: z.string().describe('The scan ID to export')
             }),
             response: {
-                200: z.any().describe('PDF binary data'),
+                200: z.unknown().describe('PDF binary data'),
                 404: z.object({
                     error: z.string(),
                     message: z.string()
