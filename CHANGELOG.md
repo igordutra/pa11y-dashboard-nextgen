@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.3] - 2026-03-07
+
+### Security
+- **Documentation Access**: Disabled Swagger UI and OpenAPI JSON endpoints in production environments (`NODE_ENV=production`) to reduce the application's attack surface.
+
 ## [0.4.2] - 2026-03-07
 
 ### Fixed
