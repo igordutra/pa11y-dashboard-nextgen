@@ -24,6 +24,7 @@ export interface ScanStep {
     screenshot: string;
     thumbnail: string;
     pageUrl: string;
+    viewport?: { width: number; height: number };
 }
 
 export interface Scan {
