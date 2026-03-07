@@ -1,12 +1,10 @@
 import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-// import { axe, toHaveNoViolations } from 'vitest-axe';
+import { axe } from 'vitest-axe';
 import { ActionEditor } from './ActionEditor';
 import { CronEditor } from './CronEditor';
 import { Action } from '../types';
-
-// expect.extend({ toHaveNoViolations });
 
 describe('ActionEditor Component', () => {
     const mockActions: Action[] = [
@@ -60,13 +58,11 @@ describe('ActionEditor Component', () => {
         expect(moveDownBtns[1]).toBeDisabled();
     });
 
-    /*
     it('should have no accessibility violations', async () => {
         const { container } = render(<ActionEditor actions={mockActions} onChange={onChange} />);
         const results = await axe(container);
         expect(results).toHaveNoViolations();
     });
-    */
 });
 
 describe('CronEditor Component', () => {
@@ -104,11 +100,9 @@ describe('CronEditor Component', () => {
         expect(customBtn).toHaveAttribute('aria-pressed', 'true');
     });
 
-    /*
     it('should have no accessibility violations', async () => {
         const { container } = render(<CronEditor value="0 * * * *" onChange={onChange} />);
         const results = await axe(container);
         expect(results).toHaveNoViolations();
     });
-    */
 });
