@@ -88,10 +88,9 @@ fi
 echo "Triggering initial scans..."
 docker compose -f docker-compose.oracle.yml exec -T app sh -c "
   # Get all URL IDs from MongoDB via mongosh inside the app container context
-  # (though we target localhost:3000 API)
   for id in \$(wget -qO- http://localhost:3000/api/urls | grep -o '\"_id\":\"[^\"]*\"' | cut -d'\"' -f4); do
     echo \"Triggering scan for \$id...\"
-    wget -qO- --post-data='' http://localhost:3000/api/urls/\$id/scan
+    wget -qO- --header='Content-Type: application/json' --post-data='{}' http://localhost:3000/api/urls/\$id/scan
   done
 "
 
