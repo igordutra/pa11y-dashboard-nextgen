@@ -202,11 +202,11 @@ export default async function scanRoutes(fastify: FastifyInstance) {
             response: {
                 200: z.array(z.object({
                     _id: z.preprocess((val: any) => val?.toString(), z.string()).describe('Scan ID'),
-                    timestamp: z.date().describe('When the scan was performed'),
+                    timestamp: z.any().describe('When the scan was performed'),
                     issuesCount: z.number().describe('Total number of issues found across all steps'),
-                    documentTitle: z.string().optional().describe('HTML document title captured during scan'),
-                    score: z.number().optional().describe('Accessibility score (0-100)'),
-                    stepsCount: z.number().optional().describe('Number of interactive steps in this scan')
+                    documentTitle: z.string().nullable().optional().describe('HTML document title captured during scan'),
+                    score: z.number().nullable().optional().describe('Accessibility score (0-100)'),
+                    stepsCount: z.number().nullable().optional().describe('Number of interactive steps in this scan')
                 }))
             }
         }
@@ -229,20 +229,6 @@ export default async function scanRoutes(fastify: FastifyInstance) {
         });
     });
 
-    // Shared schema for scan steps
-    const scanStepSchema = z.object({
-        stepName: z.string().describe('Label for this interaction step'),
-        issues: z.array(z.unknown()).describe('List of Pa11y/Lighthouse issues found'),
-        score: z.number().optional().describe('Accessibility score for this step'),
-        screenshot: z.string().optional().describe('Full screenshot path'),
-        thumbnail: z.string().optional().describe('Thumbnail path'),
-        pageUrl: z.string().optional().describe('URL at the time of the step'),
-        viewport: z.object({
-            width: z.number().optional(),
-            height: z.number().optional()
-        }).nullish().describe('Viewport dimensions used')
-    });
-
     // READ: Get Latest Scan Details
     f.get('/api/urls/:id/latest-scan', {
         schema: {
@@ -255,14 +241,14 @@ export default async function scanRoutes(fastify: FastifyInstance) {
             response: {
                 200: z.object({
                     _id: z.preprocess((val: any) => val?.toString(), z.string()),
-                    timestamp: z.date(),
+                    timestamp: z.any(),
                     issues: z.array(z.unknown()),
-                    documentTitle: z.string().optional(),
-                    pageUrl: z.string().optional(),
-                    score: z.number().optional(),
-                    screenshot: z.string().optional(),
-                    thumbnail: z.string().optional(),
-                    steps: z.array(scanStepSchema).optional()
+                    documentTitle: z.string().nullable().optional(),
+                    pageUrl: z.string().nullable().optional(),
+                    score: z.number().nullable().optional(),
+                    screenshot: z.string().nullable().optional(),
+                    thumbnail: z.string().nullable().optional(),
+                    steps: z.array(z.any()).optional()
                 }).nullable()
             }
         }
@@ -286,17 +272,17 @@ export default async function scanRoutes(fastify: FastifyInstance) {
                 200: z.object({
                     _id: z.preprocess((val: any) => val?.toString(), z.string()),
                     urlId: z.preprocess((val: any) => val?.toString(), z.string()).describe('The parent URL ID'),
-                    timestamp: z.date(),
+                    timestamp: z.any(),
                     issues: z.array(z.unknown()).describe('Primary issues list (legacy/last step)'),
-                    documentTitle: z.string().optional(),
-                    pageUrl: z.string().optional(),
-                    score: z.number().optional(),
-                    screenshot: z.string().optional(),
-                    thumbnail: z.string().optional(),
-                    runners: z.array(z.string()).optional().describe('Runners used (e.g., axe, htmlcs)'),
-                    standard: z.string().optional().describe('Standard used (e.g., WCAG2AA)'),
-                    browserVersion: z.string().optional().describe('Puppeteer browser version'),
-                    steps: z.array(scanStepSchema).optional()
+                    documentTitle: z.string().nullable().optional(),
+                    pageUrl: z.string().nullable().optional(),
+                    score: z.number().nullable().optional(),
+                    screenshot: z.string().nullable().optional(),
+                    thumbnail: z.string().nullable().optional(),
+                    runners: z.array(z.string()).nullable().optional().describe('Runners used (e.g., axe, htmlcs)'),
+                    standard: z.string().nullable().optional().describe('Standard used (e.g., WCAG2AA)'),
+                    browserVersion: z.string().nullable().optional().describe('Puppeteer browser version'),
+                    steps: z.array(z.any()).optional()
                 }).nullable()
             }
         }

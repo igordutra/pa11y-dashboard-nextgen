@@ -28,23 +28,19 @@ export default async function urlRoutes(fastify: FastifyInstance) {
                     _id: z.preprocess((val: any) => val?.toString(), z.string()).describe('Unique identifier for the URL'),
                     url: z.string().describe('The destination URL being monitored'),
                     name: z.string().nullable().optional().describe('Human-readable name for the URL'),
-                    schedule: z.string().describe('Cron-style schedule string (empty for manual)'),
+                    schedule: z.string().nullable().optional().describe('Cron-style schedule string (empty for manual)'),
                     standard: z.string().nullable().optional().describe('Accessibility standard (e.g., WCAG22AA)'),
-                    status: z.enum(['active', 'error', 'paused', 'scanning']).describe('Current status of the URL monitoring'),
-                    lastScanAt: z.date().nullable().optional().describe('Timestamp of the most recent completed scan'),
+                    status: z.string().nullable().optional().describe('Current status of the URL monitoring'),
+                    lastScanAt: z.any().optional().describe('Timestamp of the most recent completed scan'),
                     lastIssueCount: z.number().nullable().optional().describe('Number of accessibility issues found in the last scan'),
                     lastScore: z.number().nullable().optional().describe('Overall accessibility score from the last scan (0-100)'),
                     lastThumbnail: z.string().nullable().optional().describe('Relative path to the last scan thumbnail'),
                     lastScreenshot: z.string().nullable().optional().describe('Relative path to the last scan full screenshot'),
-                    actions: z.array(z.object({
-                        type: z.enum(['click', 'wait', 'type', 'wait-for-url', 'screen-capture']),
-                        value: z.string().describe('Target selector or parameter value for the action'),
-                        label: z.string().optional().describe('Optional name/label for the action step')
-                    })).optional().describe('List of multi-step interactive actions to perform before scanning'),
+                    actions: z.array(z.any()).optional().describe('List of multi-step interactive actions to perform before scanning'),
                     overrides: overridesSchema,
                     categoryId: z.preprocess((val: any) => val?.toString(), z.string()).optional().describe('Optional ID of the assigned category'),
-                    createdAt: z.date().optional(),
-                    updatedAt: z.date().optional()
+                    createdAt: z.any().optional(),
+                    updatedAt: z.any().optional()
                 }))
             }
         }
