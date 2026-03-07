@@ -97,7 +97,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
             }),
             response: {
                 200: z.array(z.object({
-                    _id: z.any().describe('Scan ID'),
+                    _id: z.preprocess((val: any) => val?.toString(), z.string()).describe('Scan ID'),
                     timestamp: z.date().describe('When the scan was performed'),
                     issuesCount: z.number().describe('Total number of issues found across all steps'),
                     documentTitle: z.string().optional().describe('HTML document title captured during scan'),
@@ -128,7 +128,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
     // Shared schema for scan steps
     const scanStepSchema = z.object({
         stepName: z.string().describe('Label for this interaction step'),
-        issues: z.array(z.any()).describe('List of Pa11y/Lighthouse issues found'),
+        issues: z.array(z.unknown()).describe('List of Pa11y/Lighthouse issues found'),
         score: z.number().optional().describe('Accessibility score for this step'),
         screenshot: z.string().optional().describe('Full screenshot path'),
         thumbnail: z.string().optional().describe('Thumbnail path'),
@@ -150,9 +150,9 @@ export default async function scanRoutes(fastify: FastifyInstance) {
             }),
             response: {
                 200: z.object({
-                    _id: z.any(),
+                    _id: z.preprocess((val: any) => val?.toString(), z.string()),
                     timestamp: z.date(),
-                    issues: z.array(z.any()),
+                    issues: z.array(z.unknown()),
                     documentTitle: z.string().optional(),
                     pageUrl: z.string().optional(),
                     score: z.number().optional(),
@@ -180,8 +180,8 @@ export default async function scanRoutes(fastify: FastifyInstance) {
             }),
             response: {
                 200: z.object({
-                    _id: z.any(),
-                    urlId: z.any().describe('The parent URL ID'),
+                    _id: z.preprocess((val: any) => val?.toString(), z.string()),
+                    urlId: z.preprocess((val: any) => val?.toString(), z.string()).describe('The parent URL ID'),
                     timestamp: z.date(),
                     issues: z.array(z.any()).describe('Primary issues list (legacy/last step)'),
                     documentTitle: z.string().optional(),

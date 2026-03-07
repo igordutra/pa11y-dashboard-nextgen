@@ -15,7 +15,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
             tags: ['settings'],
             response: {
                 200: z.object({
-                    _id: z.any(),
+                    _id: z.preprocess((val: any) => val?.toString(), z.string()),
                     runners: z.array(z.string()).describe('Default accessibility runners (axe, htmlcs)'),
                     includeNotices: z.boolean().describe('Include Pa11y notices in results'),
                     includeWarnings: z.boolean().describe('Include Pa11y warnings in results'),
@@ -30,13 +30,16 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
                     rootElement: z.string().describe('Restrict scan to this CSS selector'),
                     userAgent: z.string().describe('Custom User-Agent header string'),
                     ignore: z.array(z.string()).describe('Accessibility rules/codes to ignore'),
-                    headers: z.any().describe('Key-value pairs for custom HTTP headers')
+                    headers: z.record(z.string(), z.string()).optional().describe('Key-value pairs for custom HTTP headers')
                 })
             }
         }
     }, async (_req, _reply) => {
         const settings = await getSettings();
-        return settings;
+        return {
+            ...settings.toObject(),
+            headers: Object.fromEntries(settings.headers || new Map())
+        };
     });
 
     // PUT update global settings
@@ -48,7 +51,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
             body: settingsSchema,
             response: {
                 200: z.object({
-                    _id: z.any(),
+                    _id: z.preprocess((val: any) => val?.toString(), z.string()),
                     runners: z.array(z.string()),
                     includeNotices: z.boolean(),
                     includeWarnings: z.boolean(),
@@ -63,7 +66,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
                     rootElement: z.string(),
                     userAgent: z.string(),
                     ignore: z.array(z.string()),
-                    headers: z.any()
+                    headers: z.record(z.string(), z.string()).optional()
                 })
             }
         }
@@ -76,7 +79,10 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
             Object.assign(settings, req.body);
             await settings.save();
         }
-        return settings;
+        return {
+            ...settings.toObject(),
+            headers: Object.fromEntries(settings.headers || new Map())
+        };
     });
 
     // GET environment info

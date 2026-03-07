@@ -16,7 +16,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
             tags: ['categories'],
             response: {
                 200: z.array(z.object({
-                    _id: z.any().describe('Unique identifier for the category'),
+                    _id: z.preprocess((val: any) => val?.toString(), z.string()).describe('Unique identifier for the category'),
                     name: z.string().describe('Display name of the category'),
                     description: z.string().optional().describe('Optional descriptive text'),
                     icon: z.string().describe('Lucide icon name (e.g., "Globe", "Briefcase")'),
@@ -45,7 +45,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
             }),
             response: {
                 200: z.object({
-                    _id: z.any(),
+                    _id: z.preprocess((val: any) => val?.toString(), z.string()),
                     name: z.string(),
                     description: z.string().optional(),
                     icon: z.string(),
@@ -78,7 +78,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
             }),
             response: {
                 200: z.object({
-                    _id: z.any(),
+                    _id: z.preprocess((val: any) => val?.toString(), z.string()),
                     name: z.string(),
                     description: z.string().optional(),
                     icon: z.string(),
