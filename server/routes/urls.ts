@@ -25,7 +25,7 @@ export default async function urlRoutes(fastify: FastifyInstance) {
             tags: ['urls'],
             response: {
                 200: z.array(z.object({
-                    _id: z.any().describe('Unique identifier for the URL'),
+                    _id: z.preprocess((val: any) => val?.toString(), z.string()).describe('Unique identifier for the URL'),
                     url: z.string().describe('The destination URL being monitored'),
                     name: z.string().optional().describe('Human-readable name for the URL'),
                     schedule: z.string().describe('Cron-style schedule string (empty for manual)'),
@@ -42,7 +42,7 @@ export default async function urlRoutes(fastify: FastifyInstance) {
                         label: z.string().optional().describe('Optional name/label for the action step')
                     })).optional().describe('List of multi-step interactive actions to perform before scanning'),
                     overrides: overridesSchema,
-                    categoryId: z.any().optional().describe('Optional ID of the assigned category'),
+                    categoryId: z.preprocess((val: any) => val?.toString(), z.string()).optional().describe('Optional ID of the assigned category'),
                     createdAt: z.date().optional(),
                     updatedAt: z.date().optional()
                 }))
