@@ -31,65 +31,8 @@ const captureStep = async (page: any, browser: any, urlDoc: any, stepName: strin
     const currentConfig = getConfig();
     const screenshotsDir = currentConfig.screenshotsDir;
 
-    // 1. Capture Screenshot (Giant Viewport Strategy to avoid stitching artifacts)
-    const originalViewport = page.viewport();
-    const bodyHeight = await page.evaluate(() => Math.max(document.body.scrollHeight, document.documentElement.scrollHeight, document.body.offsetHeight, document.documentElement.offsetHeight, document.body.clientHeight, document.documentElement.clientHeight));
-
-    // Resize viewport to full page height to capture everything in one go without scrolling/stitching
-    // This ensures sticky headers don't repeat and coordinates match 1:1
-    await page.setViewport({ width: config.viewport.width, height: Math.ceil(bodyHeight) });
-
-    const screenshotBuffer = await page.screenshot({ encoding: 'binary', fullPage: false }) as Buffer;
-
-    // Restore viewport for Pa11y consistency
-    if (originalViewport) {
-        await page.setViewport(originalViewport);
-    }
-
-    const fullFilename = `scan-${urlDoc._id}-${timestamp}-${stepName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-full.png`;
-    const thumbFilename = `scan-${urlDoc._id}-${timestamp}-${stepName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-thumb.png`;
-    const fullPath = path.join(screenshotsDir, fullFilename);
-    const thumbPath = path.join(screenshotsDir, thumbFilename);
-
-    await fs.writeFile(fullPath, screenshotBuffer);
-    await sharp(screenshotBuffer).resize(400).toFile(thumbPath);
-
-    const screenshotUrl = `/screenshots/${fullFilename}`;
-    const thumbnailUrl = `/screenshots/${thumbFilename}`;
-
-    // ... (Lighthouse/Pa11y logic omitted for brevity in replace, but we need to target carefully) 
-    // Wait, I need to split this if I can't match the whole block.
-    // I'll target the Screenshot block first.
-
-    // actually I will use separate chunks if possible or just replace the specific lines.
-    // Line 34 is screenshot.
-    // Line 117 is bounding box.
-
-    // Chunk 1: Screenshot
-    // Chunk 2: Bounding Box
-
-    // Wait, replace_file_content (single) can only do one contiguous block.
-    // I'll use multi_replace_file_content.
-
-    // WAIT. I am using replace_file_content. I should use multi_replace_file_content or call replace twice.
-    // I'll use multi_replace_file_content.
-
-
-
-    // 2. Run Lighthouse (Accessibility Score)
-    // Note: Running Lighthouse on an existing page state can be tricky. 
-    // We'll try to run it on the same port.
-    // Ideally we usage 'fraggle' or similar, but for now standard lighthouse might reload.
-    // If it reloads, we lose state.
-    // Workaround: We might skip Lighthouse for intermediate steps if it forces reload, 
-    // OR we trust that Pa11y is the main verification for steps.
-    // Let's rely on Pa11y for issues and calculate a score from Pa11y for intermediate steps if Lighthouse fails.
-    // Actually, let's try to run Lighthouse. 
-
-    // For now, to ensure stability of the multi-step flow, we will ONLY run Lighthouse on the INITIAL Load.
-    // Intermediate steps will rely on Pa11y issues.
-    // Users mostly want to see "what errors appeared here".
-
+    // 1. Run Lighthouse (Accessibility Score)
+    // We do this first in the intended viewport
     let score = null;
     if (stepName === 'Initial Load') {
         const { port } = new URL(browser.wsEndpoint());
@@ -99,9 +42,6 @@ const captureStep = async (page: any, browser: any, urlDoc: any, stepName: strin
             onlyCategories: ['accessibility'],
             port: Number(port)
         };
-        // Lighthouse typically navigates. We might need to ensure it doesn't break the session for subsequent steps.
-        // It's safer to run it separate or last. 
-        // Current decision: Run it for Initial Load (as we just loaded it).
         try {
             const runnerResult = await lighthouse(urlDoc.url, lighthouseOptions);
             score = (runnerResult?.lhr?.categories?.accessibility?.score || 0) * 100;
@@ -110,13 +50,13 @@ const captureStep = async (page: any, browser: any, urlDoc: any, stepName: strin
         }
     }
 
-    // 3. Run Pa11y with merged settings
+    // 2. Run Pa11y with merged settings
     // Use ignoreUrl to audit the CURRENT page state without re-navigating
     const currentUrl = await page.url();
     const pa11yOptions: any = {
         browser: browser,
         page: page,
-        ignoreUrl: true, // CRITICAL: Don't re-navigate, audit current DOM state
+        ignoreUrl: true,
         standard: (urlDoc.standard === 'WCAG22AA' || urlDoc.standard === 'WCAG21AA') ? 'WCAG2AA' :
             (urlDoc.standard === 'WCAG22A' || urlDoc.standard === 'WCAG21A') ? 'WCAG2A' :
                 (urlDoc.standard === 'WCAG22AAA' || urlDoc.standard === 'WCAG21AAA') ? 'WCAG2AAA' :
@@ -132,14 +72,46 @@ const captureStep = async (page: any, browser: any, urlDoc: any, stepName: strin
             args: []
         }
     };
-    // Only set optional string-based config if non-empty
     if (config.hideElements) pa11yOptions.hideElements = config.hideElements;
     if (config.rootElement) pa11yOptions.rootElement = config.rootElement;
     if (config.userAgent) pa11yOptions.userAgent = config.userAgent;
 
     const pa11yResult = await pa11y(currentUrl, pa11yOptions);
 
-    // 4. Capture bounding boxes for each issue's selector and generate snippets
+    // 3. Capture Screenshot and Bounding Boxes
+    // To ensure coordinates match the screenshot perfectly, we capture them both 
+    // while the same viewport is active. We use a giant viewport to get a full-page
+    // capture without scrollbar artifacts or sticky header repetition.
+    
+    // Calculate body height
+    const bodyHeight = await page.evaluate(() => Math.max(
+        document.body.scrollHeight, 
+        document.documentElement.scrollHeight, 
+        document.body.offsetHeight, 
+        document.documentElement.offsetHeight, 
+        document.body.clientHeight, 
+        document.documentElement.clientHeight
+    ));
+
+    // Set giant viewport
+    const originalViewport = page.viewport();
+    await page.setViewport({ 
+        width: config.viewport.width, 
+        height: Math.max(config.viewport.height, Math.ceil(bodyHeight)) 
+    });
+
+    // Wait a brief moment for layout to settle after resize (especially for sticky/vh elements)
+    await new Promise(r => setTimeout(r, 500));
+
+    // Capture the full document screenshot
+    const screenshotBuffer = await page.screenshot({ encoding: 'binary', fullPage: false }) as Buffer;
+    
+    // Get the image dimensions from Sharp to ensure we don't extract outside boundaries
+    const metadata = await sharp(screenshotBuffer).metadata();
+    const imgWidth = metadata.width || config.viewport.width;
+    const imgHeight = metadata.height || Math.ceil(bodyHeight);
+
+    // 4. Capture bounding boxes while HUGE viewport is still active
     for (const issue of pa11yResult.issues) {
         if (issue.selector) {
             try {
@@ -149,6 +121,7 @@ const captureStep = async (page: any, browser: any, urlDoc: any, stepName: strin
                         if (!el) return null;
                         const rect = el.getBoundingClientRect();
                         if (rect.width === 0 && rect.height === 0) return null;
+                        // Since viewport height == document height, scrollY should be 0
                         return {
                             x: rect.x + window.scrollX,
                             y: rect.y + window.scrollY,
@@ -161,25 +134,26 @@ const captureStep = async (page: any, browser: any, urlDoc: any, stepName: strin
                 if (boundingBox) {
                     issue.boundingBox = boundingBox;
                     
-                    // Generate a unique filename for the snippet
                     const snippetFilename = `snippet-${urlDoc._id}-${timestamp}-${Math.random().toString(36).substring(2, 9)}.png`;
                     const snippetPath = path.join(screenshotsDir, snippetFilename);
 
-                    // Crop the original screenshot buffer to the bounding box with some padding
                     const padding = 20;
                     const left = Math.max(0, Math.floor(boundingBox.x) - padding);
                     const top = Math.max(0, Math.floor(boundingBox.y) - padding);
-                    const width = Math.min(Math.ceil(boundingBox.width) + (padding * 2), 2000); // Safety cap
-                    const height = Math.min(Math.ceil(boundingBox.height) + (padding * 2), 2000);
+                    
+                    // Ensure extraction area is within image boundaries
+                    const width = Math.min(Math.ceil(boundingBox.width) + (padding * 2), imgWidth - left);
+                    const height = Math.min(Math.ceil(boundingBox.height) + (padding * 2), imgHeight - top);
 
-                    try {
-                        await sharp(screenshotBuffer)
-                            .extract({ left, top, width, height })
-                            .toFile(snippetPath);
-                        
-                        issue.snippetUrl = `/screenshots/${snippetFilename}`;
-                    } catch (e) {
-                        console.error('Failed to create snippet:', e);
+                    if (width > 0 && height > 0) {
+                        try {
+                            await sharp(screenshotBuffer)
+                                .extract({ left, top, width, height })
+                                .toFile(snippetPath);
+                            issue.snippetUrl = `/screenshots/${snippetFilename}`;
+                        } catch (e) {
+                            console.error(`Failed to extract snippet for ${issue.code}:`, e);
+                        }
                     }
                 }
             } catch {
@@ -187,6 +161,22 @@ const captureStep = async (page: any, browser: any, urlDoc: any, stepName: strin
             }
         }
     }
+
+    // Restore viewport
+    if (originalViewport) {
+        await page.setViewport(originalViewport);
+    }
+
+    const fullFilename = `scan-${urlDoc._id}-${timestamp}-${stepName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-full.png`;
+    const thumbFilename = `scan-${urlDoc._id}-${timestamp}-${stepName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-thumb.png`;
+    const fullPath = path.join(screenshotsDir, fullFilename);
+    const thumbPath = path.join(screenshotsDir, thumbFilename);
+
+    await fs.writeFile(fullPath, screenshotBuffer);
+    await sharp(screenshotBuffer).resize(400).toFile(thumbPath);
+
+    const screenshotUrl = `/screenshots/${fullFilename}`;
+    const thumbnailUrl = `/screenshots/${thumbFilename}`;
 
     // Get viewport dimensions (needed for scaling bounding boxes on the frontend)
     const viewport = page.viewport();
