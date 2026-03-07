@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.1] - 2026-03-07
+
+### Fixed
+- **Swagger UI Compatibility**: Replaced problematic `z.any()` types with specific schemas and used `z.preprocess()` for ObjectIds to resolve `TypeError: w.toJS is not a function` in the documentation console.
+- **API Type Safety**: Resolved backend typecheck failures by properly converting Mongoose Maps to plain objects and ensuring optional fields match schema definitions.
+
 ## [0.4.0] - 2026-03-07
 
 ### Added

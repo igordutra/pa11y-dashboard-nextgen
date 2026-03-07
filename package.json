@@ -1,6 +1,6 @@
 {
   "name": "pa11y-dashboard-nextgen",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Pa11y Dashboard NextGen is a modern web interface for the [Pa11y][pa11y] and [Lighthouse][lighthouse] accessibility reporters. It enables teams to monitor accessibility health, track trends over time, and identify issues through interactive reports and scripted user journeys.",
   "main": "index.js",
   "directories": {
