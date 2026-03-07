@@ -5,8 +5,8 @@ All notable changes to this project will be documented in this file.
 ## [0.4.2] - 2026-03-07
 
 ### Fixed
-- **Swagger Documentation**: Eliminated all remaining `z.any()` types from API schemas to ensure full compatibility with Swagger UI's internal object handling.
-- **API Responses**: Corrected 204 No Content responses to properly return `null` instead of empty objects to match strict schema definitions.
+- **Swagger Documentation**: Registered `jsonSchemaTransform` to ensure Zod schemas are correctly converted to OpenAPI format, resolving `TypeError: w.toJS is not a function` in Swagger UI.
+- **API Response Consistency**: Eliminated remaining `z.any()` types and corrected 204 No Content responses to match strict schema definitions.
 
 ## [0.4.1] - 2026-03-07
 
