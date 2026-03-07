@@ -21,27 +21,30 @@ export default async function urlRoutes(fastify: FastifyInstance) {
     f.get('/api/urls', {
         schema: {
             description: 'Get all monitored URLs',
+            summary: 'List all URLs',
             tags: ['urls'],
             response: {
                 200: z.array(z.object({
-                    _id: z.any(),
-                    url: z.string(),
-                    name: z.string().optional(),
-                    schedule: z.string(),
-                    standard: z.string().optional(),
-                    status: z.string(),
-                    lastScanAt: z.date().optional(),
-                    lastIssueCount: z.number().optional(),
-                    lastScore: z.number().optional(),
-                    lastThumbnail: z.string().optional(),
-                    lastScreenshot: z.string().optional(),
+                    _id: z.any().describe('Unique identifier for the URL'),
+                    url: z.string().describe('The destination URL being monitored'),
+                    name: z.string().optional().describe('Human-readable name for the URL'),
+                    schedule: z.string().describe('Cron-style schedule string (empty for manual)'),
+                    standard: z.string().optional().describe('Accessibility standard (e.g., WCAG22AA)'),
+                    status: z.enum(['active', 'error', 'paused', 'scanning']).describe('Current status of the URL monitoring'),
+                    lastScanAt: z.date().optional().describe('Timestamp of the most recent completed scan'),
+                    lastIssueCount: z.number().optional().describe('Number of accessibility issues found in the last scan'),
+                    lastScore: z.number().optional().describe('Overall accessibility score from the last scan (0-100)'),
+                    lastThumbnail: z.string().optional().describe('Relative path to the last scan thumbnail'),
+                    lastScreenshot: z.string().optional().describe('Relative path to the last scan full screenshot'),
                     actions: z.array(z.object({
-                        type: z.string(),
-                        value: z.string(),
-                        label: z.string().optional()
-                    })).optional(),
+                        type: z.enum(['click', 'wait', 'type', 'wait-for-url', 'screen-capture']),
+                        value: z.string().describe('Target selector or parameter value for the action'),
+                        label: z.string().optional().describe('Optional name/label for the action step')
+                    })).optional().describe('List of multi-step interactive actions to perform before scanning'),
                     overrides: overridesSchema,
-                    categoryId: z.any().optional()
+                    categoryId: z.any().optional().describe('Optional ID of the assigned category'),
+                    createdAt: z.date().optional(),
+                    updatedAt: z.date().optional()
                 }))
             }
         }
@@ -54,24 +57,25 @@ export default async function urlRoutes(fastify: FastifyInstance) {
     f.post('/api/urls', {
         preHandler: checkReadonly,
         schema: {
-            description: 'Add a new URL to monitor',
+            description: 'Add a new URL to monitor and trigger an initial scan',
+            summary: 'Add new URL',
             tags: ['urls'],
             body: z.object({
-                url: z.string().url(),
-                name: z.string().optional(),
-                schedule: z.string().default(''),
+                url: z.string().url().describe('Full URL (including http/https) to monitor'),
+                name: z.string().optional().describe('Optional friendly name'),
+                schedule: z.string().default('').describe('Cron expression for scheduled scans'),
                 standard: z.enum([
                     'WCAG2A', 'WCAG2AA', 'WCAG2AAA',
                     'WCAG21A', 'WCAG21AA', 'WCAG21AAA',
                     'WCAG22A', 'WCAG22AA', 'WCAG22AAA'
-                ]).default('WCAG22AA'),
+                ]).default('WCAG22AA').describe('Target accessibility standard'),
                 actions: z.array(z.object({
                     type: z.enum(['click', 'wait', 'type', 'wait-for-url', 'screen-capture']),
-                    value: z.string(),
+                    value: z.string().describe('Target selector or value'),
                     label: z.string().optional()
-                })).optional().default([]),
+                })).optional().default([]).describe('Interactive script steps'),
                 overrides: overridesSchema,
-                categoryId: z.string().nullable().optional()
+                categoryId: z.string().nullable().optional().describe('ID of the category to assign')
             }),
             response: {
                 200: z.object({
@@ -82,10 +86,15 @@ export default async function urlRoutes(fastify: FastifyInstance) {
                     standard: z.string(),
                     status: z.string()
                 }),
+                400: z.object({
+                    error: z.string(),
+                    message: z.string(),
+                    statusCode: z.number()
+                }).describe('Validation error'),
                 403: z.object({
                     error: z.string(),
                     message: z.string()
-                }),
+                }).describe('Read-only mode restriction'),
                 404: z.object({
                     error: z.string()
                 })
@@ -115,17 +124,18 @@ export default async function urlRoutes(fastify: FastifyInstance) {
     f.delete('/api/urls/:id', {
         preHandler: checkReadonly,
         schema: {
-            description: 'Delete a URL',
+            description: 'Permanently remove a URL and all its scan history',
+            summary: 'Delete URL',
             tags: ['urls'],
             params: z.object({
-                id: z.string()
+                id: z.string().describe('The URL ID to delete')
             }),
             response: {
-                204: z.any(),
+                204: z.any().describe('Successfully deleted'),
                 403: z.object({
                     error: z.string(),
                     message: z.string()
-                })
+                }).describe('Read-only mode restriction')
             }
         }
     }, async (req, reply) => {
@@ -139,10 +149,11 @@ export default async function urlRoutes(fastify: FastifyInstance) {
     f.put('/api/urls/:id', {
         preHandler: checkReadonly,
         schema: {
-            description: 'Update a URL',
+            description: 'Update settings or schedule for an existing URL',
+            summary: 'Update URL',
             tags: ['urls'],
             params: z.object({
-                id: z.string()
+                id: z.string().describe('The URL ID to update')
             }),
             body: z.object({
                 name: z.string().optional(),
@@ -172,11 +183,11 @@ export default async function urlRoutes(fastify: FastifyInstance) {
                 403: z.object({
                     error: z.string(),
                     message: z.string()
-                }),
+                }).describe('Read-only mode restriction'),
                 404: z.object({
                     error: z.string(),
                     message: z.string()
-                })
+                }).describe('URL not found')
             }
         }
     }, async (req, reply) => {

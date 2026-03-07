@@ -19,19 +19,24 @@ export default async function scanRoutes(fastify: FastifyInstance) {
     f.post('/api/urls/:id/scan', {
         preHandler: checkReadonly,
         schema: {
-            description: 'Trigger an immediate scan',
+            description: 'Manually trigger an immediate accessibility scan for a specific URL',
+            summary: 'Trigger scan',
             tags: ['scans'],
             params: z.object({
-                id: z.string()
+                id: z.string().describe('The URL ID to scan')
             }),
             response: {
                 200: z.object({
-                    message: z.string()
+                    message: z.string().describe('Success message')
                 }),
                 403: z.object({
                     error: z.string(),
                     message: z.string()
-                })
+                }).describe('Read-only mode restriction'),
+                404: z.object({
+                    error: z.string(),
+                    message: z.string()
+                }).describe('URL not found')
             }
         }
     }, async (req, _reply) => {
@@ -45,17 +50,22 @@ export default async function scanRoutes(fastify: FastifyInstance) {
     f.delete('/api/urls/:id/scans', {
         preHandler: checkReadonly,
         schema: {
-            description: 'Delete all scan history for a URL',
+            description: 'Clear all scan history and reset last result metrics for a URL',
+            summary: 'Clear history',
             tags: ['scans'],
             params: z.object({
-                id: z.string()
+                id: z.string().describe('The URL ID to clear')
             }),
             response: {
-                204: z.any(),
+                204: z.any().describe('Successfully cleared'),
                 403: z.object({
                     error: z.string(),
                     message: z.string()
-                })
+                }).describe('Read-only mode restriction'),
+                404: z.object({
+                    error: z.string(),
+                    message: z.string()
+                }).describe('URL not found')
             }
         }
     }, async (req, reply) => {
@@ -79,19 +89,20 @@ export default async function scanRoutes(fastify: FastifyInstance) {
     // READ: Get History
     f.get('/api/urls/:id/history', {
         schema: {
-            description: 'Get scan history for a URL',
+            description: 'Retrieve a chronological list of recent scans for a specific URL',
+            summary: 'Get history',
             tags: ['scans'],
             params: z.object({
-                id: z.string()
+                id: z.string().describe('The URL ID to fetch history for')
             }),
             response: {
                 200: z.array(z.object({
-                    _id: z.any(),
-                    timestamp: z.date(),
-                    issuesCount: z.number(),
-                    documentTitle: z.string().optional(),
-                    score: z.number().optional(),
-                    stepsCount: z.number().optional()
+                    _id: z.any().describe('Scan ID'),
+                    timestamp: z.date().describe('When the scan was performed'),
+                    issuesCount: z.number().describe('Total number of issues found across all steps'),
+                    documentTitle: z.string().optional().describe('HTML document title captured during scan'),
+                    score: z.number().optional().describe('Accessibility score (0-100)'),
+                    stepsCount: z.number().optional().describe('Number of interactive steps in this scan')
                 }))
             }
         }
@@ -114,13 +125,28 @@ export default async function scanRoutes(fastify: FastifyInstance) {
         });
     });
 
+    // Shared schema for scan steps
+    const scanStepSchema = z.object({
+        stepName: z.string().describe('Label for this interaction step'),
+        issues: z.array(z.any()).describe('List of Pa11y/Lighthouse issues found'),
+        score: z.number().optional().describe('Accessibility score for this step'),
+        screenshot: z.string().optional().describe('Full screenshot path'),
+        thumbnail: z.string().optional().describe('Thumbnail path'),
+        pageUrl: z.string().optional().describe('URL at the time of the step'),
+        viewport: z.object({
+            width: z.number().optional(),
+            height: z.number().optional()
+        }).nullish().describe('Viewport dimensions used')
+    });
+
     // READ: Get Latest Scan Details
     f.get('/api/urls/:id/latest-scan', {
         schema: {
-            description: 'Get details of the latest scan for a URL',
+            description: 'Retrieve the most recent scan result for a URL, including all issues and steps',
+            summary: 'Get latest scan',
             tags: ['scans'],
             params: z.object({
-                id: z.string()
+                id: z.string().describe('The URL ID')
             }),
             response: {
                 200: z.object({
@@ -132,18 +158,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
                     score: z.number().optional(),
                     screenshot: z.string().optional(),
                     thumbnail: z.string().optional(),
-                    steps: z.array(z.object({
-                        stepName: z.string(),
-                        issues: z.array(z.any()),
-                        score: z.number().optional(),
-                        screenshot: z.string().optional(),
-                        thumbnail: z.string().optional(),
-                        pageUrl: z.string().optional(),
-                        viewport: z.object({
-                            width: z.number().optional(),
-                            height: z.number().optional()
-                        }).nullish()
-                    })).optional()
+                    steps: z.array(scanStepSchema).optional()
                 }).nullable()
             }
         }
@@ -157,37 +172,27 @@ export default async function scanRoutes(fastify: FastifyInstance) {
     // READ: Get a specific scan by scan ID
     f.get('/api/scans/:scanId', {
         schema: {
-            description: 'Get a specific scan by its ID',
+            description: 'Retrieve detailed results for a specific scan by its unique identifier',
+            summary: 'Get scan details',
             tags: ['scans'],
             params: z.object({
-                scanId: z.string()
+                scanId: z.string().describe('The unique scan ID')
             }),
             response: {
                 200: z.object({
                     _id: z.any(),
-                    urlId: z.any(),
+                    urlId: z.any().describe('The parent URL ID'),
                     timestamp: z.date(),
-                    issues: z.array(z.any()),
+                    issues: z.array(z.any()).describe('Primary issues list (legacy/last step)'),
                     documentTitle: z.string().optional(),
                     pageUrl: z.string().optional(),
                     score: z.number().optional(),
                     screenshot: z.string().optional(),
                     thumbnail: z.string().optional(),
-                    runners: z.array(z.string()).optional(),
-                    standard: z.string().optional(),
-                    browserVersion: z.string().optional(),
-                    steps: z.array(z.object({
-                        stepName: z.string(),
-                        issues: z.array(z.any()),
-                        score: z.number().optional(),
-                        screenshot: z.string().optional(),
-                        thumbnail: z.string().optional(),
-                        pageUrl: z.string().optional(),
-                        viewport: z.object({
-                            width: z.number().optional(),
-                            height: z.number().optional()
-                        }).nullish()
-                    })).optional()
+                    runners: z.array(z.string()).optional().describe('Runners used (e.g., axe, htmlcs)'),
+                    standard: z.string().optional().describe('Standard used (e.g., WCAG2AA)'),
+                    browserVersion: z.string().optional().describe('Puppeteer browser version'),
+                    steps: z.array(scanStepSchema).optional()
                 }).nullable()
             }
         }
@@ -201,11 +206,23 @@ export default async function scanRoutes(fastify: FastifyInstance) {
     // ACTION: Export Scan as PDF
     f.get('/api/scans/:scanId/pdf', {
         schema: {
-            description: 'Export a specific scan as a PDF report',
+            description: 'Generate and download a comprehensive PDF accessibility report for a specific scan',
+            summary: 'Export PDF',
             tags: ['scans'],
             params: z.object({
-                scanId: z.string()
-            })
+                scanId: z.string().describe('The scan ID to export')
+            }),
+            response: {
+                200: z.any().describe('PDF binary data'),
+                404: z.object({
+                    error: z.string(),
+                    message: z.string()
+                }).describe('Scan not found'),
+                500: z.object({
+                    error: z.string(),
+                    message: z.string()
+                }).describe('PDF generation error')
+            }
         }
     }, async (req, reply) => {
         const { scanId } = req.params;

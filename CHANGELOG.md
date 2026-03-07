@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- 
+- **Automated A11y Testing**: Integrated `vitest-axe` into the client test suite for automated accessibility audits of UI components.
+- **Queue Monitoring**: Added execution and wait-time logging to the background `ScanQueue` for better performance visibility.
+- **Comprehensive API Docs**: Fully documented all REST endpoints using Swagger/OpenAPI, including detailed request/response schemas and field descriptions.
+
+### Changed
+- **Accessible Overlays**: Rebuilt static issue overlays in `ScreenshotOverlay` and `InteractiveScreenshot` as keyboard-accessible buttons with full ARIA support.
+- **Architectural Cleanup**: Centralized shared Zod schemas into `server/types/schemas.ts` to eliminate code duplication across API routes.
+- **Resilient Scanning**: Implemented `try...finally` browser lifecycle management in the scanning engine to prevent resource leaks on failure.
+
+### Fixed
+- **Editor Accessibility**: Added missing `aria-label` attributes to all input fields in the `ActionEditor`.
+- **Visual Feedback**: Implemented active state highlighting for the "Custom" schedule button in the `CronEditor`.
+- **Performance Bottlenecks**: Optimized `ActionEditor` row rendering using `useCallback` to prevent unnecessary re-renders during script editing.
 
 ## [0.3.0] - 2026-03-07
 
