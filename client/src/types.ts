@@ -9,9 +9,31 @@ export interface Job {
     durationMs?: number;
 }
 
+export interface FailedJob {
+    urlId: string;
+    url?: string;
+    name?: string;
+    enqueuedAt: string;
+    startedAt: string;
+    failedAt: string;
+    error: string;
+    priority: boolean;
+}
+
+export interface ScheduledTask {
+    urlId: string;
+    url: string;
+    name?: string;
+    schedule: string;
+    frequency: string;
+    nextRun: string;
+}
+
 export interface JobsResponse {
     running: Job[];
     queue: Job[];
+    failed: FailedJob[];
+    scheduled: ScheduledTask[];
 }
 
 export interface Action {
