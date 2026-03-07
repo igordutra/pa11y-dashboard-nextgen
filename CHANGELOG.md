@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - **Automated Initial Scan**: New URLs are now automatically enqueued for scanning immediately upon creation.
+- **Project Favicon**: Added custom branded favicon (Closes #15).
+- **Responsive Design**: Implemented mobile-first responsive layout across all pages, including a navigation drawer for mobile and adaptive grids for URLs and reports (Closes #10).
 - **Demo Reset 2.0**: Enhanced `reset-demo.sh` with automated seeding of News and Personal categories and high-quality example sites.
 - **Docker-First Workflow**: New root-level npm scripts (`npm run dev`, `npm run logs`, `npm run docker:test`) to simplify the development experience.
 - **Reliability Features**: Added startup cleanup for stuck scans and global Puppeteer timeouts to prevent indefinite hangs.
