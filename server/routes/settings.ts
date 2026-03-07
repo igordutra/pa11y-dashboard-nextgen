@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { SettingsModel, getSettings } from '../models/settings.js';
+import { settingsSchema } from '../types/schemas.js';
 
 export default async function settingsRoutes(fastify: FastifyInstance) {
     const f = fastify.withTypeProvider<ZodTypeProvider>();
@@ -42,23 +43,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
         schema: {
             description: 'Update global Pa11y settings',
             tags: ['settings'],
-            body: z.object({
-                runners: z.array(z.enum(['axe', 'htmlcs'])).optional(),
-                includeNotices: z.boolean().optional(),
-                includeWarnings: z.boolean().optional(),
-                viewport: z.object({
-                    width: z.number(),
-                    height: z.number(),
-                    isMobile: z.boolean().optional()
-                }).optional(),
-                timeout: z.number().optional(),
-                wait: z.number().optional(),
-                hideElements: z.string().optional(),
-                rootElement: z.string().optional(),
-                userAgent: z.string().optional(),
-                ignore: z.array(z.string()).optional(),
-                headers: z.record(z.string(), z.string()).optional()
-            }),
+            body: settingsSchema,
             response: {
                 200: z.object({
                     _id: z.any(),

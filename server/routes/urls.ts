@@ -2,25 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { UrlModel, ScanModel } from '../models/index.js';
-
-// Shared Zod schema for per-URL overrides (copied from index.ts or should be moved to a shared file)
-export const overridesSchema = z.object({
-  runners: z.array(z.enum(['axe', 'htmlcs'])).optional(),
-  includeNotices: z.boolean().optional(),
-  includeWarnings: z.boolean().optional(),
-  timeout: z.number().optional(),
-  wait: z.number().optional(),
-  viewport: z.object({
-    width: z.number(),
-    height: z.number(),
-    isMobile: z.boolean().optional()
-  }).optional(),
-  hideElements: z.string().optional(),
-  rootElement: z.string().optional(),
-  userAgent: z.string().optional(),
-  ignore: z.array(z.string()).optional(),
-  headers: z.record(z.string(), z.string()).optional()
-}).optional();
+import { overridesSchema } from '../types/schemas.js';
 
 // Middleware to check if dashboard is in readonly mode
 // In a real refactor, this would be in a separate plugin or decorator

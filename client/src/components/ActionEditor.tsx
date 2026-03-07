@@ -66,6 +66,7 @@ export function ActionEditor({ actions, onChange }: ActionEditorProps) {
                                     <select
                                         value={action.type}
                                         onChange={(e) => updateAction(index, 'type', e.target.value)}
+                                        aria-label={`Action ${index + 1} type`}
                                         className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <option value="wait">Wait (ms)</option>
@@ -78,6 +79,7 @@ export function ActionEditor({ actions, onChange }: ActionEditorProps) {
                                     <Input
                                         value={action.value}
                                         onChange={(e) => updateAction(index, 'value', e.target.value)}
+                                        aria-label={`Action ${index + 1} value`}
                                         placeholder={
                                             action.type === 'wait' ? '1000' :
                                                 action.type === 'click' ? '#btn or iframe >>> #btn' :
@@ -91,6 +93,7 @@ export function ActionEditor({ actions, onChange }: ActionEditorProps) {
                                 <Input
                                     value={action.label || ''}
                                     onChange={(e) => updateAction(index, 'label', e.target.value)}
+                                    aria-label={`Action ${index + 1} optional label`}
                                     placeholder="Label (optional, e.g., 'Submit Login')"
                                     className="h-7 text-xs"
                                 />
