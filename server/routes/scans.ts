@@ -15,6 +15,59 @@ const checkReadonly = async (request: any, reply: any) => {
 export default async function scanRoutes(fastify: FastifyInstance) {
     const f = fastify.withTypeProvider<ZodTypeProvider>();
 
+    // READ: Get all current jobs (running and queued)
+    f.get('/api/jobs', {
+        schema: {
+            description: 'Get all currently running and queued scan jobs',
+            summary: 'List jobs',
+            tags: ['scans'],
+            response: {
+                200: z.object({
+                    running: z.array(z.object({
+                        urlId: z.string(),
+                        url: z.string().optional(),
+                        name: z.string().optional(),
+                        enqueuedAt: z.date(),
+                        startedAt: z.date(),
+                        priority: z.boolean(),
+                        status: z.string(),
+                        durationMs: z.number()
+                    })),
+                    queue: z.array(z.object({
+                        urlId: z.string(),
+                        url: z.string().optional(),
+                        name: z.string().optional(),
+                        enqueuedAt: z.date(),
+                        priority: z.boolean(),
+                        status: z.string()
+                    }))
+                })
+            }
+        }
+    }, async (_req, _reply) => {
+        const { scanQueue } = await import('../lib/scheduler.js');
+        const { UrlModel } = await import('../models/index.js');
+        const jobs = scanQueue.getJobs();
+
+        // Hydrate with URL details
+        const urlIds = [...jobs.running.map(j => j.urlId), ...jobs.queue.map(j => j.urlId)];
+        const urls = await UrlModel.find({ _id: { $in: urlIds } }, 'url name');
+        const urlMap = new Map(urls.map(u => [u._id.toString(), u]));
+
+        return {
+            running: jobs.running.map(j => ({
+                ...j,
+                url: urlMap.get(j.urlId)?.url,
+                name: urlMap.get(j.urlId)?.name
+            })),
+            queue: jobs.queue.map(j => ({
+                ...j,
+                url: urlMap.get(j.urlId)?.url,
+                name: urlMap.get(j.urlId)?.name
+            }))
+        };
+    });
+
     // ACTION: Trigger Scan
     f.post('/api/urls/:id/scan', {
         preHandler: checkReadonly,
