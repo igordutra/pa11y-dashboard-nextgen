@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -10,23 +11,23 @@ interface ActionEditorProps {
 }
 
 export function ActionEditor({ actions, onChange }: ActionEditorProps) {
-    const addAction = () => {
+    const addAction = useCallback(() => {
         onChange([...actions, { type: 'wait', value: '1000', label: '' }]);
-    };
+    }, [actions, onChange]);
 
-    const removeAction = (index: number) => {
+    const removeAction = useCallback((index: number) => {
         const newActions = [...actions];
         newActions.splice(index, 1);
         onChange(newActions);
-    };
+    }, [actions, onChange]);
 
-    const updateAction = (index: number, field: keyof Action, value: string) => {
+    const updateAction = useCallback((index: number, field: keyof Action, value: string) => {
         const newActions = [...actions];
         newActions[index] = { ...newActions[index], [field]: value };
         onChange(newActions);
-    };
+    }, [actions, onChange]);
 
-    const moveAction = (index: number, direction: 'up' | 'down') => {
+    const moveAction = useCallback((index: number, direction: 'up' | 'down') => {
         if (direction === 'up' && index === 0) return;
         if (direction === 'down' && index === actions.length - 1) return;
 
@@ -36,7 +37,7 @@ export function ActionEditor({ actions, onChange }: ActionEditorProps) {
         [newActions[index], newActions[targetIndex]] = [newActions[targetIndex], newActions[index]];
 
         onChange(newActions);
-    };
+    }, [actions, onChange]);
 
     return (
         <div className="space-y-4">

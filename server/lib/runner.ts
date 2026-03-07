@@ -306,152 +306,153 @@ export const runScan = async (urlId: string) => {
         browser = await puppeteer.launch(launchOptions);
         const page = await browser.newPage();
         
-        // Set a global timeout for the whole page session
-        page.setDefaultTimeout(config.timeout);
+        try {
+            // Set a global timeout for the whole page session
+            page.setDefaultTimeout(config.timeout);
 
-        // Ensure screenshots dir exists
-        const currentConfig = getConfig();
-        const screenshotsDir = currentConfig.screenshotsDir;
-        try { await fs.access(screenshotsDir); } catch { await fs.mkdir(screenshotsDir, { recursive: true }); }
+            // Ensure screenshots dir exists
+            const currentConfig = getConfig();
+            const screenshotsDir = currentConfig.screenshotsDir;
+            try { await fs.access(screenshotsDir); } catch { await fs.mkdir(screenshotsDir, { recursive: true }); }
 
-        const steps = [];
+            const steps = [];
 
-        // 2. Initial Load
-        await page.goto(urlDoc.url, { waitUntil: 'networkidle2', timeout: config.timeout });
-        const initialStep = await captureStep(page, browser, urlDoc, 'Initial Load', config);
-        steps.push(initialStep);
+            // 2. Initial Load
+            await page.goto(urlDoc.url, { waitUntil: 'networkidle2', timeout: config.timeout });
+            const initialStep = await captureStep(page, browser, urlDoc, 'Initial Load', config);
+            steps.push(initialStep);
 
-        // 3. Execute Actions
-        for (const [index, action] of urlDoc.actions.entries()) {
-            console.log(`Executing action: ${action.type} - ${action.value}`);
-            try {
-                switch (action.type) {
-                    case 'wait': {
-                        const ms = parseInt(action.value, 10);
-                        await new Promise(r => setTimeout(r, ms));
-                        break;
-                    }
-                    case 'click':
-                        if (action.value.includes(' >>> ')) {
-                            const [frameSelector, elementSelector] = action.value.split(' >>> ');
-                            const frameHandle = await page.waitForSelector(frameSelector, { timeout: 10000 });
-                            const frame = await frameHandle?.contentFrame();
-                            if (!frame) throw new Error(`Could not find iframe with selector: ${frameSelector}`);
-                            await frame.waitForSelector(elementSelector, { timeout: 10000 });
-                            await frame.click(elementSelector);
-                        } else {
-                            await page.waitForSelector(action.value, { timeout: 10000 });
-                            await page.click(action.value);
+            // 3. Execute Actions
+            for (const [index, action] of urlDoc.actions.entries()) {
+                console.log(`Executing action: ${action.type} - ${action.value}`);
+                try {
+                    switch (action.type) {
+                        case 'wait': {
+                            const ms = parseInt(action.value, 10);
+                            await new Promise(r => setTimeout(r, ms));
+                            break;
                         }
-                        break;
-                    case 'type': {
-                        // Format: "selector|text" OR "iframe >>> selector|text"
-                        const [fullSelector, text] = action.value.split('|');
-                        if (fullSelector && text) {
-                            if (fullSelector.includes(' >>> ')) {
-                                const [frameSelector, elementSelector] = fullSelector.split(' >>> ');
+                        case 'click':
+                            if (action.value.includes(' >>> ')) {
+                                const [frameSelector, elementSelector] = action.value.split(' >>> ');
                                 const frameHandle = await page.waitForSelector(frameSelector, { timeout: 10000 });
                                 const frame = await frameHandle?.contentFrame();
                                 if (!frame) throw new Error(`Could not find iframe with selector: ${frameSelector}`);
                                 await frame.waitForSelector(elementSelector, { timeout: 10000 });
-                                await frame.type(elementSelector, text);
+                                await frame.click(elementSelector);
                             } else {
-                                await page.waitForSelector(fullSelector, { timeout: 10000 });
-                                await page.type(fullSelector, text);
+                                await page.waitForSelector(action.value, { timeout: 10000 });
+                                await page.click(action.value);
                             }
+                            break;
+                        case 'type': {
+                            // Format: "selector|text" OR "iframe >>> selector|text"
+                            const [fullSelector, text] = action.value.split('|');
+                            if (fullSelector && text) {
+                                if (fullSelector.includes(' >>> ')) {
+                                    const [frameSelector, elementSelector] = fullSelector.split(' >>> ');
+                                    const frameHandle = await page.waitForSelector(frameSelector, { timeout: 10000 });
+                                    const frame = await frameHandle?.contentFrame();
+                                    if (!frame) throw new Error(`Could not find iframe with selector: ${frameSelector}`);
+                                    await frame.waitForSelector(elementSelector, { timeout: 10000 });
+                                    await frame.type(elementSelector, text);
+                                } else {
+                                    await page.waitForSelector(fullSelector, { timeout: 10000 });
+                                    await page.type(fullSelector, text);
+                                }
+                            }
+                            break;
                         }
-                        break;
+                        case 'wait-for-url':
+                            // Ensure we don't block forever if already on URL, but waitForNavigation is tricky.
+                            // Usually used after a click.
+                            // Simplification: check URL or wait for network idle
+                            await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => console.log('Wait for nav timeout, continuing'));
+                            break;
                     }
-                    case 'wait-for-url':
-                        // Ensure we don't block forever if already on URL, but waitForNavigation is tricky.
-                        // Usually used after a click.
-                        // Simplification: check URL or wait for network idle
-                        await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => console.log('Wait for nav timeout, continuing'));
-                        break;
+
+                    // Allow some settling time after action
+                    await new Promise(r => setTimeout(r, 1000));
+
+                    const stepResult = await captureStep(page, browser, urlDoc, action.label || `Step ${index + 1}`, config);
+                    steps.push(stepResult);
+
+                } catch (err) {
+                    console.error(`Action failed: ${action.type}`, err);
+                    const errMessage = err instanceof Error ? err.message : String(err);
+                    let recommendation = 'An unexpected error occurred during this step.';
+
+                    if (errMessage.includes('TimeoutError') || errMessage.includes('waiting for selector')) {
+                        recommendation = `The element "${action.value}" could not be found within the timeout. Please check if the selector is correct and the element is visible on the page before this step executes.`;
+                    } else if (errMessage.includes('not clickable') || errMessage.includes('is detached')) {
+                        recommendation = `The element "${action.value}" was found but could not be clicked. It might be hidden, covered by another element (like a modal), or removed from the DOM.`;
+                    } else if (errMessage.includes('Navigation') || errMessage.includes('net::ERR')) {
+                        recommendation = `The page took too long to navigate or failed to load. The server might be slow, or the action did not trigger a navigation as expected.`;
+                    }
+
+                    steps.push({
+                        stepName: `Failed: ${action.label || action.type}`,
+                        issues: [{
+                            type: 'error',
+                            code: 'step-execution-failure',
+                            message: `Action '${action.type}' failed.`,
+                            selector: action.value,
+                            context: recommendation
+                        }],
+                        score: 0,
+                        screenshot: '',
+                        thumbnail: '',
+                        pageUrl: page.url()
+                    });
+                    break; // Stop executing actions on error
                 }
-
-                // Allow some settling time after action
-                await new Promise(r => setTimeout(r, 1000));
-
-                const stepResult = await captureStep(page, browser, urlDoc, action.label || `Step ${index + 1}`, config);
-                steps.push(stepResult);
-
-            } catch (err) {
-                console.error(`Action failed: ${action.type}`, err);
-                const errMessage = err instanceof Error ? err.message : String(err);
-                let recommendation = 'An unexpected error occurred during this step.';
-
-                if (errMessage.includes('TimeoutError') || errMessage.includes('waiting for selector')) {
-                    recommendation = `The element "${action.value}" could not be found within the timeout. Please check if the selector is correct and the element is visible on the page before this step executes.`;
-                } else if (errMessage.includes('not clickable') || errMessage.includes('is detached')) {
-                    recommendation = `The element "${action.value}" was found but could not be clicked. It might be hidden, covered by another element (like a modal), or removed from the DOM.`;
-                } else if (errMessage.includes('Navigation') || errMessage.includes('net::ERR')) {
-                    recommendation = `The page took too long to navigate or failed to load. The server might be slow, or the action did not trigger a navigation as expected.`;
-                }
-
-                steps.push({
-                    stepName: `Failed: ${action.label || action.type}`,
-                    issues: [{
-                        type: 'error',
-                        code: 'step-execution-failure',
-                        message: `Action '${action.type}' failed.`,
-                        selector: action.value,
-                        context: recommendation
-                    }],
-                    score: 0,
-                    screenshot: '',
-                    thumbnail: '',
-                    pageUrl: page.url()
-                });
-                break; // Stop executing actions on error
             }
+
+            // 4. Save Scan with Steps
+            // Calculate average score from valid steps (excluding technical failures)
+            const validSteps = steps.filter(s => !s.stepName.startsWith('Failed:'));
+            const totalScore = validSteps.reduce((acc, s) => acc + (s.score || 0), 0);
+            const averageScore = validSteps.length > 0 ? Math.round(totalScore / validSteps.length) : 0;
+
+            // Use the LAST step as the main result for legacy compatibility (for screenshot/url)
+            // But use average score for the record
+            const lastStep = steps[steps.length - 1];
+
+            const scan = await ScanModel.create({
+                urlId: urlDoc._id,
+                timestamp: new Date(),
+                steps: steps,
+                // Legacy fields from last step
+                issues: lastStep.issues,
+                score: averageScore, // Use average score
+                screenshot: lastStep.screenshot,
+                thumbnail: lastStep.thumbnail,
+                pageUrl: lastStep.pageUrl,
+                documentTitle: await page.title(),
+                // Enriched Meta
+                runners: config.runners,
+                standard: urlDoc.standard,
+                browserVersion: await browser.version()
+            });
+
+            // 5. Update URL Status and Last Result
+            // Use first step for thumbnail (always has a valid screenshot)
+            const firstStep = steps[0];
+            // Use the overall scan score and total issues across ALL steps
+            const totalIssues = steps.reduce((sum, s) => sum + (s.issues?.length || 0), 0);
+            urlDoc.status = 'active';
+            urlDoc.lastScanAt = new Date();
+            urlDoc.lastIssueCount = totalIssues;
+            urlDoc.lastScore = averageScore; // Use average score
+            urlDoc.lastScreenshot = firstStep.screenshot;
+            urlDoc.lastThumbnail = firstStep.thumbnail;
+            await urlDoc.save();
+
+            console.log(`Scan complete for ${urlDoc.url}. Steps: ${steps.length}`);
+            return scan;
+        } finally {
+            await browser.close();
         }
-
-        // 4. Save Scan with Steps
-        // Calculate average score from valid steps (excluding technical failures)
-        const validSteps = steps.filter(s => !s.stepName.startsWith('Failed:'));
-        const totalScore = validSteps.reduce((acc, s) => acc + (s.score || 0), 0);
-        const averageScore = validSteps.length > 0 ? Math.round(totalScore / validSteps.length) : 0;
-
-        // Use the LAST step as the main result for legacy compatibility (for screenshot/url)
-        // But use average score for the record
-        const lastStep = steps[steps.length - 1];
-
-        const scan = await ScanModel.create({
-            urlId: urlDoc._id,
-            timestamp: new Date(),
-            steps: steps,
-            // Legacy fields from last step
-            issues: lastStep.issues,
-            score: averageScore, // Use average score
-            screenshot: lastStep.screenshot,
-            thumbnail: lastStep.thumbnail,
-            pageUrl: lastStep.pageUrl,
-            documentTitle: await page.title(),
-            // Enriched Meta
-            runners: config.runners,
-            standard: urlDoc.standard,
-            browserVersion: await browser.version()
-        });
-
-        // 5. Update URL Status and Last Result
-        // Use first step for thumbnail (always has a valid screenshot)
-        const firstStep = steps[0];
-        // Use the overall scan score and total issues across ALL steps
-        const totalIssues = steps.reduce((sum, s) => sum + (s.issues?.length || 0), 0);
-        urlDoc.status = 'active';
-        urlDoc.lastScanAt = new Date();
-        urlDoc.lastIssueCount = totalIssues;
-        urlDoc.lastScore = averageScore; // Use average score
-        urlDoc.lastScreenshot = firstStep.screenshot;
-        urlDoc.lastThumbnail = firstStep.thumbnail;
-        await urlDoc.save();
-
-        console.log(`Scan complete for ${urlDoc.url}. Steps: ${steps.length}`);
-
-        await browser.close();
-        return scan;
-
     } catch (error) {
         console.error(`Scan failed for ${urlDoc.url}:`, error);
         
@@ -469,7 +470,6 @@ export const runScan = async (urlId: string) => {
             await latestUrlDoc.save();
         }
         
-        if (browser) await browser.close();
         throw error;
     }
 };
