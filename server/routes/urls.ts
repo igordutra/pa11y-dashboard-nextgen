@@ -120,6 +120,11 @@ export default async function urlRoutes(fastify: FastifyInstance) {
             overrides: overrides as any,
             ...(categoryId ? { categoryId } : {})
         });
+
+        // Trigger initial scan straight away
+        const { scanQueue } = await import('../lib/scheduler.js');
+        scanQueue.enqueue(newUrl._id.toString(), true);
+
         return newUrl;
     });
 

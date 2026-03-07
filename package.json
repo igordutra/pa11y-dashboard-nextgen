@@ -7,6 +7,10 @@
     "doc": "docs"
   },
   "scripts": {
+    "dev": "docker-compose up -d --build",
+    "stop": "docker-compose down",
+    "logs": "docker-compose logs -f",
+    "docker:test": "docker-compose run --rm api npm run test && docker-compose run --rm web npm run test",
     "test": "npm run test --prefix client -- run && npm run test --prefix server -- run",
     "lint": "npm run lint --prefix client -- . && npm run lint --prefix server -- .",
     "typecheck": "npm run typecheck --prefix client && npm run typecheck --prefix server",

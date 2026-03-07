@@ -41,7 +41,7 @@ export interface IUrl extends Document {
 const UrlSchema = new Schema<IUrl>({
     url: { type: String, required: true },
     name: { type: String },
-    schedule: { type: String, default: '0 * * * *' }, // Cron expression (default: hourly)
+    schedule: { type: String, default: '' }, // Empty string means manual/no schedule
     standard: {
         type: String,
         enum: [
@@ -49,7 +49,7 @@ const UrlSchema = new Schema<IUrl>({
             'WCAG21A', 'WCAG21AA', 'WCAG21AAA',
             'WCAG22A', 'WCAG22AA', 'WCAG22AAA'
         ],
-        default: 'WCAG2AA'
+        default: 'WCAG22AA'
     },
     lastScanAt: { type: Date },
     lastIssueCount: { type: Number, default: 0 },

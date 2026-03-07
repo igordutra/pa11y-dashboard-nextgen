@@ -10,8 +10,7 @@ interface CronEditorProps {
 }
 
 const PRESETS = [
-    { label: 'Hourly', cron: '0 * * * *' },
-    { label: 'Daily (Midnight)', cron: '0 0 * * *' },
+    { label: 'None', cron: '' },
     { label: 'Weekly (Sun)', cron: '0 0 * * 0' },
     { label: 'Monthly (1st)', cron: '0 0 1 * *' },
 ];
@@ -21,7 +20,7 @@ export function CronEditor({ value, onChange, disabled }: CronEditorProps) {
     let humanReadable = '';
     let error: string | null = null;
 
-    if (value) {
+    if (value && value.trim() !== '') {
         try {
             humanReadable = cronstrue.toString(value, {
                 use24HourTimeFormat: true,
@@ -37,7 +36,7 @@ export function CronEditor({ value, onChange, disabled }: CronEditorProps) {
             <div className="flex flex-wrap gap-1.5">
                 {PRESETS.map((preset) => (
                     <Button
-                        key={preset.cron}
+                        key={preset.label}
                         type="button"
                         variant={value === preset.cron ? 'default' : 'outline'}
                         size="xs"
@@ -55,9 +54,7 @@ export function CronEditor({ value, onChange, disabled }: CronEditorProps) {
                     size="xs"
                     className="text-[10px] h-7"
                     onClick={() => {
-                        if (PRESETS.some(p => p.cron === value)) {
-                            // Don't change if already custom, but highlight it
-                        }
+                        // Custom highlight logic
                     }}
                     aria-pressed={!PRESETS.some(p => p.cron === value)}
                     disabled={disabled}
@@ -71,9 +68,9 @@ export function CronEditor({ value, onChange, disabled }: CronEditorProps) {
                     id="cron-input"
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
-                    placeholder="0 * * * *"
+                    placeholder="None (Manual only)"
                     className={`font-mono ${error ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-                    required
+                    required={false}
                     disabled={disabled}
                     aria-label="Cron expression"
                     aria-invalid={!!error}
@@ -88,6 +85,8 @@ export function CronEditor({ value, onChange, disabled }: CronEditorProps) {
                             <Info className="h-3 w-3 shrink-0" aria-hidden="true" />
                             <span>Runs {humanReadable.toLowerCase()}</span>
                         </div>
+                    ) : value === '' ? (
+                        <p id="cron-description" className="text-[10px] text-muted-foreground">No schedule. Scans must be triggered manually.</p>
                     ) : (
                         <p id="cron-description" className="text-[10px] text-muted-foreground">Enter a 5-segment cron expression (minute, hour, day, month, day-of-week).</p>
                     )}

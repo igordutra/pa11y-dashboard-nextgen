@@ -33,12 +33,23 @@ This project is a modern accessibility monitoring dashboard built with React and
 ## Key Commands
 
 ### Development (Local)
-The recommended way to develop is using **Docker Compose**, which provides a full environment with **hot-reloading** for both services:
+The **preferred** way to develop is using Docker, which provides a full environment with **hot-reloading** for both services:
+
 ```bash
-docker-compose up -d --build
+# Start the full environment
+npm run dev
+
+# View logs
+npm run logs
+
+# Run tests inside Docker
+npm run docker:test
+
+# Stop the environment
+npm run stop
 ```
 
-Alternatively, you can run services manually (ensure MongoDB is running):
+Alternatively, you can run services manually for debugging or if Docker is unavailable (ensure MongoDB is running):
 
 - **Server**: 
   ```bash
@@ -56,8 +67,10 @@ The application is designed to be deployed as a single, unified container where 
 - See `ORACLE_CLOUD_DEPLOYMENT.md` for full VPS hosting instructions.
 
 ### Testing
-- **Client**: `cd client && npm run test`
-- **Server**: `cd server && npm run test`
+- **Docker (Preferred)**: `npm run docker:test`
+- **Manual (Local)**: `npm run test`
+- **Client only**: `cd client && npm run test`
+- **Server only**: `cd server && npm run test`
 
 ### Linting & Formatting
 - **Client**: `cd client && npm run lint`
@@ -106,6 +119,8 @@ npm run prepare
     - **Iframe Support**: Actions like `click` and `type` support a special syntax to interact with elements inside iframes: `iframe_selector >>> element_selector` (e.g. `#my-iframe >>> .login-btn`).
 - **Focused Issue Snippets**: The scanner automatically crops screenshots to the bounding box of each identified issue (using `sharp`). These snippets are displayed in the UI and included in exported reports for easier remediation.
 - **Accessibility Score**: Calculated using Lighthouse for the initial load and a custom rule-based deduction algorithm for intermediate steps (based on Pa11y issue count and impact).
+- **Default Standards**: New URLs default to **WCAG 2.2 AA** and **Manual Schedule** (no background scans by default).
+- **Initial Scan**: The system automatically triggers a high-priority scan immediately upon saving a new URL to ensure instant feedback.
 - **Reliability & Fault Tolerance**:
     - **Startup Recovery**: The system automatically detects and resets URLs stuck in the `scanning` state back to `active` upon server restart.
     - **Timeout Enforcement**: A global timeout is enforced at the Puppeteer page level, synchronized with the user-defined scan timeout.

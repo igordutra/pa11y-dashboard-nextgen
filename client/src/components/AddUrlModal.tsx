@@ -24,8 +24,8 @@ export function AddUrlModal() {
     const [activeTab, setActiveTab] = useState<'basic' | 'script'>('basic');
     const [url, setUrl] = useState('');
     const [name, setName] = useState('');
-    const [standard, setStandard] = useState('WCAG2AA');
-    const [schedule, setSchedule] = useState('0 * * * *');
+    const [standard, setStandard] = useState('WCAG22AA');
+    const [schedule, setSchedule] = useState('');
     const [actions, setActions] = useState<Action[]>([]);
     const [categoryId, setCategoryId] = useState<string | null>(null);
 
@@ -47,8 +47,8 @@ export function AddUrlModal() {
             setOpen(false);
             setUrl('');
             setName('');
-            setStandard('WCAG2AA');
-            setSchedule('0 * * * *');
+            setStandard('WCAG22AA');
+            setSchedule('');
             setActions([]);
             setCategoryId(null);
             setActiveTab('basic');

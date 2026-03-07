@@ -115,20 +115,20 @@ The final score displayed for a multi-step scan is the **average score** of all 
 ## Running the Application
 
 ### Local Development (Using Docker)
-The easiest way to get started is with Docker Compose. This setup includes **hot-reloading** for both the frontend and backend:
+The **preferred** way to get started is using Docker, which provides a full environment with **hot-reloading** for both the frontend and backend:
+
 ```bash
-docker-compose up -d --build
+# Start the full environment
+npm run dev
+
+# View logs
+npm run logs
+
+# Run tests inside Docker
+npm run docker:test
 ```
-- **Dashboard**: [http://localhost:8080](http://localhost:8080)
-- **API**: [http://localhost:3000](http://localhost:3000)
-- **Logs**: `docker-compose logs -f`
 
-### Production Deployment (Recommended)
-For production, we recommend a unified Docker build where the backend serves the frontend assets. This is optimised for environments like Oracle Cloud.
-
-👉 **[View the Oracle Cloud Deployment Guide](ORACLE_CLOUD_DEPLOYMENT.md)**
-
-### Manual Installation
+Alternatively, you can run services manually for debugging or if Docker is unavailable (ensure MongoDB is running):
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/igordutra/pa11y-dashboard-nextgen.git
