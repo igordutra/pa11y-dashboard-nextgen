@@ -2,6 +2,8 @@ import { FastifyInstance } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { ScanModel } from '../models/index.js';
+import cronstrue from 'cronstrue';
+import { CronExpressionParser } from 'cron-parser';
 
 // Middleware to check if dashboard is in readonly mode
 const checkReadonly = async (request: any, reply: any) => {
@@ -15,10 +17,10 @@ const checkReadonly = async (request: any, reply: any) => {
 export default async function scanRoutes(fastify: FastifyInstance) {
     const f = fastify.withTypeProvider<ZodTypeProvider>();
 
-    // READ: Get all current jobs (running and queued)
+    // READ: Get all current jobs (running, queued, failed, and scheduled)
     f.get('/api/jobs', {
         schema: {
-            description: 'Get all currently running and queued scan jobs',
+            description: 'Get all currently running, queued, failed, and scheduled scan jobs',
             summary: 'List jobs',
             tags: ['scans'],
             response: {
@@ -40,6 +42,24 @@ export default async function scanRoutes(fastify: FastifyInstance) {
                         enqueuedAt: z.date(),
                         priority: z.boolean(),
                         status: z.string()
+                    })),
+                    failed: z.array(z.object({
+                        urlId: z.string(),
+                        url: z.string().optional(),
+                        name: z.string().optional(),
+                        enqueuedAt: z.date(),
+                        startedAt: z.date(),
+                        failedAt: z.date(),
+                        error: z.string(),
+                        priority: z.boolean()
+                    })),
+                    scheduled: z.array(z.object({
+                        urlId: z.string(),
+                        url: z.string(),
+                        name: z.string().optional(),
+                        schedule: z.string(),
+                        frequency: z.string(),
+                        nextRun: z.date()
                     }))
                 })
             }
@@ -49,10 +69,35 @@ export default async function scanRoutes(fastify: FastifyInstance) {
         const { UrlModel } = await import('../models/index.js');
         const jobs = scanQueue.getJobs();
 
-        // Hydrate with URL details
-        const urlIds = [...jobs.running.map(j => j.urlId), ...jobs.queue.map(j => j.urlId)];
-        const urls = await UrlModel.find({ _id: { $in: urlIds } }, 'url name');
-        const urlMap = new Map(urls.map(u => [u._id.toString(), u]));
+        // 1. Get Scheduled Tasks (from DB)
+        const scheduledUrls = await UrlModel.find({
+            status: 'active',
+            schedule: { $exists: true, $ne: '' }
+        });
+
+        const scheduled = scheduledUrls.map(url => {
+            let frequency = 'Invalid Schedule';
+            let nextRun = new Date();
+            try {
+                frequency = cronstrue.toString(url.schedule);
+                const interval = CronExpressionParser.parse(url.schedule);
+                nextRun = interval.next().toDate();
+            } catch { /* ignore */ }
+
+            return {
+                urlId: url._id.toString(),
+                url: url.url,
+                name: url.name,
+                schedule: url.schedule,
+                frequency,
+                nextRun
+            };
+        });
+
+        // 2. Hydrate Active Jobs with URL details
+        const activeUrlIds = [...jobs.running.map(j => j.urlId), ...jobs.queue.map(j => j.urlId), ...jobs.failed.map(j => j.urlId)];
+        const activeUrls = await UrlModel.find({ _id: { $in: activeUrlIds } }, 'url name');
+        const urlMap = new Map(activeUrls.map(u => [u._id.toString(), u]));
 
         return {
             running: jobs.running.map(j => ({
@@ -64,7 +109,13 @@ export default async function scanRoutes(fastify: FastifyInstance) {
                 ...j,
                 url: urlMap.get(j.urlId)?.url,
                 name: urlMap.get(j.urlId)?.name
-            }))
+            })),
+            failed: jobs.failed.map(j => ({
+                ...j,
+                url: urlMap.get(j.urlId)?.url,
+                name: urlMap.get(j.urlId)?.name
+            })),
+            scheduled
         };
     });
 

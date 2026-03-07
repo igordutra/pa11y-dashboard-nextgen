@@ -14,9 +14,20 @@ interface RunningMetadata extends QueueMetadata {
     startedAt: number;
 }
 
+interface FailedJob {
+    urlId: string;
+    enqueuedAt: Date;
+    startedAt: Date;
+    failedAt: Date;
+    error: string;
+    priority: boolean;
+}
+
 class ScanQueue {
     private queue: QueueMetadata[] = [];
     private running: Map<string, RunningMetadata> = new Map();
+    private failed: FailedJob[] = [];
+    private readonly MAX_FAILED_HISTORY = 50;
     private processing = false;
 
     // Add a URL to the queue if not already there or running
@@ -71,7 +82,10 @@ class ScanQueue {
 
             // Run scan in background (no await here to keep the loop going)
             runScan(id)
-                .catch(err => console.error(`Scan failed for ${id}:`, err))
+                .catch(err => {
+                    console.error(`Scan failed for ${id}:`, err);
+                    this.recordFailure(runningMetadata, err);
+                })
                 .finally(() => {
                     const executionTime = Date.now() - runningMetadata.startedAt;
                     this.running.delete(id);
@@ -81,6 +95,22 @@ class ScanQueue {
         }
 
         this.processing = false;
+    }
+
+    private recordFailure(meta: RunningMetadata, error: unknown) {
+        const failure: FailedJob = {
+            urlId: meta.urlId,
+            enqueuedAt: new Date(meta.enqueuedAt),
+            startedAt: new Date(meta.startedAt),
+            failedAt: new Date(),
+            error: error instanceof Error ? error.message : String(error),
+            priority: meta.priority
+        };
+
+        this.failed.unshift(failure);
+        if (this.failed.length > this.MAX_FAILED_HISTORY) {
+            this.failed.pop();
+        }
     }
 
     getStats() {
@@ -105,7 +135,8 @@ class ScanQueue {
                 priority: r.priority,
                 status: 'running',
                 durationMs: Date.now() - r.startedAt
-            }))
+            })),
+            failed: this.failed
         };
     }
 

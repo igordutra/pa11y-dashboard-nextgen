@@ -2,7 +2,9 @@
 
 Pa11y Dashboard NextGen is a modern web interface for the [Pa11y][pa11y] and [Lighthouse][lighthouse] accessibility reporters. It enables teams to monitor accessibility health, track trends over time, and identify issues through interactive reports and scripted user journeys.
 
-![Version](https://img.shields.io/badge/version-0.4-blue.svg)
+This project was built and evolved with the assistance of **Gemini CLI**, an AI-powered agent for software engineering.
+
+![Version](https://img.shields.io/badge/version-0.5.2-blue.svg)
 [![Node.js version support](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org/)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -80,7 +82,8 @@ Generate and share professional accessibility reports with stakeholders.
 | **Testing** | Mocha / Should | Vitest / React Testing Library |
 | **Scoring** | Issue counting | Hybrid Lighthouse + Weighted Rules |
 | **Visuals** | Static reports | Interactive Charts & Screenshot Pins |
-| **Speed** | Standard execution | Concurrent Scheduler |
+| **Speed** | Standard execution | Configurable Concurrency |
+| **Monitoring** | None | Real-time Job Queue & Failure History |
 | **Scripting** | Text-based actions | Interactive UI Script Editor |
 
 ---

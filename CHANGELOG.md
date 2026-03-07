@@ -2,17 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.5.1] - 2026-03-07
+## [0.5.2] - 2026-03-07
 
 ### Added
+- **Extended Job Monitoring**: Redesigned the monitoring dashboard to include a full list of scheduled tasks with human-readable frequencies and next run times.
+- **Failure History Tracking**: Implemented a new 'Recent Failures' system that tracks the last 50 scan errors with descriptive messages.
 - **Configurable Concurrency**: Moved the hardcoded scan limit to a global setting, allowing users to adjust system load (1-10 simultaneous scans) via the Settings page.
-
-## [0.5.0] - 2026-03-07
-
-### Added
-- **Job Monitoring Page**: A new real-time dashboard to monitor currently running and enqueued accessibility scans.
-- **Enhanced Queue Visibility**: Real-time status, wait times, and execution durations for all background tasks.
-- **Priority Tracking**: Clear identification of high-priority (manual) vs. scheduled scans.
+- **Real-time Queue Visibility**: Status, wait times, and execution durations for all background tasks with automatic 5-second polling.
+- **AI-Powered Development**: This project has been significantly evolved and maintained with the assistance of **Gemini CLI**.
 
 ## [0.4.3] - 2026-03-07
 

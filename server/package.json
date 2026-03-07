@@ -1,6 +1,6 @@
 {
   "name": "server",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -23,6 +23,7 @@
     "@fastify/swagger-ui": "^5.2.5",
     "@types/sharp": "^0.31.1",
     "cron-parser": "^5.5.0",
+    "cronstrue": "^3.13.0",
     "dotenv": "^17.3.1",
     "fastify": "^5.7.4",
     "fastify-type-provider-zod": "^6.1.0",
