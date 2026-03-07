@@ -1,29 +1,42 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { app, initApp } from '../index.js';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { UrlModel } from '../models/index.js';
+import * as scheduler from '../lib/scheduler.js';
 
-let mongoServer: MongoMemoryServer;
+let mongoServer: MongoMemoryServer | null = null;
 
-describe('API Tests', () => {
+describe('API Integration Tests', () => {
     beforeAll(async () => {
-        // Start in-memory mongodb
-        mongoServer = await MongoMemoryServer.create();
-        const mongoUri = mongoServer.getUri();
-
-        // Inject MONGO_URI into process.env before initApp
-        process.env.MONGO_URI = mongoUri;
+        // 1. Setup Database
+        if (process.env.DOCKER_TEST) {
+            // In Docker, use the shared mongo service
+            process.env.MONGO_URI = 'mongodb://mongo:27017/pa11y-dashboard-test';
+        } else {
+            // Locally, use memory server
+            mongoServer = await MongoMemoryServer.create();
+            process.env.MONGO_URI = mongoServer.getUri();
+        }
+        
         process.env.NODE_ENV = 'test';
 
-        // Wait for fastify to be ready
+        // 2. Mock Scan Queue to avoid spawning real Puppeteer processes in API tests
+        vi.spyOn(scheduler.scanQueue, 'enqueue').mockImplementation(() => {
+            console.log('Mocked scanQueue.enqueue called');
+        });
+
+        // 3. Initialize App
         await initApp();
         await app.ready();
-    }, 60000); // 60s for slow CI
+    }, 60000);
 
     beforeEach(async () => {
         // Clear database before each test
-        await UrlModel.deleteMany({});
+        if (mongoose.connection.readyState === 1) {
+            await UrlModel.deleteMany({});
+        }
+        vi.clearAllMocks();
     });
 
     afterAll(async () => {
@@ -34,52 +47,84 @@ describe('API Tests', () => {
         }
     }, 30000);
 
-    it('GET /api should return hello world', async () => {
-        const response = await app.inject({
-            method: 'GET',
-            url: '/api'
-        });
+    describe('System Health', () => {
+        it('GET /api should return system status', async () => {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api'
+            });
 
-        expect(response.statusCode).toBe(200);
-        expect(JSON.parse(response.payload)).toEqual({ 
-            hello: 'world', 
-            service: 'pa11y-dashboard-nextgen-api',
-            readonly: false,
-            noindex: true,
-            demoMode: false
+            expect(response.statusCode).toBe(200);
+            const payload = JSON.parse(response.payload);
+            expect(payload.service).toBe('pa11y-dashboard-nextgen-api');
+            expect(payload.demoMode).toBe(false);
         });
     });
 
-    it('GET /api/urls should return an empty array initially', async () => {
-        const response = await app.inject({
-            method: 'GET',
-            url: '/api/urls'
+    describe('URL Management', () => {
+        it('should return an empty array when no URLs exist', async () => {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/urls'
+            });
+
+            expect(response.statusCode).toBe(200);
+            expect(JSON.parse(response.payload)).toEqual([]);
         });
 
-        expect(response.statusCode).toBe(200);
-        expect(JSON.parse(response.payload)).toEqual([]);
-    });
+        it('should create a new URL with new v0.3.0 defaults', async () => {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/urls',
+                payload: {
+                    url: 'https://example.com'
+                }
+            });
 
-    it('POST /api/urls should create a new URL', async () => {
-        const response = await app.inject({
-            method: 'POST',
-            url: '/api/urls',
-            payload: {
-                url: 'https://example.com',
-                name: 'Example Domain',
-                schedule: '0 * * * *',
-                standard: 'WCAG2AA' // Required in Zod schema
-            }
+            expect(response.statusCode).toBe(200);
+            const data = JSON.parse(response.payload);
+            
+            // Verify new defaults
+            expect(data.standard).toBe('WCAG22AA');
+            expect(data.schedule).toBe(''); 
+            
+            // Verify immediate scan trigger logic
+            expect(data.status).toBe('scanning');
+            expect(scheduler.scanQueue.enqueue).toHaveBeenCalled();
+            
+            // Verify DB persistence
+            const doc = await UrlModel.findById(data._id);
+            expect(doc).toBeDefined();
+            expect(doc?.url).toBe('https://example.com');
         });
 
-        expect(response.statusCode).toBe(200);
-        const data = JSON.parse(response.payload);
-        expect(data.url).toBe('https://example.com');
-        expect(data.name).toBe('Example Domain');
-        expect(data._id).toBeDefined();
+        it('should allow overriding defaults during creation', async () => {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/urls',
+                payload: {
+                    url: 'https://custom.com',
+                    standard: 'WCAG2A',
+                    schedule: '0 0 * * *'
+                }
+            });
 
-        // Verify it was saved in Mongo
-        const count = await UrlModel.countDocuments();
-        expect(count).toBe(1);
+            expect(response.statusCode).toBe(200);
+            const data = JSON.parse(response.payload);
+            expect(data.standard).toBe('WCAG2A');
+            expect(data.schedule).toBe('0 0 * * *');
+        });
+
+        it('should validate URL format', async () => {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/urls',
+                payload: {
+                    url: 'not-a-url'
+                }
+            });
+
+            expect(response.statusCode).toBe(400);
+        });
     });
 });

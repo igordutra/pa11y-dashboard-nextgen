@@ -61,6 +61,14 @@ class ScanQueue {
             runningCount: this.running.size
         };
     }
+
+    async waitForIdle(timeoutMs = 10000) {
+        const start = Date.now();
+        while (this.running.size > 0 || this.queue.length > 0) {
+            if (Date.now() - start > timeoutMs) break;
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    }
 }
 
 export const scanQueue = new ScanQueue();

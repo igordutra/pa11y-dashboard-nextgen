@@ -24,8 +24,12 @@ const fastify = Fastify({
 fastify.setValidatorCompiler(validatorCompiler);
 fastify.setSerializerCompiler(serializerCompiler);
 
+let isInitialized = false;
+
 // Initialize application (routes and plugins) without starting server
 export const initApp = async () => {
+  if (isInitialized) return fastify;
+  
   const currentConfig = getConfig();
   try {
     const origins = currentConfig.clientUrl.split(',').map(url => url.trim());
@@ -58,7 +62,7 @@ export const initApp = async () => {
         info: {
           title: 'Pa11y Dashboard NextGen API',
           description: 'API for managing Pa11y scans and results',
-          version: '1.0.0',
+          version: '0.3.0',
         },
       },
     });
@@ -140,6 +144,7 @@ export const initApp = async () => {
     }
 
     await fastify.ready();
+    isInitialized = true;
     return fastify;
   } catch (err) {
     fastify.log.error(err);

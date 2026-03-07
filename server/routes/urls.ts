@@ -77,12 +77,12 @@ export default async function urlRoutes(fastify: FastifyInstance) {
             body: z.object({
                 url: z.string().url(),
                 name: z.string().optional(),
-                schedule: z.string().default('0 * * * *'),
+                schedule: z.string().default(''),
                 standard: z.enum([
                     'WCAG2A', 'WCAG2AA', 'WCAG2AAA',
                     'WCAG21A', 'WCAG21AA', 'WCAG21AAA',
                     'WCAG22A', 'WCAG22AA', 'WCAG22AAA'
-                ]).default('WCAG2AA'),
+                ]).default('WCAG22AA'),
                 actions: z.array(z.object({
                     type: z.enum(['click', 'wait', 'type', 'wait-for-url', 'screen-capture']),
                     value: z.string(),
@@ -118,6 +118,7 @@ export default async function urlRoutes(fastify: FastifyInstance) {
             standard,
             actions,
             overrides: overrides as any,
+            status: 'scanning',
             ...(categoryId ? { categoryId } : {})
         });
 
