@@ -3,7 +3,6 @@ import { runScan } from './runner.js';
 import { CronExpressionParser } from 'cron-parser';
 
 const SCAN_INTERVAL_MS = 60 * 1000; // Check every minute
-const MAX_CONCURRENT = 3;
 
 interface QueueMetadata {
     urlId: string;
@@ -45,13 +44,17 @@ class ScanQueue {
     }
 
     private async process() {
-        if (this.processing || this.running.size >= MAX_CONCURRENT || this.queue.length === 0) {
+        const { getSettings } = await import('../models/settings.js');
+        const settings = await getSettings();
+        const maxConcurrent = settings.concurrency || 3;
+
+        if (this.processing || this.running.size >= maxConcurrent || this.queue.length === 0) {
             return;
         }
 
         this.processing = true;
 
-        while (this.running.size < MAX_CONCURRENT && this.queue.length > 0) {
+        while (this.running.size < maxConcurrent && this.queue.length > 0) {
             const metadata = this.queue.shift();
             if (!metadata) break;
 

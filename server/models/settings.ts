@@ -25,6 +25,7 @@ export interface ISettings extends Document {
     userAgent: string;      // Custom User-Agent header
     ignore: string[];       // Rule codes to ignore
     headers: Map<string, string>; // Custom HTTP headers
+    concurrency: number;    // Max simultaneous scans
 }
 
 const SettingsSchema = new Schema<ISettings>({
@@ -46,7 +47,8 @@ const SettingsSchema = new Schema<ISettings>({
     rootElement: { type: String, default: '' },
     userAgent: { type: String, default: '' },
     ignore: { type: [String], default: [] },
-    headers: { type: Map, of: String, default: {} }
+    headers: { type: Map, of: String, default: {} },
+    concurrency: { type: Number, default: 3, min: 1, max: 10 }
 }, { timestamps: true });
 
 export const SettingsModel = mongoose.model<ISettings>('Settings', SettingsSchema);

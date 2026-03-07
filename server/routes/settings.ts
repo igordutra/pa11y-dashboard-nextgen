@@ -30,7 +30,8 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
                     rootElement: z.string().describe('Restrict scan to this CSS selector'),
                     userAgent: z.string().describe('Custom User-Agent header string'),
                     ignore: z.array(z.string()).describe('Accessibility rules/codes to ignore'),
-                    headers: z.record(z.string(), z.string()).optional().describe('Key-value pairs for custom HTTP headers')
+                    headers: z.record(z.string(), z.string()).optional().describe('Key-value pairs for custom HTTP headers'),
+                    concurrency: z.number().describe('Maximum simultaneous scans')
                 })
             }
         }
@@ -66,7 +67,8 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
                     rootElement: z.string(),
                     userAgent: z.string(),
                     ignore: z.array(z.string()),
-                    headers: z.record(z.string(), z.string()).optional()
+                    headers: z.record(z.string(), z.string()).optional(),
+                    concurrency: z.number()
                 })
             }
         }

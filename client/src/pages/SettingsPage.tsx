@@ -16,6 +16,7 @@ interface Settings {
     userAgent: string;
     ignore: string[];
     headers: Record<string, string>;
+    concurrency: number;
 }
 
 interface Environment {
@@ -73,7 +74,8 @@ export function SettingsPage() {
             rootElement: '',
             userAgent: '',
             ignore: [],
-            headers: {}
+            headers: {},
+            concurrency: 3
         };
         setSaving(true);
         const res = await fetch(`${API}/api/settings`, {
@@ -228,6 +230,14 @@ export function SettingsPage() {
                         onChange={v => setSettings({ ...settings, timeout: v })} />
                     <NumberInput label="Wait before test (ms)" value={settings.wait} description="Delay before running tests (default: 0)"
                         onChange={v => setSettings({ ...settings, wait: v })} />
+                </div>
+            </Section>
+
+            {/* Concurrency */}
+            <Section icon={<Activity className="h-5 w-5" aria-hidden="true" />} title="Resource Management" description="Control system load and performance">
+                <div className="grid grid-cols-2 gap-4">
+                    <NumberInput label="Concurrency" value={settings.concurrency} description="Maximum simultaneous scans (range: 1-10)"
+                        onChange={v => setSettings({ ...settings, concurrency: Math.min(10, Math.max(1, v)) })} />
                 </div>
             </Section>
 

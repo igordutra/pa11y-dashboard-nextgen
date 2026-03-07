@@ -18,7 +18,8 @@ export const settingsSchema = z.object({
   rootElement: z.string().optional(),
   userAgent: z.string().optional(),
   ignore: z.array(z.string()).optional(),
-  headers: z.record(z.string(), z.string()).optional()
+  headers: z.record(z.string(), z.string()).optional(),
+  concurrency: z.number().min(1).max(10).optional()
 });
 
 /**
