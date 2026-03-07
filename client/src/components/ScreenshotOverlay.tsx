@@ -121,11 +121,17 @@ export function ScreenshotOverlay({
                         onClick={(e) => handleBoxClick(issue.originalIndex, e)}
                         onMouseEnter={(e) => handleBoxMouseEnter(issue.originalIndex, e)}
                         onMouseLeave={handleBoxMouseLeave}
-                        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleBoxClick(issue.originalIndex, e as unknown as React.MouseEvent)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                handleBoxClick(issue.originalIndex, e as unknown as React.MouseEvent);
+                            }
+                        }}
                         role="button"
                         tabIndex={0}
-                        aria-label={`${colors.label}: ${issue.code}`}
+                        aria-label={`${colors.label}: ${issue.code}. ${issue.message}`}
                         aria-pressed={isSelected}
+                        aria-expanded={isSelected}
                         className="absolute transition-all duration-150"
                         style={{
                             left: bb.x * scale,
