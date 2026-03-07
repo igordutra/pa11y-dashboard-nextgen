@@ -70,6 +70,16 @@ export const initApp = async () => {
     await mongoose.connect(currentConfig.mongoUri);
     fastify.log.info('Connected to MongoDB');
 
+    // Reset URLs stuck in 'scanning' status to 'active' on startup
+    const { UrlModel } = await import('./models/index.js');
+    const resetResult = await UrlModel.updateMany(
+      { status: 'scanning' },
+      { status: 'active' }
+    );
+    if (resetResult.modifiedCount > 0) {
+      fastify.log.info(`Reset ${resetResult.modifiedCount} URLs from 'scanning' to 'active' status.`);
+    }
+
     // Ensure screenshots directory exists
     const screenshotsDir = currentConfig.screenshotsDir;
     try {

@@ -315,6 +315,9 @@ export const runScan = async (urlId: string) => {
 
         browser = await puppeteer.launch(launchOptions);
         const page = await browser.newPage();
+        
+        // Set a global timeout for the whole page session
+        page.setDefaultTimeout(config.timeout);
 
         // Ensure screenshots dir exists
         const currentConfig = getConfig();
@@ -457,15 +460,21 @@ export const runScan = async (urlId: string) => {
 
     } catch (error) {
         console.error(`Scan failed for ${urlDoc.url}:`, error);
-        // Reset status from 'scanning'
-        if (urlDoc.lastScore === undefined || urlDoc.lastScore === null) {
-            urlDoc.status = 'error';
-        } else {
-            urlDoc.status = 'active'; // Or keep it as 'active' if it was working before
+        
+        // Find the most recent doc state in case it changed
+        const latestUrlDoc = await UrlModel.findById(urlId);
+        if (latestUrlDoc) {
+            // Reset status from 'scanning'
+            if (latestUrlDoc.lastScore === undefined || latestUrlDoc.lastScore === null) {
+                latestUrlDoc.status = 'error';
+            } else {
+                latestUrlDoc.status = 'active';
+            }
+            // Always record the failure time so the user knows when it last tried
+            latestUrlDoc.lastScanAt = new Date();
+            await latestUrlDoc.save();
         }
-        // Always record the failure time so the user knows when it last tried
-        urlDoc.lastScanAt = new Date();
-        await urlDoc.save();
+        
         if (browser) await browser.close();
         throw error;
     }

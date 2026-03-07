@@ -115,12 +115,13 @@ The final score displayed for a multi-step scan is the **average score** of all 
 ## Running the Application
 
 ### Local Development (Using Docker)
-The easiest way to get started is with Docker Compose:
+The easiest way to get started is with Docker Compose. This setup includes **hot-reloading** for both the frontend and backend:
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 - **Dashboard**: [http://localhost:8080](http://localhost:8080)
 - **API**: [http://localhost:3000](http://localhost:3000)
+- **Logs**: `docker-compose logs -f`
 
 ### Production Deployment (Recommended)
 For production, we recommend a unified Docker build where the backend serves the frontend assets. This is optimised for environments like Oracle Cloud.
@@ -179,6 +180,12 @@ Configuration is managed via environment variables in the `server` directory.
 
 ### `CLIENT_URL`
 *(string)* The URL of the frontend application (required for CORS).
+
+### `NODE_ENV`
+*(string)* Set to `development` for local work or `production` for deployment.
+
+### `SCREENSHOTS_DIR`
+*(string)* Path where scan screenshots are stored (defaults to `./screenshots`).
 
 ### `DEMO_MODE`
 *(boolean)* Set to `true` to disable background scheduling and enable UI warnings.

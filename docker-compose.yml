@@ -12,6 +12,7 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
+    command: npm run dev
     ports:
       - "3000:3000"
     volumes:
@@ -23,6 +24,8 @@ services:
       - MONGO_URI=mongodb://mongo:27017/pa11y-dashboard
       - PORT=3000
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+      - NODE_ENV=development
+      - CLIENT_URL=http://localhost:8080
     cap_add:
       - SYS_ADMIN
 

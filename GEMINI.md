@@ -33,7 +33,12 @@ This project is a modern accessibility monitoring dashboard built with React and
 ## Key Commands
 
 ### Development (Local)
-Ensure MongoDB is running (e.g. via Docker: `docker-compose up -d mongo`).
+The recommended way to develop is using **Docker Compose**, which provides a full environment with **hot-reloading** for both services:
+```bash
+docker-compose up -d --build
+```
+
+Alternatively, you can run services manually (ensure MongoDB is running):
 
 - **Server**: 
   ```bash
@@ -101,4 +106,8 @@ npm run prepare
     - **Iframe Support**: Actions like `click` and `type` support a special syntax to interact with elements inside iframes: `iframe_selector >>> element_selector` (e.g. `#my-iframe >>> .login-btn`).
 - **Focused Issue Snippets**: The scanner automatically crops screenshots to the bounding box of each identified issue (using `sharp`). These snippets are displayed in the UI and included in exported reports for easier remediation.
 - **Accessibility Score**: Calculated using Lighthouse for the initial load and a custom rule-based deduction algorithm for intermediate steps (based on Pa11y issue count and impact).
+- **Reliability & Fault Tolerance**:
+    - **Startup Recovery**: The system automatically detects and resets URLs stuck in the `scanning` state back to `active` upon server restart.
+    - **Timeout Enforcement**: A global timeout is enforced at the Puppeteer page level, synchronized with the user-defined scan timeout.
+    - **Atomic Status Updates**: The scanner re-validates the database state before final status updates to prevent race conditions during long-running audits.
 - **Scheduler**: Runs every 60 seconds to check for URLs where `lastScanAt` is older than the most recent cron schedule execution. Disabled if `DEMO_MODE=true`.
