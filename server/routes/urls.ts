@@ -24,24 +24,7 @@ export default async function urlRoutes(fastify: FastifyInstance) {
             summary: 'List all URLs',
             tags: ['urls'],
             response: {
-                200: z.array(z.object({
-                    _id: z.preprocess((val: any) => val?.toString(), z.string()).describe('Unique identifier for the URL'),
-                    url: z.string().describe('The destination URL being monitored'),
-                    name: z.string().nullable().optional().describe('Human-readable name for the URL'),
-                    schedule: z.string().nullable().optional().describe('Cron-style schedule string (empty for manual)'),
-                    standard: z.string().nullable().optional().describe('Accessibility standard (e.g., WCAG22AA)'),
-                    status: z.string().nullable().optional().describe('Current status of the URL monitoring'),
-                    lastScanAt: z.any().optional().describe('Timestamp of the most recent completed scan'),
-                    lastIssueCount: z.number().nullable().optional().describe('Number of accessibility issues found in the last scan'),
-                    lastScore: z.number().nullable().optional().describe('Overall accessibility score from the last scan (0-100)'),
-                    lastThumbnail: z.string().nullable().optional().describe('Relative path to the last scan thumbnail'),
-                    lastScreenshot: z.string().nullable().optional().describe('Relative path to the last scan full screenshot'),
-                    actions: z.array(z.any()).optional().describe('List of multi-step interactive actions to perform before scanning'),
-                    overrides: overridesSchema,
-                    categoryId: z.preprocess((val: any) => val?.toString(), z.string()).optional().describe('Optional ID of the assigned category'),
-                    createdAt: z.any().optional(),
-                    updatedAt: z.any().optional()
-                }))
+                200: z.any()
             }
         }
     }, async (_req, _reply) => {
