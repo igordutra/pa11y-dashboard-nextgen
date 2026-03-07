@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2026-03-07
+
+### Added
+- **Job Monitoring Page**: A new real-time dashboard to monitor currently running and enqueued accessibility scans.
+- **Enhanced Queue Visibility**: Real-time status, wait times, and execution durations for all background tasks.
+- **Priority Tracking**: Clear identification of high-priority (manual) vs. scheduled scans.
+
 ## [0.4.3] - 2026-03-07
 
 ### Security
