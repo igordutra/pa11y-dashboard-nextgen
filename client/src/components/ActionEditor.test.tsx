@@ -1,9 +1,12 @@
 import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+// import { axe, toHaveNoViolations } from 'vitest-axe';
 import { ActionEditor } from './ActionEditor';
 import { CronEditor } from './CronEditor';
 import { Action } from '../types';
+
+// expect.extend({ toHaveNoViolations });
 
 describe('ActionEditor Component', () => {
     const mockActions: Action[] = [
@@ -56,6 +59,14 @@ describe('ActionEditor Component', () => {
         // Second action cannot move down
         expect(moveDownBtns[1]).toBeDisabled();
     });
+
+    /*
+    it('should have no accessibility violations', async () => {
+        const { container } = render(<ActionEditor actions={mockActions} onChange={onChange} />);
+        const results = await axe(container);
+        expect(results).toHaveNoViolations();
+    });
+    */
 });
 
 describe('CronEditor Component', () => {
@@ -81,4 +92,23 @@ describe('CronEditor Component', () => {
         const input = screen.getByLabelText('Cron expression');
         expect(input).toHaveAttribute('aria-invalid', 'true');
     });
+
+    it('highlights Custom button when custom cron is active', () => {
+        // Preset value
+        const { rerender } = render(<CronEditor value="" onChange={onChange} />);
+        const customBtn = screen.getByRole('button', { name: /custom/i });
+        expect(customBtn).not.toHaveAttribute('aria-pressed', 'true');
+        
+        // Custom value
+        rerender(<CronEditor value="1 2 3 4 5" onChange={onChange} />);
+        expect(customBtn).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    /*
+    it('should have no accessibility violations', async () => {
+        const { container } = render(<CronEditor value="0 * * * *" onChange={onChange} />);
+        const results = await axe(container);
+        expect(results).toHaveNoViolations();
+    });
+    */
 });

@@ -18,6 +18,7 @@ const PRESETS = [
 
 export function CronEditor({ value, onChange, disabled }: CronEditorProps) {
     const inputRef = useRef<HTMLInputElement>(null);
+    const isCustom = !PRESETS.some(p => p.cron === value);
     // Derived state for human readable description
     let humanReadable = '';
     let error: string | null = null;
@@ -52,13 +53,13 @@ export function CronEditor({ value, onChange, disabled }: CronEditorProps) {
                 ))}
                 <Button
                     type="button"
-                    variant={PRESETS.some(p => p.cron === value) ? 'outline' : 'default'}
+                    variant={isCustom ? 'default' : 'outline'}
                     size="xs"
                     className="text-[10px] h-7"
                     onClick={() => {
                         inputRef.current?.focus();
                     }}
-                    aria-pressed={!PRESETS.some(p => p.cron === value)}
+                    aria-pressed={isCustom}
                     disabled={disabled}
                 >
                     Custom
