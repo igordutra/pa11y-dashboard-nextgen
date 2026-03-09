@@ -10,6 +10,7 @@ interface VisualRecorderProps {
 export function VisualRecorder({ targetUrl, onActionRecorded }: VisualRecorderProps) {
     const [proxyError, setProxyError] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [currentUrl, setCurrentUrl] = useState(targetUrl);
 
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
@@ -27,6 +28,19 @@ export function VisualRecorder({ targetUrl, onActionRecorded }: VisualRecorderPr
                         value: `${data.selector}|${data.value}`,
                         label: `Type into ${data.selector.split(' > ').pop()}`
                     });
+                } else if (data.action === 'navigate') {
+                    // Update the local state so the UI header shows the new URL
+                    setCurrentUrl(data.value);
+                    
+                    // Add a wait-for-url action to the script
+                    onActionRecorded({
+                        type: 'wait-for-url',
+                        value: data.value,
+                        label: `Wait for navigation`
+                    });
+                    
+                    // Set loading state true while the iframe fetches the new page
+                    setIsLoading(true);
                 }
             }
         };
@@ -36,7 +50,7 @@ export function VisualRecorder({ targetUrl, onActionRecorded }: VisualRecorderPr
     }, [onActionRecorded]);
 
     const apiUrl = import.meta.env.VITE_API_URL || '';
-    const proxyUrl = `${apiUrl}/api/proxy?url=${encodeURIComponent(targetUrl)}`;
+    const proxyUrl = `${apiUrl}/api/proxy?url=${encodeURIComponent(currentUrl)}`;
 
     return (
         <div className="flex flex-col h-full bg-slate-50 border rounded-lg overflow-hidden">
@@ -45,8 +59,8 @@ export function VisualRecorder({ targetUrl, onActionRecorded }: VisualRecorderPr
                     <Info className="h-4 w-4 text-blue-500" />
                     <span>Interact with the site below to record clicks and typing.</span>
                 </div>
-                <div className="text-muted-foreground truncate max-w-[200px]" title={targetUrl}>
-                    {targetUrl}
+                <div className="text-muted-foreground truncate max-w-[200px]" title={currentUrl}>
+                    {currentUrl}
                 </div>
             </div>
 

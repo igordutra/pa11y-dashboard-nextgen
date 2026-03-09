@@ -86,20 +86,31 @@ export default async function proxyRoutes(fastify: FastifyInstance) {
               }
 
               document.addEventListener('click', function(e) {
-                // Prevent navigation inside the iframe
                 var target = e.target;
                 var link = target.closest('a');
-                if (link && link.href) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                } else if (target.tagName.toLowerCase() === 'button' || target.closest('button') || target.tagName.toLowerCase() === 'input' && (target.type === 'submit' || target.type === 'button')) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }
-
+                
+                // Always record the click action
                 var selector = getCssSelector(target);
                 if (selector) {
                   sendAction('click', selector, '');
+                }
+
+                // If it's a link, we want to load the new page inside the proxy
+                if (link && link.href) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                  // Tell the UI we are navigating
+                  sendAction('navigate', '', link.href);
+                  
+                  // Update the iframe location to the new proxied URL
+                  window.location.href = '/api/proxy?url=' + encodeURIComponent(link.href);
+                } else if (target.tagName.toLowerCase() === 'button' || target.closest('button') || target.tagName.toLowerCase() === 'input' && (target.type === 'submit' || target.type === 'button')) {
+                  // For buttons/submits, we prevent default to avoid accidental form submissions
+                  // outside of the main monitoring loop, but it might break some SPAs. 
+                  // For a simple recorder, this is generally safer than submitting real forms.
+                  e.preventDefault();
+                  e.stopPropagation();
                 }
               }, true);
 
