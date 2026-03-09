@@ -9,7 +9,7 @@ import { VisualRecorder } from './VisualRecorder';
 
 interface ActionEditorProps {
     actions: Action[];
-    onChange: (actions: Action[]) => void;
+    onChange: React.Dispatch<React.SetStateAction<Action[]>>;
     targetUrl?: string;
 }
 
@@ -45,8 +45,8 @@ export function ActionEditor({ actions, onChange, targetUrl }: ActionEditorProps
     }, [actions, onChange]);
 
     const handleActionRecorded = useCallback((newAction: Action) => {
-        onChange([...actions, newAction]);
-    }, [actions, onChange]);
+        onChange((prevActions: Action[]) => [...prevActions, newAction]);
+    }, [onChange]);
 
     return (
         <div className="space-y-4">
