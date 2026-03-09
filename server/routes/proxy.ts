@@ -132,9 +132,11 @@ export default async function proxyRoutes(fastify: FastifyInstance) {
 
         // Ensure these headers are removed/set so we can iframe it
         reply.header('X-Frame-Options', 'ALLOWALL');
-        // CSP can be tricky, we remove it completely to allow our inline script to run
-        reply.removeHeader('Content-Security-Policy');
-
+        
+        // Fastify helmet adds strict CSP by default. We MUST override it for the proxy response 
+        // to allow the external site's inline scripts/styles and external assets to load.
+        reply.header('Content-Security-Policy', "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;");
+        
         return reply.send(html);
       } catch (error) {
         fastify.log.error(error);
