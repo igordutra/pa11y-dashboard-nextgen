@@ -35,7 +35,8 @@ export function VisualRecorder({ targetUrl, onActionRecorded }: VisualRecorderPr
         return () => window.removeEventListener('message', handleMessage);
     }, [onActionRecorded]);
 
-    const proxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const proxyUrl = `${apiUrl}/api/proxy?url=${encodeURIComponent(targetUrl)}`;
 
     return (
         <div className="flex flex-col h-full bg-slate-50 border rounded-lg overflow-hidden">
