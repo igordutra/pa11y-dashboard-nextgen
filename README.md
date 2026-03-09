@@ -4,7 +4,7 @@ Pa11y Dashboard NextGen is a modern web interface for the [Pa11y][pa11y] and [Li
 
 This project was built and evolved with the assistance of **Gemini CLI**, an AI-powered agent for software engineering.
 
-![Version](https://img.shields.io/badge/version-0.5.2-blue.svg)
+![Version](https://img.shields.io/badge/version-0.6.0-blue.svg)
 [![Node.js version support](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org/)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -23,6 +23,9 @@ This project was built and evolved with the assistance of **Gemini CLI**, an AI-
 ![Dashboard](docs/screenshots/dashboard.png)
 *The main dashboard showing URL cards, statuses, and scores.*
 
+![Visual Script Recorder](docs/screenshots/visual-recorder.png)
+*The Visual Script Recorder allows users to point, click, and type to generate complex interaction scripts.*
+
 ![Report Page](docs/screenshots/report.png)
 *Detailed accessibility report with multi-step scan results and screenshots.*
 
@@ -32,6 +35,13 @@ This project was built and evolved with the assistance of **Gemini CLI**, an AI-
 ---
 
 ## Key Features
+
+### 🎬 Visual Script Recorder
+Creating scripts for multi-step audits has never been easier. Instead of manually finding CSS selectors:
+- **Interactive Proxy**: The dashboard securely loads the target site in an embedded visual recorder.
+- **Point & Click**: Simply click buttons, open menus, and type into forms. The recorder automatically generates the optimized CSS selectors and Pa11y action blocks.
+- **Multi-Page Journeys**: Follow links to navigate through your site naturally; the recorder automatically inserts `wait-for-url` synchronization points.
+- **Smart Merging**: The backend scanning engine merges interaction steps with navigation steps to produce clean, clutter-free accessibility reports.
 
 ### 📂 Category Management
 Organise your monitored URLs into logical groups. NextGen supports rich metadata for categories:

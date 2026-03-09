@@ -141,7 +141,19 @@ export function ReportPage() {
 
     // Determine which data to show (Step data or Main data)
     const hasSteps = activeScan?.steps && activeScan.steps.length > 0;
-    const currentData = hasSteps ? activeScan.steps[selectedStepIndex] : activeScan;
+    
+    // Filter out standalone wait steps from the UI as requested, unless they are the only steps
+    let visibleSteps = activeScan?.steps || [];
+    if (hasSteps) {
+        visibleSteps = activeScan.steps.filter((step: ScanStep) => {
+            const lowerName = step.stepName.toLowerCase();
+            return !lowerName.includes('wait for nav') && !lowerName.startsWith('wait step');
+        });
+        // Fallback in case everything was filtered out
+        if (visibleSteps.length === 0) visibleSteps = activeScan.steps;
+    }
+
+    const currentData = hasSteps ? visibleSteps[Math.min(selectedStepIndex, visibleSteps.length - 1)] : activeScan;
 
     const issues = currentData?.issues || [];
     const filteredIssues = activeFilter === 'all' ? issues : issues.filter((i: Issue) => i.type === activeFilter);
@@ -269,7 +281,7 @@ export function ReportPage() {
                     {/* Steps Navigation */}
                     {hasSteps && (
                         <nav className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide" role="tablist" aria-label="Scan steps">
-                            {activeScan.steps.map((step: ScanStep, index: number) => (
+                            {visibleSteps.map((step: ScanStep, index: number) => (
                                 <button
                                     key={index}
                                     role="tab"

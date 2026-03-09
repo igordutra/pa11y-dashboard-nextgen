@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2026-03-09
+
+### Added
+- **Visual Script Recorder**: Added a proxy-based visual recorder allowing users to easily point, click, and type to generate complex interaction scripts, including multi-page journeys (#39).
+- **Empty State UI**: Implemented a welcoming empty state for the dashboard when no URLs are configured, providing a clear call to action (#43).
+
+### Changed
+- **Scan Engine Optimization**: The backend engine now merges interaction steps (clicks, typing) with subsequent wait actions. This prevents cluttered reports by eliminating meaningless mid-transition screenshots and focuses only on final loaded states.
+- **Report Page UI**: Standalone wait steps are now automatically hidden from the Report Page tabs to further reduce UI noise.
+
+### Fixed
+- **Demo Script Stability**: Updated GitHub action workflow to automatically pull latest source before executing the daily demo reset script (#42).
+
 ## [0.5.2] - 2026-03-07
 
 ### Added

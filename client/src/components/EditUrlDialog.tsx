@@ -207,7 +207,7 @@ export function EditUrlDialog({ urlData, open: externalOpen, onOpenChange: exter
                             </div>
                         ) : activeTab === 'script' ? (
                             <div id="script-panel" role="tabpanel" aria-labelledby="script-tab">
-                                <ActionEditor actions={actions} onChange={setActions} />
+                                <ActionEditor actions={actions} onChange={setActions} targetUrl={urlData.url} />
                             </div>
                         ) : (
                             <div id="overrides-panel" role="tabpanel" aria-labelledby="overrides-tab" className="grid gap-4">

@@ -323,6 +323,8 @@ export const runScan = async (urlId: string) => {
             steps.push(initialStep);
 
             // 3. Execute Actions
+            let pendingActionName: string | null = null;
+
             for (const [index, action] of urlDoc.actions.entries()) {
                 console.log(`Executing action: ${action.type} - ${action.value}`);
                 try {
@@ -364,8 +366,6 @@ export const runScan = async (urlId: string) => {
                             break;
                         }
                         case 'wait-for-url':
-                            // Ensure we don't block forever if already on URL, but waitForNavigation is tricky.
-                            // Usually used after a click.
                             // Simplification: check URL or wait for network idle
                             await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => console.log('Wait for nav timeout, continuing'));
                             break;
@@ -374,7 +374,28 @@ export const runScan = async (urlId: string) => {
                     // Allow some settling time after action
                     await new Promise(r => setTimeout(r, 1000));
 
-                    const stepResult = await captureStep(page, browser, urlDoc, action.label || `Step ${index + 1}`, config);
+                    // Check if we should skip capturing to merge with a subsequent wait step
+                    const nextAction = urlDoc.actions[index + 1];
+                    const isNextWait = nextAction && (nextAction.type === 'wait' || nextAction.type === 'wait-for-url');
+                    const isCurrentWait = action.type === 'wait' || action.type === 'wait-for-url';
+
+                    if (isNextWait) {
+                        // If next action is a wait, save this action's name so the wait step can use it
+                        if (!isCurrentWait) {
+                            pendingActionName = action.label || `Step ${index + 1}`;
+                        }
+                        console.log(`Skipping capture for step ${index + 1}, delegating to subsequent wait action.`);
+                        continue;
+                    }
+
+                    let finalStepName = action.label || (isCurrentWait ? `Wait step ${index + 1}` : `Step ${index + 1}`);
+                    
+                    if (isCurrentWait && pendingActionName) {
+                        finalStepName = pendingActionName;
+                        pendingActionName = null; // reset
+                    }
+
+                    const stepResult = await captureStep(page, browser, urlDoc, finalStepName, config);
                     steps.push(stepResult);
 
                 } catch (err) {
