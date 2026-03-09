@@ -2,6 +2,8 @@ name: Seed Production Data
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *' # Runs every day at 2:00 AM UTC
 
 jobs:
   seed:
@@ -15,4 +17,5 @@ jobs:
           key: ${{ secrets.ORACLE_SSH_KEY }}
           script: |
             cd ~/pa11y-dashboard-nextgen
+            git pull origin main
             sudo ./scripts/reset-demo.sh docker-compose.oracle.yml
