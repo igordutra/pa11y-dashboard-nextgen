@@ -95,23 +95,30 @@ export default async function proxyRoutes(fastify: FastifyInstance) {
                   sendAction('click', selector, '');
                 }
 
-                // If it's a link, we want to load the new page inside the proxy
-                if (link && link.href) {
+                // Handle link navigation
+                if (link && link.hasAttribute('href')) {
+                  var href = link.getAttribute('href');
+                  
+                  // Ignore empty links or purely script-driven anchors
+                  if (!href || href === '#' || href.startsWith('javascript:')) {
+                    // Do not prevent default, let the SPA handle it
+                    return; 
+                  }
+
                   e.preventDefault();
                   e.stopPropagation();
                   
+                  // Resolve relative URLs based on the proxy target
+                  var absoluteUrl = new URL(href, "${finalUrl}").href;
+
                   // Tell the UI we are navigating
-                  sendAction('navigate', '', link.href);
+                  sendAction('navigate', '', absoluteUrl);
                   
                   // Update the iframe location to the new proxied URL
-                  window.location.href = '/api/proxy?url=' + encodeURIComponent(link.href);
-                } else if (target.tagName.toLowerCase() === 'button' || target.closest('button') || target.tagName.toLowerCase() === 'input' && (target.type === 'submit' || target.type === 'button')) {
-                  // For buttons/submits, we prevent default to avoid accidental form submissions
-                  // outside of the main monitoring loop, but it might break some SPAs. 
-                  // For a simple recorder, this is generally safer than submitting real forms.
-                  e.preventDefault();
-                  e.stopPropagation();
-                }
+                  window.location.href = '/api/proxy?url=' + encodeURIComponent(absoluteUrl);
+                } 
+                // Note: We no longer preventDefault on buttons. Many modern sites (like BBC's cookie banner)
+                // use buttons heavily for local state changes. Preventing default breaks them.
               }, true);
 
               document.addEventListener('change', function(e) {
