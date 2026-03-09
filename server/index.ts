@@ -47,7 +47,7 @@ export const initApp = async () => {
           baseUri: ["'self'"],
           fontSrc: ["'self'", "https:", "data:"],
           formAction: ["'self'"],
-          frameAncestors: ["'self'"],
+          frameAncestors: ["'self'", ...origins],
           imgSrc: ["'self'", "data:"],
           objectSrc: ["'none'"],
           scriptSrc: ["'self'"],
