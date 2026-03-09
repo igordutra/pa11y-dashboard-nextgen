@@ -16,6 +16,7 @@ export default async function proxyRoutes(fastify: FastifyInstance) {
 
       try {
         const response = await fetch(url, {
+          redirect: 'follow',
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -27,6 +28,8 @@ export default async function proxyRoutes(fastify: FastifyInstance) {
           return reply.status(response.status).send({ error: 'Failed to fetch target URL' });
         }
 
+        const finalUrl = response.url; // The actual URL after any redirects
+
         const contentType = response.headers.get('content-type') || '';
         if (!contentType.includes('text/html')) {
           return reply.status(400).send({ error: 'Target URL did not return HTML' });
@@ -34,10 +37,13 @@ export default async function proxyRoutes(fastify: FastifyInstance) {
 
         let html = await response.text();
 
-        // Inject <base> tag to fix relative assets
-        const baseTag = `<base href="${url}">`;
-        if (html.includes('<head>')) {
-          html = html.replace('<head>', `<head>${baseTag}`);
+        // Inject <base> tag to fix relative assets based on the final resolved URL
+        const baseTag = `<base href="${finalUrl}">`;
+        
+        // Handle variations of <head> like <head class="..."> using a regex
+        const headRegex = /(<head[^>]*>)/i;
+        if (headRegex.test(html)) {
+          html = html.replace(headRegex, `$1${baseTag}`);
         } else {
           html = `${baseTag}${html}`;
         }
