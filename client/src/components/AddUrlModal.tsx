@@ -19,7 +19,11 @@ import { Action } from '../types';
 import { CategorySelect } from './CategorySelect';
 import { CronEditor } from './CronEditor';
 
-export function AddUrlModal() {
+interface AddUrlModalProps {
+    triggerButton?: React.ReactNode;
+}
+
+export function AddUrlModal({ triggerButton }: AddUrlModalProps) {
     const [open, setOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'basic' | 'script'>('basic');
     const [url, setUrl] = useState('');
@@ -63,10 +67,12 @@ export function AddUrlModal() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="rounded-xl font-bold px-5 bg-slate-800 hover:bg-slate-900 transition-all active:scale-95 shadow-lg shadow-slate-200 border-none">
-                    <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-                    Add URL
-                </Button>
+                {triggerButton || (
+                    <Button className="rounded-xl font-bold px-5 bg-slate-800 hover:bg-slate-900 transition-all active:scale-95 shadow-lg shadow-slate-200 border-none">
+                        <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+                        Add URL
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px] rounded-2xl border-none shadow-2xl">
                 <form onSubmit={handleSubmit}>
@@ -174,7 +180,7 @@ export function AddUrlModal() {
                             </div>
                         ) : (
                             <div id="add-script-panel" role="tabpanel" aria-labelledby="add-script-tab">
-                                <ActionEditor actions={actions} onChange={setActions} />
+                                <ActionEditor actions={actions} onChange={setActions} targetUrl={url && url.startsWith('http') ? url : undefined} />
                             </div>
                         )}
                     </div>

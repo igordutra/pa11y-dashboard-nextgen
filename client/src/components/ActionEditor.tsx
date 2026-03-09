@@ -1,16 +1,21 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Trash2, Plus, ArrowUp, ArrowDown } from 'lucide-react';
+import { Trash2, Plus, ArrowUp, ArrowDown, MonitorPlay } from 'lucide-react';
 import { Action } from '../types';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { VisualRecorder } from './VisualRecorder';
 
 interface ActionEditorProps {
     actions: Action[];
     onChange: (actions: Action[]) => void;
+    targetUrl?: string;
 }
 
-export function ActionEditor({ actions, onChange }: ActionEditorProps) {
+export function ActionEditor({ actions, onChange, targetUrl }: ActionEditorProps) {
+    const [isRecorderOpen, setIsRecorderOpen] = useState(false);
+
     const addAction = useCallback(() => {
         onChange([...actions, { type: 'wait', value: '1000', label: '' }]);
     }, [actions, onChange]);
@@ -39,13 +44,39 @@ export function ActionEditor({ actions, onChange }: ActionEditorProps) {
         onChange(newActions);
     }, [actions, onChange]);
 
+    const handleActionRecorded = useCallback((newAction: Action) => {
+        onChange([...actions, newAction]);
+    }, [actions, onChange]);
+
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <Label>Script Actions</Label>
-                <Button type="button" variant="outline" size="sm" onClick={addAction}>
-                    <Plus className="mr-2 h-4 w-4" aria-hidden="true" /> Add Action
-                </Button>
+                <div className="flex gap-2">
+                    {targetUrl && (
+                        <Dialog open={isRecorderOpen} onOpenChange={setIsRecorderOpen}>
+                            <DialogTrigger asChild>
+                                <Button type="button" variant="secondary" size="sm" className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200">
+                                    <MonitorPlay className="mr-2 h-4 w-4" aria-hidden="true" /> Visual Record
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+                                <DialogHeader>
+                                    <DialogTitle>Visual Script Recorder</DialogTitle>
+                                    <DialogDescription>
+                                        Interact with {targetUrl} to automatically generate script actions.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="flex-1 mt-2 min-h-0">
+                                    <VisualRecorder targetUrl={targetUrl} onActionRecorded={handleActionRecorded} />
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    )}
+                    <Button type="button" variant="outline" size="sm" onClick={addAction}>
+                        <Plus className="mr-2 h-4 w-4" aria-hidden="true" /> Add Action
+                    </Button>
+                </div>
             </div>
 
             {actions.length === 0 && (
