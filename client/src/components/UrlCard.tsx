@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../lib/api';
+import { AxiosError } from 'axios';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -60,6 +61,11 @@ export function UrlCard({ url }: UrlCardProps) {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['urls'] });
+        },
+        onError: (err: AxiosError<{ message?: string }>) => {
+            const message = err.response?.data?.message || 'Failed to trigger scan';
+            console.error('Scan error:', err);
+            alert(message);
         }
     });
 
@@ -247,9 +253,13 @@ export function UrlCard({ url }: UrlCardProps) {
 
                     <div className="flex items-center gap-2">
                         <Button
-                            className="flex-1 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 shadow-sm rounded-xl font-bold transition-all active:scale-[0.98]"
+                            className="flex-1 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 shadow-sm rounded-xl font-bold transition-all active:scale-[0.95]"
                             variant="outline"
-                            onClick={() => scanMutation.mutate()}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                scanMutation.mutate();
+                            }}
                             disabled={scanMutation.isPending || url.status === 'scanning' || isReadonly}
                         >
                             {scanMutation.isPending || url.status === 'scanning' ? (
