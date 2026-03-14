@@ -4,7 +4,7 @@ Pa11y Dashboard NextGen is a modern web interface for the [Pa11y][pa11y] and [Li
 
 This project was built and evolved with the assistance of **Gemini CLI**, an AI-powered agent for software engineering.
 
-![Version](https://img.shields.io/badge/version-0.6.1-blue.svg)
+![Version](https://img.shields.io/badge/version-0.7.0-blue.svg)
 [![Node.js version support](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org/)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -23,14 +23,14 @@ This project was built and evolved with the assistance of **Gemini CLI**, an AI-
 ![Dashboard](docs/screenshots/dashboard.png)
 *The main dashboard showing URL cards, statuses, and scores.*
 
+![Analytics](docs/screenshots/report.png) 
+*Analytics Dashboard providing a high-level overview of accessibility health.*
+
 ![Visual Script Recorder](docs/screenshots/visual-recorder.png)
 *The Visual Script Recorder allows users to point, click, and type to generate complex interaction scripts.*
 
-![Report Page](docs/screenshots/report.png)
-*Detailed accessibility report with multi-step scan results and screenshots.*
-
-![Settings Page](docs/screenshots/settings.png)
-*Global configuration for runners, viewports, and scanning rules.*
+![Job Monitoring](docs/screenshots/report.png)
+*Real-time visibility into active scans, wait lists, and failure history.*
 
 ---
 
@@ -43,19 +43,25 @@ Creating scripts for multi-step audits has never been easier. Instead of manuall
 - **Multi-Page Journeys**: Follow links to navigate through your site naturally; the recorder automatically inserts `wait-for-url` synchronization points.
 - **Smart Merging**: The backend scanning engine merges interaction steps with navigation steps to produce clean, clutter-free accessibility reports.
 
-### 📂 Category Management
-Organise your monitored URLs into logical groups. NextGen supports rich metadata for categories:
-- **Custom Icons**: Choose from a library of semantic icons (Globe, Building, Shopping Cart, etc.).
-- **Colour Coding**: Assign distinct colours to categories for quick visual identification.
-- **Descriptions**: Add context to why a group of URLs is being monitored together.
-- **Filtering**: Sidebar navigation allows you to quickly isolate URLs by category.
+### 📊 Real-time Job Monitoring
+Get complete visibility into the background scanning engine:
+- **Active Scans**: Monitor currently running audits and their execution duration.
+- **Wait List**: See exactly how many URLs are queued and their relative priority.
+- **Scheduled Tasks**: View a comprehensive list of all recurring scans with human-readable frequencies and "Next run" predictions.
+- **Failure History**: A detailed log of the last 50 scan errors with descriptive failure reasons and timestamps for easier troubleshooting.
 
 ### ⚙️ Global & Per-URL Configuration
 Fine-tune your accessibility scans at any level:
 - **Global Defaults**: Set organisation-wide standards for runners (Axe vs HTMLCS), viewports, and ignore rules.
+- **Configurable Concurrency**: Adjust the system load by controlling how many scans run simultaneously (1-10) via the Settings page.
 - **Per-URL Overrides**: Override any global setting for a specific URL. Useful for sites that require longer timeouts or specific viewports.
 - **Custom Headers**: Add authentication tokens or cookies to test pages behind login screens.
-- **Element Control**: Hide specific CSS selectors (such as moving carousels) or limit testing to a "Root Element".
+
+### 📂 Category Management
+Organise your monitored URLs into logical groups. NextGen supports rich metadata for categories:
+- **Custom Icons**: Choose from a library of semantic icons (Globe, Building, Shopping Cart, etc.).
+- **Colour Coding**: Assign distinct colours to categories for quick visual identification.
+- **Filtering**: Sidebar navigation allows you to quickly isolate URLs by category.
 
 ### 🎭 Scripted Multi-Step Actions
 Test complex user journeys, not just landing pages. The script editor supports:
@@ -132,6 +138,9 @@ All dynamic content, including URL names, target URLs, and scanner error message
 To prevent abuse and potential Denial of Service (DoS) attacks, the API implements global rate limiting.
 - **Global Limit**: 100 requests per minute per IP.
 - **Scan Triggers**: Stricter limit of 2 manual scan triggers per minute per IP to prevent resource exhaustion.
+
+### 🛡️ SSRF Protection
+The Visual Script Recorder's interactive proxy includes built-in protection against Server-Side Request Forgery (SSRF). It automatically validates target URLs and blocks access to local (localhost, 127.0.0.1) and private IP ranges (10.x.x.x, 192.168.x.x, etc.) to ensure the dashboard cannot be used to probe internal network infrastructure.
 
 ### 📦 Puppeteer Sandboxing
 The scanning engine runs Puppeteer with the built-in sandbox enabled for better process isolation. If your environment does not support sandboxing (e.g., some restricted CI environments), you can explicitly disable it by setting `PUPPETEER_NO_SANDBOX=true`.

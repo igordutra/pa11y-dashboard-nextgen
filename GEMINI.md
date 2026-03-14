@@ -132,5 +132,5 @@ npm run prepare
     - **Puppeteer Sandbox**: Runs with the built-in sandbox enabled for better isolation; configurable via `PUPPETEER_NO_SANDBOX`.
 - **Startup Recovery**: The system automatically detects and resets URLs stuck in the `scanning` state back to `active` upon server restart.
     - **Timeout Enforcement**: A global timeout is enforced at the Puppeteer page level, synchronized with the user-defined scan timeout.
-    - **Atomic Status Updates**: The scanner re-validates the database state before final status updates to prevent race conditions during long-running audits.
-- **Scheduler**: Runs every 60 seconds to check for URLs where `lastScanAt` is older than the most recent cron schedule execution. Disabled if `DEMO_MODE=true`.
+    - **Atomic Status Updates**: The scanner re-validates the database state before final status updates to prevent race conditions during long-running audits. The background queue uses immediate flag setting and `try...finally` blocks to ensure `maxConcurrent` limits are strictly respected.
+- **Scheduler**: Runs every 60 seconds to check for URLs where `lastScanAt` is older than the most recent cron schedule execution. Disabled if `DEMO_MODE=true`. Includes a comprehensive unit test suite in `server/test/scheduler.test.ts`.
