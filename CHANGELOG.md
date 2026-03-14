@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 - **API Rate Limiting**: Integrated `@fastify/rate-limit` to prevent abuse. Added a global limit of 100 requests per minute and a strict limit of 2 manual scan triggers per minute per IP (#35).
 - **Puppeteer Sandboxing**: Re-enabled the built-in Puppeteer sandbox by default for improved process isolation in Docker environments. Added `PUPPETEER_NO_SANDBOX` environment variable for compatibility in restricted environments (#34).
 
+### Added
+- **Analytics Dashboard**: Introduced a high-level overview page providing deep insights into accessibility performance. Includes historical trends, issue severity breakdowns, top rule violations, and category-wise performance metrics (#41).
+- **Interactive Charts**: Integrated `recharts` for professional data visualization, featuring responsive area, donut, and bar charts with smooth animations.
+
 ## [0.6.0] - 2026-03-09
 
 ### Added

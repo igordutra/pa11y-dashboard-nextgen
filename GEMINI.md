@@ -118,6 +118,10 @@ npm run prepare
 - **Multi-Step Scans**: Defined via actions (`wait`, `click`, `type`, `wait-for-url`) and processed sequentially in `runner.ts`.
     - **Iframe Support**: Actions like `click` and `type` support a special syntax to interact with elements inside iframes: `iframe_selector >>> element_selector` (e.g. `#my-iframe >>> .login-btn`).
 - **Focused Issue Snippets**: The scanner automatically crops screenshots to the bounding box of each identified issue (using `sharp`). These snippets are displayed in the UI and included in exported reports for easier remediation.
+- **Analytics Engine**:
+    - Aggregates data across all monitored targets using MongoDB aggregation pipelines.
+    - Tracks global health metrics, issue severity distribution, failing rule frequency, and category-wise performance.
+    - Provides a 30-day historical score trend for overall visibility.
 - **Accessibility Score**: Calculated using Lighthouse for the initial load and a custom rule-based deduction algorithm for intermediate steps (based on Pa11y issue count and impact).
 - **Demo & Read-Only Mode**:
     - `DEMO_MODE=true` disables background scans AND enforces read-only mode for all mutation APIs.

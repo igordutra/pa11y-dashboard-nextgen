@@ -72,6 +72,7 @@ Generate and share professional accessibility reports with stakeholders.
 - **Visual Evidence**: Automatically embeds focused screenshots of the problematic elements.
 
 ### 📉 Visual Intelligence
+- **Analytics Dashboard**: A high-level overview providing deep insights into accessibility performance across all monitored targets. Includes historical trends, issue severity breakdowns, top violations, and category performance.
 - **High-Impact Dashboard**: Modern URL cards with circular accessibility score gauges and relative "Last scan" times.
 - **Smart Sorting**: Sort your monitored targets by Recently Added, Name (A-Z), or Accessibility Score (Lowest First) to prioritise remediation efforts.
 - **Trend Charts**: Interactive Area-style graphs with blue gradients and subtle axis lines showing accessibility health over time.
@@ -94,6 +95,7 @@ Generate and share professional accessibility reports with stakeholders.
 | **Visuals** | Static reports | Interactive Charts & Screenshot Pins |
 | **Speed** | Standard execution | Configurable Concurrency |
 | **Monitoring** | None | Real-time Job Queue & Failure History |
+| **Analytics** | None | High-level Dashboard & Trend Analysis |
 | **Scripting** | Text-based actions | Interactive UI Script Editor |
 
 ---
