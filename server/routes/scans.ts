@@ -126,7 +126,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
     f.post('/api/urls/:id/scan', {
         config: {
             rateLimit: {
-                max: 2,
+                max: 5,
                 timeWindow: '1 minute'
             }
         },

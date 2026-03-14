@@ -14,6 +14,20 @@ export default async function proxyRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const { url } = request.query as { url: string };
 
+      // Basic SSRF protection - block local and private IP ranges
+      try {
+        const urlObj = new URL(url);
+        const hostname = urlObj.hostname.toLowerCase();
+        const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+        const isPrivate = /^(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.)/.test(hostname);
+        
+        if (isLocal || isPrivate) {
+          return reply.status(403).send({ error: 'SSRF Protection', message: 'Access to local or private network addresses is forbidden.' });
+        }
+      } catch {
+        return reply.status(400).send({ error: 'Invalid URL' });
+      }
+
       try {
         const response = await fetch(url, {
           redirect: 'follow',

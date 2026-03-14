@@ -2,7 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.6.1] - 2026-03-14
+## [0.7.0] - 2026-03-14
+
+### Fixed
+- **Dashboard Grid Integrity**: Resolved a major layout regression where the URL monitoring grid would become "messy" and misaligned. URL cards and their associated edit dialogs are now correctly encapsulated to occupy exactly one grid slot each (#41).
+- **Scan Concurrency Race Condition**: Fixed a critical race condition in the background `ScanQueue` that could lead to exceeding the configured `maxConcurrent` scan limit. The processing state is now managed atomically using immediate flag setting and `try...finally` blocks.
+- **Card UI Consistency**: Added `h-full` to `UrlCard` components to ensure uniform card heights across grid rows, regardless of content length.
+
+### Added
+- **Queue Logic Unit Tests**: Introduced a comprehensive test suite for `ScanQueue` to verify concurrency limits, priority handling, and execution flow.
+
+## [0.3.1] - 2026-03-14 (Note: Previous was 0.6.1, so this should be 0.7.0)
 
 ### Security
 - **Demo Mode Restrictions**: Implemented robust read-only enforcement when `DEMO_MODE=true` is set. All mutation APIs (POST, PUT, DELETE) now return `403 Forbidden` with descriptive error messages (#46).
