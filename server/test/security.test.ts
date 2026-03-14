@@ -51,7 +51,7 @@ describe('Security Enhancements Tests', () => {
         });
     });
 
-    describe('XSS Prevention in Report Generator (#34)', () => {
+    describe('XSS Prevention in Report Generator (#36)', () => {
         it('should escape HTML in the generated report', async () => {
             const { generateHtmlReport } = await import('../lib/reportGenerator.js');
             const mockUrl: any = {

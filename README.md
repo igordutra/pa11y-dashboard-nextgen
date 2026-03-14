@@ -119,6 +119,27 @@ Since Lighthouse typically requires a full page reload, intermediate steps use a
 ### 3. Overall Scan Score
 The final score displayed for a multi-step scan is the **average score** of all successful steps.
 
+## Security
+
+Pa11y Dashboard NextGen includes several built-in security features:
+
+### 🛡️ XSS Prevention
+All dynamic content, including URL names, target URLs, and scanner error messages, is automatically HTML-escaped before being rendered in the dashboard or exported in HTML reports.
+
+### 🚦 API Rate Limiting
+To prevent abuse and potential Denial of Service (DoS) attacks, the API implements global rate limiting.
+- **Global Limit**: 100 requests per minute per IP.
+- **Scan Triggers**: Stricter limit of 2 manual scan triggers per minute per IP to prevent resource exhaustion.
+
+### 📦 Puppeteer Sandboxing
+The scanning engine runs Puppeteer with the built-in sandbox enabled for better process isolation. If your environment does not support sandboxing (e.g., some restricted CI environments), you can explicitly disable it by setting `PUPPETEER_NO_SANDBOX=true`.
+
+### 🎭 Demo & Read-Only Mode
+When `DEMO_MODE=true` is set:
+- **Background Scheduling**: Automatically disabled.
+- **Modifications**: All `POST`, `PUT`, and `DELETE` operations are blocked (returning `403 Forbidden`).
+- **UI Feedback**: The dashboard displays a "Demo Mode" banner and disables all mutation buttons.
+
 ## Requirements
 
 - [Node.js][node]: Pa11y Dashboard NextGen requires Node.js 24 or above.
@@ -201,7 +222,16 @@ Configuration is managed via environment variables in the `server` directory.
 *(string)* Path where scan screenshots are stored (defaults to `./screenshots`).
 
 ### `DEMO_MODE`
-*(boolean)* Set to `true` to disable background scheduling and enable UI warnings.
+*(boolean)* Set to `true` to disable background scheduling, enable UI warnings, and enforce read-only mode for all mutations.
+
+### `READONLY`
+*(boolean)* Set to `true` to disable all modifications without the "Demo Mode" banner. Defaults to `true` if `DEMO_MODE=true`.
+
+### `PUPPETEER_NO_SANDBOX`
+*(boolean)* Set to `true` to disable the Puppeteer sandbox (only use if sandboxing is not supported by your OS/environment).
+
+### `PUPPETEER_EXECUTABLE_PATH`
+*(string)* Optional path to a specific Chromium/Chrome executable. Required in our Docker images.
 
 ## Contributing
 

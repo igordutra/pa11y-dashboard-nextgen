@@ -46,12 +46,22 @@ Configuration is managed via environment variables.
 - **MONGO_URI**: MongoDB connection string.
 - **CLIENT_URL**: Frontend URL (required for CORS).
 - **NOINDEX**: Set to `true` to disable search engine indexing.
-- **READONLY**: Set to `true` to disable write operations.
-- **DEMO_MODE**: Set to `true` to disable background scheduling.
+- **READONLY**: Set to `true` to disable write operations. Defaults to `true` if `DEMO_MODE=true`.
+- **DEMO_MODE**: Set to `true` to disable background scheduling and enforce UI-aware read-only mode.
+- **PUPPETEER_NO_SANDBOX**: Set to `true` to disable Puppeteer sandboxing.
+- **PUPPETEER_EXECUTABLE_PATH**: Path to Chromium/Chrome executable.
+
+## Security
+
+The server includes:
+- **XSS Protection**: Automatic HTML escaping of all dynamic content.
+- **Rate Limiting**: Global and per-route rate limits (e.g., max 2 scan triggers per minute).
+- **Process Isolation**: Puppeteer sandboxing enabled by default.
 
 ## Testing & Quality
 
 - **Run tests**: `npm run test`
+- **Security tests**: `npx vitest test/security.test.ts`
 
 ## API Documentation
 
