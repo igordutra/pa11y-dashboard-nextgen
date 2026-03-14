@@ -263,6 +263,9 @@ Configuration is managed via environment variables in the `server` directory.
 ### `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`
 *(string)* Optional credentials for GitHub OAuth integration.
 
+### `VITE_API_PROXY_TARGET`
+*(string)* The backend API URL used by the Vite development proxy (defaults to `http://localhost:3000`).
+
 ### `PUPPETEER_NO_SANDBOX`
 *(boolean)* Set to `true` to disable the Puppeteer sandbox (only use if sandboxing is not supported by your OS/environment).
 
