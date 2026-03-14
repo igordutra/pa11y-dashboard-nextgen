@@ -5,6 +5,7 @@ import api from '../lib/api';
 import { UrlList } from '../components/UrlList';
 import { AddUrlModal } from '../components/AddUrlModal';
 import { Button } from '../components/ui/button';
+import { PageHeading } from '../components/ui/PageHeading';
 import { 
     Select, 
     SelectContent, 
@@ -29,15 +30,11 @@ export function DashboardPage() {
     const isReadonly = env?.readonly;
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-800">Dashboard</h1>
-                    <p className="text-slate-500 text-sm mt-1">
-                        {activeCategory ? 'Viewing category' : 'Monitoring all accessibility targets'}
-                    </p>
-                </div>
-                
+        <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+            <PageHeading 
+                title="Dashboard" 
+                description={activeCategory ? 'Viewing category' : 'Monitoring all accessibility targets.'}
+            >
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2 bg-slate-100/50 p-1 rounded-xl border border-slate-200/60">
                         <div className="flex items-center gap-1.5 px-3 py-1.5 text-slate-500">
@@ -68,7 +65,7 @@ export function DashboardPage() {
                         }
                     />
                 </div>
-            </div>
+            </PageHeading>
 
             <UrlList sortBy={sortBy} />
         </div>

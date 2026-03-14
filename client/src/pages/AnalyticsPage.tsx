@@ -45,6 +45,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
+import { PageHeading } from '../components/ui/PageHeading';
 
 interface AnalyticsData {
     globalStats: {
@@ -132,26 +133,23 @@ export function AnalyticsPage() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-10">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-black tracking-tight text-slate-800">Analytics Dashboard</h1>
-                    <p className="text-slate-500 mt-1 font-medium">Deep insights across your accessibility portfolio.</p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Period</span>
-                    <Select value={period} onValueChange={setPeriod}>
-                        <SelectTrigger className="w-[180px] bg-white rounded-xl border-slate-200 shadow-sm font-bold text-slate-700">
-                            <SelectValue placeholder="Select period" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl border-slate-200">
-                            <SelectItem value="7" className="rounded-lg font-medium">Last 7 Days</SelectItem>
-                            <SelectItem value="14" className="rounded-lg font-medium">Last 14 Days</SelectItem>
-                            <SelectItem value="30" className="rounded-lg font-medium">Last 30 Days</SelectItem>
-                            <SelectItem value="custom" className="rounded-lg font-medium italic opacity-50 cursor-not-allowed" disabled>Custom Range</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
+            <PageHeading 
+                title="Analytics Dashboard" 
+                description="Deep insights across your accessibility portfolio."
+            >
+                <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Period</span>
+                <Select value={period} onValueChange={setPeriod}>
+                    <SelectTrigger className="w-[180px] bg-white rounded-xl border-slate-200 shadow-sm font-bold text-slate-700">
+                        <SelectValue placeholder="Select period" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-slate-200">
+                        <SelectItem value="7" className="rounded-lg font-medium">Last 7 Days</SelectItem>
+                        <SelectItem value="14" className="rounded-lg font-medium">Last 14 Days</SelectItem>
+                        <SelectItem value="30" className="rounded-lg font-medium">Last 30 Days</SelectItem>
+                        <SelectItem value="custom" className="rounded-lg font-medium italic opacity-50 cursor-not-allowed" disabled>Custom Range</SelectItem>
+                    </SelectContent>
+                </Select>
+            </PageHeading>
 
             {/* Global Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
