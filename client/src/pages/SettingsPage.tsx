@@ -24,6 +24,8 @@ interface Environment {
     nodeVersion: string;
     availableRunners: string[];
     availableStandards: string[];
+    readonly: boolean;
+    demoMode: boolean;
 }
 
 export function SettingsPage() {
@@ -35,6 +37,8 @@ export function SettingsPage() {
     const [ignoreInput, setIgnoreInput] = useState('');
     const [headerKey, setHeaderKey] = useState('');
     const [headerVal, setHeaderVal] = useState('');
+
+    const isReadonly = env?.readonly;
 
     useEffect(() => {
         Promise.all([
@@ -48,7 +52,7 @@ export function SettingsPage() {
     }, []);
 
     const save = async () => {
-        if (!settings) return;
+        if (!settings || isReadonly) return;
         setSaving(true);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { _id, ...body } = settings;
@@ -63,6 +67,7 @@ export function SettingsPage() {
     };
 
     const reset = async () => {
+        if (isReadonly) return;
         const defaults: Omit<Settings, '_id'> = {
             runners: ['axe'],
             includeNotices: false,
@@ -142,14 +147,15 @@ export function SettingsPage() {
                 </div>
                 <div className="flex gap-2">
                     <button onClick={reset}
+                        disabled={isReadonly}
                         aria-label="Reset all settings to default values"
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors">
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         <RotateCcw className="h-4 w-4" aria-hidden="true" />
                         Reset Defaults
                     </button>
-                    <button onClick={save} disabled={saving}
+                    <button onClick={save} disabled={saving || isReadonly}
                         aria-busy={saving}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : saved ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : <Save className="h-4 w-4" aria-hidden="true" />}
                         {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Settings'}
                     </button>

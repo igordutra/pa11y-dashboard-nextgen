@@ -114,6 +114,13 @@ export function ReportPage() {
         }
     }, [selectedIssueIndex]);
 
+    const { data: env } = useQuery({
+        queryKey: ['environment'],
+        queryFn: async () => (await api.get('/api/environment')).data,
+    });
+
+    const isReadonly = env?.readonly;
+
     const scanMutation = useMutation({
         mutationFn: async () => {
             return api.post(`/api/urls/${id}/scan`);
@@ -217,8 +224,9 @@ export function ReportPage() {
                     )}
                     <Button 
                         onClick={() => scanMutation.mutate()} 
-                        disabled={scanMutation.isPending || urlData.status === 'scanning'}
-                        className="rounded-xl bg-slate-800 hover:bg-slate-900 font-bold px-6 shadow-lg shadow-slate-200"
+                        disabled={scanMutation.isPending || urlData.status === 'scanning' || isReadonly}
+                        className="rounded-xl bg-slate-800 hover:bg-slate-900 font-bold px-6 shadow-lg shadow-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={isReadonly ? "Scanning is disabled in read-only/demo mode" : ""}
                     >
                         {scanMutation.isPending || urlData.status === 'scanning' ? (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

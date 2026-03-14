@@ -10,6 +10,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fastifyHelmet from '@fastify/helmet';
+import fastifyRateLimit from '@fastify/rate-limit';
 
 // Import modular routes
 import urlRoutes from './routes/urls.js';
@@ -74,6 +75,11 @@ export const initApp = async () => {
         routePrefix: '/documentation',
       });
     }
+
+    await fastify.register(fastifyRateLimit, {
+      max: 100,
+      timeWindow: '1 minute'
+    });
 
     await mongoose.connect(currentConfig.mongoUri);
     fastify.log.info('Connected to MongoDB');

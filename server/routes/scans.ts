@@ -6,11 +6,14 @@ import cronstrue from 'cronstrue';
 import { CronExpressionParser } from 'cron-parser';
 
 // Middleware to check if dashboard is in readonly mode
-const checkReadonly = async (request: any, reply: any) => {
+const checkReadonly = async (_request: any, reply: any) => {
     const { getConfig } = await import('../config/index.js');
     const currentConfig = getConfig();
     if (currentConfig.readonly) {
-        reply.status(403).send({ error: 'Forbidden', message: 'Dashboard is in read-only mode' });
+        const message = currentConfig.demoMode 
+            ? 'Dashboard is in Demo Mode. Modifications are disabled.' 
+            : 'Dashboard is in read-only mode.';
+        reply.status(403).send({ error: 'Forbidden', message });
     }
 };
 
@@ -121,6 +124,12 @@ export default async function scanRoutes(fastify: FastifyInstance) {
 
     // ACTION: Trigger Scan
     f.post('/api/urls/:id/scan', {
+        config: {
+            rateLimit: {
+                max: 2,
+                timeWindow: '1 minute'
+            }
+        },
         preHandler: checkReadonly,
         schema: {
             description: 'Manually trigger an immediate accessibility scan for a specific URL',
@@ -337,8 +346,18 @@ export default async function scanRoutes(fastify: FastifyInstance) {
         const puppeteer = (await import('puppeteer')).default;
         let browser;
         try {
+            const launchArgs = [
+                '--disable-dev-shm-usage', 
+                '--headless=new'
+            ];
+
+            // Disable sandbox only if explicitly requested via environment variable
+            if (process.env.PUPPETEER_NO_SANDBOX === 'true') {
+                launchArgs.push('--no-sandbox', '--disable-setuid-sandbox');
+            }
+
             const launchOptions: any = {
-                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--headless=new']
+                args: launchArgs
             };
             if (process.env.PUPPETEER_EXECUTABLE_PATH) {
                 launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;

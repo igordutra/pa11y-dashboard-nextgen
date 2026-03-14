@@ -4,6 +4,17 @@ import { z } from 'zod';
 import { SettingsModel, getSettings } from '../models/settings.js';
 import { settingsSchema } from '../types/schemas.js';
 
+const checkReadonly = async (_request: any, reply: any) => {
+    const { getConfig } = await import('../config/index.js');
+    const currentConfig = getConfig();
+    if (currentConfig.readonly) {
+        const message = currentConfig.demoMode 
+            ? 'Dashboard is in Demo Mode. Modifications are disabled.' 
+            : 'Dashboard is in read-only mode.';
+        reply.status(403).send({ error: 'Forbidden', message });
+    }
+};
+
 export default async function settingsRoutes(fastify: FastifyInstance) {
     const f = fastify.withTypeProvider<ZodTypeProvider>();
 
@@ -46,6 +57,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
 
     // PUT update global settings
     f.put('/api/settings', {
+        preHandler: checkReadonly,
         schema: {
             description: 'Modify global configuration parameters. Changes apply to all future scans.',
             summary: 'Update settings',
@@ -100,7 +112,9 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
                     pa11yVersion: z.string().describe('Installed version of pa11y'),
                     nodeVersion: z.string().describe('Node.js runtime version'),
                     availableRunners: z.array(z.string()).describe('List of supported audit engines'),
-                    availableStandards: z.array(z.string()).describe('List of supported WCAG versions')
+                    availableStandards: z.array(z.string()).describe('List of supported WCAG versions'),
+                    readonly: z.boolean().describe('Whether the dashboard is in read-only mode'),
+                    demoMode: z.boolean().describe('Whether the dashboard is in demo mode')
                 })
             }
         }
@@ -124,7 +138,9 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
                 'WCAG2A', 'WCAG2AA', 'WCAG2AAA',
                 'WCAG21A', 'WCAG21AA', 'WCAG21AAA',
                 'WCAG22A', 'WCAG22AA', 'WCAG22AAA'
-            ]
+            ],
+            readonly: (await import('../config/index.js')).default.readonly,
+            demoMode: (await import('../config/index.js')).default.demoMode
         };
     });
 }

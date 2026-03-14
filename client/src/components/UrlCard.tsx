@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../lib/api';
 import { Card, CardContent } from './ui/card';
@@ -46,6 +46,13 @@ export function UrlCard({ url }: UrlCardProps) {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isDeleteScansDialogOpen, setIsDeleteScansDialogOpen] = useState(false);
+
+    const { data: env } = useQuery({
+        queryKey: ['environment'],
+        queryFn: async () => (await api.get('/api/environment')).data,
+    });
+
+    const isReadonly = env?.readonly;
 
     const scanMutation = useMutation({
         mutationFn: async () => {
@@ -243,7 +250,7 @@ export function UrlCard({ url }: UrlCardProps) {
                             className="flex-1 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 shadow-sm rounded-xl font-bold transition-all active:scale-[0.98]"
                             variant="outline"
                             onClick={() => scanMutation.mutate()}
-                            disabled={scanMutation.isPending || url.status === 'scanning'}
+                            disabled={scanMutation.isPending || url.status === 'scanning' || isReadonly}
                         >
                             {scanMutation.isPending || url.status === 'scanning' ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -266,14 +273,16 @@ export function UrlCard({ url }: UrlCardProps) {
                             <DropdownMenuContent align="end" className="w-48 p-1 rounded-xl border-slate-200 shadow-xl">
                                 <DropdownMenuItem 
                                     onClick={() => setIsEditDialogOpen(true)}
-                                    className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-slate-700"
+                                    disabled={isReadonly}
+                                    className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Edit className="h-4 w-4" />
                                     <span className="font-medium">Edit Details</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem 
                                     onClick={() => setIsDeleteScansDialogOpen(true)}
-                                    className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                    disabled={isReadonly}
+                                    className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-amber-600 hover:text-amber-700 hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Trash2 className="h-4 w-4" />
                                     <span className="font-medium">Clear History</span>
@@ -281,7 +290,8 @@ export function UrlCard({ url }: UrlCardProps) {
                                 <div className="h-px bg-slate-100 my-1 mx-1" />
                                 <DropdownMenuItem 
                                     onClick={() => setIsDeleteDialogOpen(true)}
-                                    className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    disabled={isReadonly}
+                                    className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Trash2 className="h-4 w-4" />
                                     <span className="font-medium">Delete URL</span>

@@ -6,11 +6,14 @@ import { overridesSchema } from '../types/schemas.js';
 
 // Middleware to check if dashboard is in readonly mode
 // In a real refactor, this would be in a separate plugin or decorator
-const checkReadonly = async (request: any, reply: any) => {
+const checkReadonly = async (_request: any, reply: any) => {
     const { getConfig } = await import('../config/index.js');
     const currentConfig = getConfig();
     if (currentConfig.readonly) {
-        reply.status(403).send({ error: 'Forbidden', message: 'Dashboard is in read-only mode' });
+        const message = currentConfig.demoMode 
+            ? 'Dashboard is in Demo Mode. Modifications are disabled.' 
+            : 'Dashboard is in read-only mode.';
+        reply.status(403).send({ error: 'Forbidden', message });
     }
 };
 

@@ -70,6 +70,13 @@ export function CategoriesManager({ trigger }: { trigger?: React.ReactNode }) {
     const [formColor, setFormColor] = useState('#6366f1');
     const queryClient = useQueryClient();
 
+    const { data: env } = useQuery({
+        queryKey: ['environment'],
+        queryFn: async () => (await api.get('/api/environment')).data,
+    });
+
+    const isReadonly = env?.readonly;
+
     const { data: categories = [] } = useQuery<Category[]>({
         queryKey: ['categories'],
         queryFn: async () => (await api.get('/api/categories')).data,
@@ -224,7 +231,7 @@ export function CategoriesManager({ trigger }: { trigger?: React.ReactNode }) {
                             <Button variant="outline" onClick={resetForm}>Cancel</Button>
                             <Button
                                 onClick={handleSubmit}
-                                disabled={!formName.trim() || createMutation.isPending || updateMutation.isPending}
+                                disabled={!formName.trim() || createMutation.isPending || updateMutation.isPending || isReadonly}
                             >
                                 {editingCategory ? 'Save Changes' : 'Create Category'}
                             </Button>
@@ -259,7 +266,13 @@ export function CategoriesManager({ trigger }: { trigger?: React.ReactNode }) {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-1 shrink-0">
-                                                <Button variant="ghost" size="sm" onClick={() => startEdit(cat)} aria-label={`Edit category ${cat.name}`}>
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm" 
+                                                    onClick={() => startEdit(cat)} 
+                                                    aria-label={`Edit category ${cat.name}`}
+                                                    disabled={isReadonly}
+                                                >
                                                     <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
                                                 </Button>
                                                 <Button
@@ -267,6 +280,7 @@ export function CategoriesManager({ trigger }: { trigger?: React.ReactNode }) {
                                                     size="sm"
                                                     className="text-destructive hover:text-destructive"
                                                     aria-label={`Delete category ${cat.name}`}
+                                                    disabled={isReadonly}
                                                     onClick={() => {
                                                         if (confirm(`Delete "${cat.name}"? URLs won't be deleted, just uncategorized.`)) {
                                                             deleteMutation.mutate(cat._id);
@@ -281,7 +295,7 @@ export function CategoriesManager({ trigger }: { trigger?: React.ReactNode }) {
                                 </div>
                             )}
                         </ScrollArea>
-                        <Button onClick={startCreate} className="w-full gap-2" variant="outline">
+                        <Button onClick={startCreate} className="w-full gap-2" variant="outline" disabled={isReadonly}>
                             <Plus className="h-4 w-4" aria-hidden="true" />
                             New Category
                         </Button>

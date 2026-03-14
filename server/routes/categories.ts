@@ -5,6 +5,17 @@ import { UrlModel } from '../models/index.js';
 import { CategoryModel, CATEGORY_ICONS } from '../models/category.js';
 import mongoose from 'mongoose';
 
+const checkReadonly = async (_request: any, reply: any) => {
+    const { getConfig } = await import('../config/index.js');
+    const currentConfig = getConfig();
+    if (currentConfig.readonly) {
+        const message = currentConfig.demoMode 
+            ? 'Dashboard is in Demo Mode. Modifications are disabled.' 
+            : 'Dashboard is in read-only mode.';
+        reply.status(403).send({ error: 'Forbidden', message });
+    }
+};
+
 export default async function categoryRoutes(fastify: FastifyInstance) {
     const f = fastify.withTypeProvider<ZodTypeProvider>();
 
@@ -35,6 +46,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
 
     // POST create category
     f.post('/api/categories', {
+        preHandler: checkReadonly,
         schema: {
             description: 'Create a new category for site organization',
             summary: 'Create category',
@@ -68,6 +80,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
 
     // PUT update category
     f.put('/api/categories/:id', {
+        preHandler: checkReadonly,
         schema: {
             description: 'Update properties of an existing category',
             summary: 'Update category',
@@ -111,6 +124,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
 
     // DELETE category (unassigns URLs, does not delete them)
     f.delete('/api/categories/:id', {
+        preHandler: checkReadonly,
         schema: {
             description: 'Permanently remove a category. All URLs assigned to this category will be unassigned but NOT deleted.',
             summary: 'Delete category',

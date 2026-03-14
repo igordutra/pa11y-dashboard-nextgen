@@ -24,7 +24,7 @@ export const getConfig = (): Config => {
     mongoUri: process.env.MONGO_URI || process.env.MONGODB_URI || process.env.DATABASE,
     clientUrl: process.env.CLIENT_URL,
     noindex: process.env.NOINDEX,
-    readonly: process.env.READONLY,
+    readonly: process.env.READONLY || process.env.DEMO_MODE,
     nodeEnv: process.env.NODE_ENV,
     demoMode: process.env.DEMO_MODE,
   });

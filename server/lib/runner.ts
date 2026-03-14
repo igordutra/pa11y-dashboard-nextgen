@@ -285,13 +285,19 @@ export const runScan = async (urlId: string) => {
     let browser;
     try {
         // 1. Launch Puppeteer
+        const launchArgs = [
+            '--disable-dev-shm-usage', 
+            '--headless=new'
+        ];
+
+        // Disable sandbox only if explicitly requested via environment variable
+        if (process.env.PUPPETEER_NO_SANDBOX === 'true') {
+            console.log('Puppeteer sandboxing disabled via environment variable.');
+            launchArgs.push('--no-sandbox', '--disable-setuid-sandbox');
+        }
+
         const launchOptions: any = {
-            args: [
-                '--disable-dev-shm-usage', 
-                '--headless=new',
-                '--no-sandbox',
-                '--disable-setuid-sandbox'
-            ],
+            args: launchArgs,
             defaultViewport: {
                 width: config.viewport.width,
                 height: config.viewport.height,

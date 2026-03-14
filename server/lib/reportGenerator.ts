@@ -93,7 +93,7 @@ export function generateHtmlReport(url: IUrl, scan: IScan): string {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accessibility Report: ${url.name || url.url}</title>
+    <title>Accessibility Report: ${escapeHtml(url.name || url.url)}</title>
     <style>
         :root {
             --primary: #3b82f6;
@@ -414,12 +414,12 @@ export function generateHtmlReport(url: IUrl, scan: IScan): string {
                 <span class="brand-icon">A11y</span> Pa11y Dashboard NextGen
             </div>
             <h1>Accessibility Audit</h1>
-            <div class="report-subtitle">Detailed compliance report for <strong>${url.name || url.url}</strong></div>
+            <div class="report-subtitle">Detailed compliance report for <strong>${escapeHtml(url.name || url.url)}</strong></div>
             
             <div class="meta-grid">
                 <div class="meta-card">
                     <span class="meta-label">Target URL</span>
-                    <div class="meta-value"><a href="${url.url}" style="color: var(--primary); text-decoration: none;">${url.url}</a></div>
+                    <div class="meta-value"><a href="${escapeHtml(url.url)}" style="color: var(--primary); text-decoration: none;">${escapeHtml(url.url)}</a></div>
                 </div>
                 <div class="meta-card">
                     <span class="meta-label">Scan Date</span>
@@ -480,7 +480,7 @@ export function generateHtmlReport(url: IUrl, scan: IScan): string {
                 <div class="step-section" style="margin-bottom: 2rem;">
                     <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem;">
                         <h3 style="font-size: 1.1rem; font-weight: 800; color: #334155; margin: 0;">
-                            Step ${sIdx + 1}: ${step.stepName}
+                            Step ${sIdx + 1}: ${escapeHtml(step.stepName)}
                         </h3>
                         <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">
                             Score: <span style="color: #0f172a">${step.score}</span> | 
@@ -530,7 +530,7 @@ function renderIssue(issue: ReportIssue, baseUrl: string) {
                 <span style="font-family: monospace; font-size: 0.55rem; font-weight: 700; color: var(--text-light);">${issue.code}</span>
             </div>
             <div class="issue-body">
-                <div class="issue-message">${issue.message}</div>
+                <div class="issue-message">${escapeHtml(issue.message)}</div>
                 
                 ${issue.snippetUrl ? `
                 <div class="screenshot-container">

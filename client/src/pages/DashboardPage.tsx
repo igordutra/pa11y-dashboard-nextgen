@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import api from '../lib/api';
 import { UrlList } from '../components/UrlList';
 import { AddUrlModal } from '../components/AddUrlModal';
 import { 
@@ -17,6 +19,13 @@ export function DashboardPage() {
     const [searchParams] = useSearchParams();
     const [sortBy, setSortBy] = useState<SortOption>('newest');
     const activeCategory = searchParams.get('category');
+
+    const { data: env } = useQuery({
+        queryKey: ['environment'],
+        queryFn: async () => (await api.get('/api/environment')).data,
+    });
+
+    const isReadonly = env?.readonly;
 
     return (
         <div className="space-y-6">
@@ -45,7 +54,18 @@ export function DashboardPage() {
                             </SelectContent>
                         </Select>
                     </div>
-                    <AddUrlModal />
+                    <AddUrlModal 
+                        triggerButton={
+                            <Button 
+                                disabled={isReadonly}
+                                className="rounded-xl font-bold px-5 bg-slate-800 hover:bg-slate-900 transition-all active:scale-95 shadow-lg shadow-slate-200 border-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                title={isReadonly ? "Adding URLs is disabled in read-only/demo mode" : ""}
+                            >
+                                <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+                                Add URL
+                            </Button>
+                        }
+                    />
                 </div>
             </div>
 

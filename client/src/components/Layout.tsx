@@ -34,6 +34,15 @@ interface Category {
     color: string;
 }
 
+interface Environment {
+    pa11yVersion: string;
+    nodeVersion: string;
+    availableRunners: string[];
+    availableStandards: string[];
+    readonly: boolean;
+    demoMode: boolean;
+}
+
 export function Layout({ children }: LayoutProps) {
     const location = useLocation();
     const [searchParams] = useSearchParams();
@@ -47,6 +56,11 @@ export function Layout({ children }: LayoutProps) {
     const { data: categories = [] } = useQuery<Category[]>({
         queryKey: ['categories'],
         queryFn: async () => (await api.get('/api/categories')).data,
+    });
+
+    const { data: env } = useQuery<Environment>({
+        queryKey: ['environment'],
+        queryFn: async () => (await api.get('/api/environment')).data,
     });
 
     // Close mobile menu on route change
@@ -120,7 +134,11 @@ export function Layout({ children }: LayoutProps) {
             <div className="mt-2">
                 <CategoriesManager
                     trigger={
-                        <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-blue-600 hover:bg-blue-50 transition-all w-full text-left">
+                        <button 
+                            disabled={env?.readonly}
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-blue-600 hover:bg-blue-50 transition-all w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={env?.readonly ? "Managing categories is disabled in read-only/demo mode" : ""}
+                        >
                             <Plus className="h-4 w-4" />
                             {categories.length === 0 ? 'Add Category' : 'Manage Categories'}
                         </button>
@@ -148,8 +166,18 @@ export function Layout({ children }: LayoutProps) {
     );
 
     return (
-        <div className="min-h-screen bg-white font-sans antialiased text-slate-900">
-            <div className="flex flex-col lg:flex-row min-h-screen overflow-hidden">
+        <div className="min-h-screen bg-white font-sans antialiased text-slate-900 flex flex-col">
+            {env?.demoMode && (
+                <div className="bg-slate-900 text-white py-2 px-4 text-center text-[10px] font-black tracking-[0.2em] uppercase flex items-center justify-center gap-4 z-50">
+                    <div className="flex items-center gap-2">
+                        <Activity className="h-3 w-3 text-blue-400" />
+                        Demo Mode Active
+                    </div>
+                    <span className="opacity-20 hidden md:inline">|</span>
+                    <div className="opacity-60 hidden md:inline">Modifications are disabled to keep this environment clean.</div>
+                </div>
+            )}
+            <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
                 {/* Desktop Sidebar */}
                 <aside className="hidden lg:flex flex-col w-72 border-r border-slate-100 bg-slate-50/50 p-6">
                     <Link to="/" className="flex items-center gap-3 font-black text-2xl mb-10 px-2 tracking-tighter hover:opacity-80 transition-opacity">
