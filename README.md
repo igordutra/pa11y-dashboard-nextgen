@@ -68,6 +68,7 @@ Secure your dashboard with enterprise-grade authentication:
 - **Local Auth**: Secure email/password login with bcrypt hashing.
 - **Role-Based Access Control (RBAC)**: Fine-grained permissions with `admin`, `editor`, and `viewer` roles.
 - **GitHub OAuth**: Single-sign-on support via GitHub.
+- **User Profile**: Dedicated page for users to manage their account and change passwords.
 - **Setup CLI**: Simple bootstrap process to create the first admin user and generate secrets.
 - **Stateless Session**: JWT-based session management for high scalability and security.
 

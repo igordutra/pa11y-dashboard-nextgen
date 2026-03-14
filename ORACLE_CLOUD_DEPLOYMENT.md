@@ -97,25 +97,33 @@ newgrp docker
    cd pa11y-dashboard-nextgen
    ```
 
-2. **Set up the Environment Variable:**
-   Open `docker-compose.oracle.yml` using `nano`:
+3. **Set up Authentication:**
+   It is highly recommended to enable authentication for production deployments. Run the bootstrap script:
    ```bash
-   nano docker-compose.oracle.yml
+   # Run inside the container or locally if Node is installed
+   docker compose run --rm app npm run setup-auth
    ```
-   Find the line under the `app` environment variables that says:
-   `CLIENT_URL=http://<YOUR_PUBLIC_IP>`
-   
-   Change `<YOUR_PUBLIC_IP>` to your instance's actual public IP address. Press `Ctrl+O`, `Enter`, then `Ctrl+X` to save and exit.
+   Follow the prompts to create your admin user. Copy the `JWT_SECRET` and `AUTH_ENABLED=true` values.
 
----
+4. **Configure environment:**
+   Create a `.env` file in the project root:
+   ```bash
+   nano .env
+   ```
+   Add your secrets:
+   ```env
+   AUTH_ENABLED=true
+   JWT_SECRET=your_generated_secret_here
+   GITHUB_CLIENT_ID=your_github_id
+   GITHUB_CLIENT_SECRET=your_github_secret
+   ```
 
-## Step 7: Build and Start the Application
+5. **Build and Start the Application:**
+   We use a special Compose file that builds a single, unified container (Frontend + Backend served together) optimized for production on Oracle's ARM architecture.
 
-We use a special Compose file that builds a single, unified container (Frontend + Backend served together) optimized for production on Oracle's ARM architecture.
-
-```bash
-docker compose -f docker-compose.oracle.yml up -d --build
-```
+   ```bash
+   docker compose -f docker-compose.oracle.yml up -d --build
+   ```
 
 *(Note: The build process might take 2-4 minutes as it compiles the frontend and installs Chromium).*
 

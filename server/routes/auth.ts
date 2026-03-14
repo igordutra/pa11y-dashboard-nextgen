@@ -18,7 +18,12 @@ export default async function (fastify: FastifyInstance) {
         body: z.object({
           email: z.string().email(),
           password: z.string()
-        })
+        }),
+        response: {
+          200: z.object({ token: z.string(), user: z.object({ id: z.string(), email: z.string(), role: z.string() }) }),
+          401: z.object({ error: z.string() }),
+          500: z.object({ error: z.string() })
+        }
       }
     },
     async (request, reply) => {
@@ -27,19 +32,16 @@ export default async function (fastify: FastifyInstance) {
       }
 
       const { email, password } = request.body;
-      fastify.log.info({ email }, 'Login attempt');
       
       try {
         const user = await UserModel.findOne({ email, provider: 'local' });
 
         if (!user || !user.passwordHash) {
-          fastify.log.warn({ email }, 'User not found or no password hash');
           return reply.status(401).send({ error: 'Invalid credentials' });
         }
 
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) {
-          fastify.log.warn({ email }, 'Invalid password');
           return reply.status(401).send({ error: 'Invalid credentials' });
         }
 
@@ -60,7 +62,12 @@ export default async function (fastify: FastifyInstance) {
       preValidation: config.authEnabled ? [server.verifyAuth] : [],
       schema: {
         description: 'Get current user profile',
-        tags: ['Auth']
+        tags: ['Auth'],
+        response: {
+          200: z.object({ id: z.string(), email: z.string(), role: z.string() }),
+          401: z.object({ error: z.string() }),
+          500: z.object({ error: z.string() })
+        }
       }
     },
     async (request, _reply) => {
@@ -73,8 +80,6 @@ export default async function (fastify: FastifyInstance) {
 
   if (config.githubClientId && config.githubClientSecret) {
     server.get('/api/auth/github/callback', async function (request, reply) {
-      fastify.log.info({ headers: request.headers, cookies: request.cookies }, 'GitHub Callback headers and cookies');
-      
       if (!this.githubOAuth2) {
         return reply.status(500).send({ error: 'OAuth not configured' });
       }
