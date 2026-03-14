@@ -50,11 +50,11 @@ export default function JobMonitoringPage() {
         );
     }
 
-    const { runningJobs = [], queue = [], scheduled = [], failures = [] } = data;
-    const runningCount = runningJobs.length;
+    const { running = [], queue = [], scheduled = [], failed = [] } = data;
+    const runningCount = running.length;
     const queueCount = queue.length;
     const scheduledCount = scheduled.length;
-    const failedCount = failures.length;
+    const failedCount = failed.length;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-10">
@@ -131,7 +131,7 @@ export default function JobMonitoringPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="p-0">
-                            {runningJobs.length > 0 ? (
+                            {running.length > 0 ? (
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="hover:bg-transparent border-slate-100">
@@ -141,7 +141,7 @@ export default function JobMonitoringPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {runningJobs.map((job) => (
+                                        {running.map((job) => (
                                             <TableRow key={job.urlId} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
                                                 <TableCell className="py-4 pl-6">
                                                     <p className="text-sm font-black text-slate-700">{job.name || 'Unnamed'}</p>
@@ -225,7 +225,7 @@ export default function JobMonitoringPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="p-0">
-                            {failures.length > 0 ? (
+                            {failed.length > 0 ? (
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="hover:bg-transparent border-slate-100">
@@ -235,7 +235,7 @@ export default function JobMonitoringPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {failures.map((job, idx) => (
+                                        {failed.map((job, idx) => (
                                             <TableRow key={idx} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
                                                 <TableCell className="py-4 pl-6">
                                                     <p className="text-sm font-black text-slate-700">{job.name || 'Unnamed'}</p>
@@ -286,7 +286,7 @@ export default function JobMonitoringPage() {
                                             </div>
                                             <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
                                                 <Clock className="h-3 w-3" />
-                                                <span>{job.scheduleText}</span>
+                                                <span>{job.frequency}</span>
                                             </div>
                                         </div>
                                     ))}
