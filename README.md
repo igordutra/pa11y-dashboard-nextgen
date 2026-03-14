@@ -63,6 +63,14 @@ Organise your monitored URLs into logical groups. NextGen supports rich metadata
 - **Colour Coding**: Assign distinct colours to categories for quick visual identification.
 - **Filtering**: Sidebar navigation allows you to quickly isolate URLs by category.
 
+### 🔐 Authentication & RBAC
+Secure your dashboard with enterprise-grade authentication:
+- **Local Auth**: Secure email/password login with bcrypt hashing.
+- **Role-Based Access Control (RBAC)**: Fine-grained permissions with `admin`, `editor`, and `viewer` roles.
+- **GitHub OAuth**: Single-sign-on support via GitHub.
+- **Setup CLI**: Simple bootstrap process to create the first admin user and generate secrets.
+- **Stateless Session**: JWT-based session management for high scalability and security.
+
 ### 🎭 Scripted Multi-Step Actions
 Test complex user journeys, not just landing pages. The script editor supports:
 - **`click`**: Interact with buttons, tabs, or menus. Supports piercing iframes with `iframe_selector >>> element_selector`.
@@ -185,10 +193,18 @@ Alternatively, you can run services manually for debugging or if Docker is unava
    cd ../server && npm install
    ```
 
-3. **Configure environment**:
+3. **Configure Authentication**:
+   The dashboard requires an initial setup to create an admin user and generate a JWT secret:
+   ```bash
+   cd server
+   npm run setup-auth
+   ```
+   Follow the prompts to create your admin account. The script will output a `JWT_SECRET` and `AUTH_ENABLED=true` which you must add to your `.env` file in the `server` directory.
+
+4. **Configure environment**:
    Create a `.env` file in the `server` directory (see [Configuring](#configuring-pa11y-dashboard-nextgen)).
 
-4. **Run the application**:
+5. **Run the application**:
    - **Backend**: `cd server && npm run dev`
    - **Frontend**: `cd client && npm run dev`
 
@@ -237,6 +253,15 @@ Configuration is managed via environment variables in the `server` directory.
 
 ### `READONLY`
 *(boolean)* Set to `true` to disable all modifications without the "Demo Mode" banner. Defaults to `true` if `DEMO_MODE=true`.
+
+### `AUTH_ENABLED`
+*(boolean)* Set to `true` to enable the authentication layer. Requires `JWT_SECRET`.
+
+### `JWT_SECRET`
+*(string)* A strong random string used to sign JWT tokens. Can be generated using the setup script or manually.
+
+### `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`
+*(string)* Optional credentials for GitHub OAuth integration.
 
 ### `PUPPETEER_NO_SANDBOX`
 *(boolean)* Set to `true` to disable the Puppeteer sandbox (only use if sandboxing is not supported by your OS/environment).

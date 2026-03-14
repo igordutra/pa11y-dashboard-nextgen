@@ -126,6 +126,12 @@ npm run prepare
 - **Demo & Read-Only Mode**:
     - `DEMO_MODE=true` disables background scans AND enforces read-only mode for all mutation APIs.
     - Frontend automatically detects `readonly` status from `/api/environment` and disables all mutation buttons with appropriate tooltips.
+- **Authentication & RBAC**:
+    - Supports local email/password login and GitHub OAuth.
+    - RBAC with `admin`, `editor`, and `viewer` roles.
+    - `AUTH_ENABLED` toggle in `.env` allows for public or private access.
+    - JWT-based stateless session management.
+    - `npm run setup-auth` CLI script for initial provisioning.
 - **Security & Sandboxing**:
     - **XSS Prevention**: All dynamic content (URLs, names, issue messages) is HTML-escaped in reports and the dashboard.
     - **Rate Limiting**: Global API limits (100 req/min) and strict scan trigger limits (2 req/min) using `@fastify/rate-limit`.
