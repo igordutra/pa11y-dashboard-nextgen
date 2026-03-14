@@ -1,23 +1,40 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import request from 'supertest';
-import { initApp } from '../index.js';
+import { initApp, app } from '../index.js';
 import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import { UrlModel } from '../models/index.js';
 import { FastifyInstance } from 'fastify';
+
+let mongoServer: MongoMemoryServer | null = null;
 
 describe('Security Enhancements Tests', () => {
     let fastify: FastifyInstance;
 
     beforeAll(async () => {
-        const app = await initApp();
+        // 1. Setup Database
+        if (process.env.DOCKER_TEST) {
+            process.env.MONGO_URI = 'mongodb://mongo:27017/pa11y-dashboard-security-test';
+        } else {
+            mongoServer = await MongoMemoryServer.create();
+            process.env.MONGO_URI = mongoServer.getUri();
+        }
+        
+        process.env.NODE_ENV = 'test';
+
+        // 2. Initialize App
+        await initApp();
         fastify = app as any;
         await fastify.ready();
-    });
+    }, 60000);
 
     afterAll(async () => {
-        await mongoose.connection.close();
-        await fastify.close();
-    });
+        await app.close();
+        await mongoose.disconnect();
+        if (mongoServer) {
+            await mongoServer.stop();
+        }
+    }, 30000);
 
     describe('Demo Mode / Read-only restrictions (#46)', () => {
         it('should return 403 for mutations when readonly is enabled', async () => {
