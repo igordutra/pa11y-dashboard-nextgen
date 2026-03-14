@@ -15,7 +15,11 @@ The backend API for the Pa11y Dashboard, built with Fastify, MongoDB, and Puppet
 
 - **Robust Scanning Engine**: Combines **Lighthouse** (for standard scores) and **Pa11y/Axe** (for multi-step auditing).
 - **Multi-Step Puppeteer Scripting**: Processes sequential actions (`click`, `type`, `wait`) whilst maintaining browser state.
-- **Concurrent Scheduler**: Efficiently manages background tasks with a configurable concurrency limit to prevent resource exhaustion. Disabled if `DEMO_MODE=true`.
+- **Concurrent Scheduler**: Efficiently manages background tasks with a configurable concurrency limit (1-10) to prevent resource exhaustion. Features atomic state management and priority-aware queue processing.
+- **Security Enhancements**: 
+    - **SSRF Protection**: Built-in validation to block proxy requests to local and private IP ranges.
+    - **XSS Prevention**: Automatic HTML escaping for all dynamic content in dashboard and reports.
+    - **Rate Limiting**: Configurable global and per-route limits.
 - **Image Processing**: On-the-fly thumbnail and issue snippet generation using **Sharp**.
 - **Type-Safe API**: Built with **Fastify** and **Zod** for high-performance, contract-first API design.
 - **Dynamic Configuration**: Support for environment-based overrides, optimised for containerised environments.
@@ -50,13 +54,6 @@ Configuration is managed via environment variables.
 - **DEMO_MODE**: Set to `true` to disable background scheduling and enforce UI-aware read-only mode.
 - **PUPPETEER_NO_SANDBOX**: Set to `true` to disable Puppeteer sandboxing.
 - **PUPPETEER_EXECUTABLE_PATH**: Path to Chromium/Chrome executable.
-
-## Security
-
-The server includes:
-- **XSS Protection**: Automatic HTML escaping of all dynamic content.
-- **Rate Limiting**: Global and per-route rate limits (e.g., max 2 scan triggers per minute).
-- **Process Isolation**: Puppeteer sandboxing enabled by default.
 
 ## Testing & Quality
 

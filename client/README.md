@@ -15,6 +15,8 @@ The frontend application for the Pa11y Dashboard, built with React and Vite.
 ## Key Features
 
 - **Dashboard**: High-level overview of monitored sites with real-time status and accessibility scores.
+- **Analytics Dashboard**: Comprehensive data visualisation of accessibility health, historical trends, and issue severity distribution.
+- **Job Monitoring**: Real-time visibility into the background scanning engine (active scans, wait list, and failure history).
 - **Rich Categories**: Organise URLs with custom icons and colours for better manageability.
 - **Interactive Reports**: 
     - Full-page screenshots with issue mapping (click an issue to highlight it on the image).
