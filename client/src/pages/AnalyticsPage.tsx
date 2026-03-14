@@ -128,7 +128,14 @@ export function AnalyticsPage() {
         );
     }
 
-    const { globalStats, issueDistribution, scoreTrend, topIssues, categoryPerformance, leaderboard } = data;
+    const { 
+        globalStats = { averageScore: 0, totalUrls: 0, totalScans: 0, totalIssues: 0 }, 
+        issueDistribution = [], 
+        scoreTrend = [], 
+        topIssues = [], 
+        categoryPerformance = [], 
+        leaderboard = { topSites: [], worstSites: [] } 
+    } = data;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-10">

@@ -50,7 +50,7 @@ export default function JobMonitoringPage() {
         );
     }
 
-    const { runningJobs, queue, scheduled, failures } = data;
+    const { runningJobs = [], queue = [], scheduled = [], failures = [] } = data;
     const runningCount = runningJobs.length;
     const queueCount = queue.length;
     const scheduledCount = scheduled.length;
