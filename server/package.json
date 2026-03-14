@@ -9,7 +9,8 @@
     "dev": "nodemon --exec 'npx tsx' index.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint"
+    "lint": "eslint",
+    "setup-auth": "tsx scripts/setup-auth.ts"
   },
   "keywords": [],
   "author": "",
@@ -18,11 +19,14 @@
   "dependencies": {
     "@fastify/cors": "^11.2.0",
     "@fastify/helmet": "^13.0.2",
+    "@fastify/jwt": "^10.0.0",
+    "@fastify/oauth2": "^8.2.0",
     "@fastify/rate-limit": "^10.3.0",
     "@fastify/static": "^9.0.0",
     "@fastify/swagger": "^9.7.0",
     "@fastify/swagger-ui": "^5.2.5",
     "@types/sharp": "^0.31.1",
+    "bcryptjs": "^3.0.3",
     "cron-parser": "^5.5.0",
     "cronstrue": "^3.13.0",
     "dotenv": "^17.3.1",
@@ -32,6 +36,7 @@
     "mongoose": "^9.2.1",
     "pa11y": "^9.1.0",
     "pa11y-runner-axe": "^2.0.1",
+    "prompts": "^2.4.2",
     "puppeteer": "^24.37.3",
     "sharp": "^0.34.5",
     "tsx": "^4.21.0",
@@ -39,7 +44,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^25.2.3",
+    "@types/prompts": "^2.4.9",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.1",
     "eslint": "^9.39.3",

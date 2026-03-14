@@ -1,10 +1,13 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { getConfig } from '../config/index.js';
 
 export default async function proxyRoutes(fastify: FastifyInstance) {
+  const config = getConfig();
   fastify.get(
     '/api/proxy',
     {
+      preValidation: config.authEnabled ? [fastify.verifyAuth] : [],
       schema: {
         querystring: z.object({
           url: z.string().url(),

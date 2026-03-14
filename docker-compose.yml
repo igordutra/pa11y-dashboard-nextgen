@@ -26,6 +26,8 @@ services:
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
       - NODE_ENV=development
       - CLIENT_URL=http://localhost:8080
+    env_file:
+      - ./server/.env
     cap_add:
       - SYS_ADMIN
 

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { ScanModel } from '../models/index.js';
 import cronstrue from 'cronstrue';
 import { CronExpressionParser } from 'cron-parser';
+import { getConfig } from '../config/index.js';
 
 // Middleware to check if dashboard is in readonly mode
 const checkReadonly = async (request: any, reply: any) => {
@@ -28,9 +29,11 @@ const checkReadonly = async (request: any, reply: any) => {
 
 export default async function scanRoutes(fastify: FastifyInstance) {
     const f = fastify.withTypeProvider<ZodTypeProvider>();
+    const config = getConfig();
 
     // READ: Get all current jobs (running, queued, failed, and scheduled)
     f.get('/api/jobs', {
+        preValidation: config.authEnabled ? [f.verifyAuth] : [],
         schema: {
             description: 'Get all currently running, queued, failed, and scheduled scan jobs',
             summary: 'List jobs',
@@ -133,6 +136,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
 
     // ACTION: Trigger Scan
     f.post('/api/urls/:id/scan', {
+        preValidation: config.authEnabled ? [f.requireRole(['admin', 'editor'])] : [],
         config: {
             rateLimit: {
                 max: 5,
@@ -170,6 +174,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
 
     // ACTION: Delete All Scans for a URL
     f.delete('/api/urls/:id/scans', {
+        preValidation: config.authEnabled ? [f.requireRole(['admin', 'editor'])] : [],
         preHandler: checkReadonly,
         schema: {
             description: 'Clear all scan history and reset last result metrics for a URL',
@@ -210,6 +215,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
 
     // READ: Get History
     f.get('/api/urls/:id/history', {
+        preValidation: config.authEnabled ? [f.verifyAuth] : [],
         schema: {
             description: 'Retrieve a chronological list of recent scans for a specific URL',
             summary: 'Get history',
@@ -249,6 +255,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
 
     // READ: Get Latest Scan Details
     f.get('/api/urls/:id/latest-scan', {
+        preValidation: config.authEnabled ? [f.verifyAuth] : [],
         schema: {
             description: 'Retrieve the most recent scan result for a URL, including all issues and steps',
             summary: 'Get latest scan',
@@ -283,6 +290,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
 
     // READ: Get a specific scan by scan ID
     f.get('/api/scans/:scanId', {
+        preValidation: config.authEnabled ? [f.verifyAuth] : [],
         schema: {
             description: 'Retrieve detailed results for a specific scan by its unique identifier',
             summary: 'Get scan details',
@@ -321,6 +329,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
 
     // ACTION: Export Scan as PDF
     f.get('/api/scans/:scanId/pdf', {
+        preValidation: config.authEnabled ? [f.verifyAuth] : [],
         schema: {
             description: 'Generate and download a comprehensive PDF accessibility report for a specific scan',
             summary: 'Export PDF',

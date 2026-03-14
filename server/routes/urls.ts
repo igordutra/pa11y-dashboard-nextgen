@@ -3,10 +3,10 @@ import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { UrlModel, ScanModel } from '../models/index.js';
 import { overridesSchema } from '../types/schemas.js';
+import { getConfig } from '../config/index.js';
 
 // Middleware to check if dashboard is in readonly mode
 const checkReadonly = async (request: any, reply: any) => {
-    const { getConfig } = await import('../config/index.js');
     const currentConfig = getConfig();
     
     if (currentConfig.readonly) {
@@ -26,9 +26,11 @@ const checkReadonly = async (request: any, reply: any) => {
 
 export default async function urlRoutes(fastify: FastifyInstance) {
     const f = fastify.withTypeProvider<ZodTypeProvider>();
+    const config = getConfig();
 
     // CRUD: Get all URLs
     f.get('/api/urls', {
+        preValidation: config.authEnabled ? [f.verifyAuth] : [],
         schema: {
             description: 'Get all monitored URLs',
             summary: 'List all URLs',
@@ -66,6 +68,7 @@ export default async function urlRoutes(fastify: FastifyInstance) {
     // CRUD: Add URL
     f.post('/api/urls', {
         preHandler: checkReadonly,
+        preValidation: config.authEnabled ? [f.requireRole(['admin', 'editor'])] : [],
         schema: {
             description: 'Add a new URL to monitor and trigger an initial scan',
             summary: 'Add new URL',
@@ -101,13 +104,16 @@ export default async function urlRoutes(fastify: FastifyInstance) {
                     message: z.string(),
                     statusCode: z.number()
                 }).describe('Validation error'),
+                401: z.object({
+                    error: z.string()
+                }).optional(),
                 403: z.object({
                     error: z.string(),
                     message: z.string()
-                }).describe('Read-only mode restriction'),
+                }).describe('Read-only mode or insufficient permissions restriction'),
                 404: z.object({
                     error: z.string()
-                })
+                }).optional()
             }
         }
     }, async (req, _reply) => {
@@ -136,6 +142,7 @@ export default async function urlRoutes(fastify: FastifyInstance) {
     // CRUD: Delete URL
     f.delete('/api/urls/:id', {
         preHandler: checkReadonly,
+        preValidation: config.authEnabled ? [f.requireRole(['admin', 'editor'])] : [],
         schema: {
             description: 'Permanently remove a URL and all its scan history',
             summary: 'Delete URL',
@@ -145,10 +152,11 @@ export default async function urlRoutes(fastify: FastifyInstance) {
             }),
             response: {
                 204: z.null().describe('Successfully deleted'),
+                401: z.object({ error: z.string() }).optional(),
                 403: z.object({
                     error: z.string(),
                     message: z.string()
-                }).describe('Read-only mode restriction')
+                }).describe('Read-only mode or insufficient permissions restriction')
             }
         }
     }, async (req, reply) => {
@@ -161,6 +169,7 @@ export default async function urlRoutes(fastify: FastifyInstance) {
     // CRUD: Update URL
     f.put('/api/urls/:id', {
         preHandler: checkReadonly,
+        preValidation: config.authEnabled ? [f.requireRole(['admin', 'editor'])] : [],
         schema: {
             description: 'Update settings or schedule for an existing URL',
             summary: 'Update URL',
@@ -193,10 +202,11 @@ export default async function urlRoutes(fastify: FastifyInstance) {
                     standard: z.string(),
                     status: z.string()
                 }),
+                401: z.object({ error: z.string() }).optional(),
                 403: z.object({
                     error: z.string(),
                     message: z.string()
-                }).describe('Read-only mode restriction'),
+                }).describe('Read-only mode or insufficient permissions restriction'),
                 404: z.object({
                     error: z.string(),
                     message: z.string()

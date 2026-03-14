@@ -9,7 +9,8 @@ import {
     X,
     ChevronRight,
     MonitorPlay,
-    BarChart3
+    BarChart3,
+    LogOut
 } from 'lucide-react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { CategoriesManager, CategoryIcon } from './CategoriesManager';
@@ -22,6 +23,7 @@ import {
     DialogTitle, 
     DialogTrigger 
 } from './ui/dialog';
+import { useAuth } from '../lib/AuthContext';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -42,12 +44,14 @@ interface Environment {
     availableStandards: string[];
     readonly: boolean;
     demoMode: boolean;
+    authEnabled: boolean;
 }
 
 export function Layout({ children }: LayoutProps) {
     const location = useLocation();
     const [searchParams] = useSearchParams();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { logout, user } = useAuth();
     
     const isSettings = location.pathname === '/settings';
     const isDashboard = location.pathname === '/' || location.pathname === '';
@@ -179,6 +183,16 @@ export function Layout({ children }: LayoutProps) {
                 </div>
                 {isSettings && <ChevronRight className="h-3 w-3 opacity-50" />}
             </Link>
+
+            <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
+                <Link to="/profile" className="flex flex-col overflow-hidden px-2 hover:bg-slate-100 rounded-xl py-1 transition-colors flex-1" title="Go to Profile">
+                    <span className="text-xs font-bold text-slate-900 truncate">{user?.email}</span>
+                    <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{user?.role}</span>
+                </Link>
+                <Button variant="ghost" size="icon" onClick={logout} className="rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 ml-1" title="Log out">
+                    <LogOut className="h-4 w-4" />
+                </Button>
+            </div>
         </nav>
     );
 

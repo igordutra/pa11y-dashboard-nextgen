@@ -19,6 +19,9 @@ import categoryRoutes from './routes/categories.js';
 import settingsRoutes from './routes/settings.js';
 import proxyRoutes from './routes/proxy.js';
 import analyticsRoutes from './routes/analytics.js';
+import authRoutes from './routes/auth.js';
+import authPlugin from './plugins/auth.js';
+import usersRoutes from './routes/users.js';
 
 const fastify = Fastify({
   logger: true,
@@ -142,6 +145,9 @@ export const initApp = async () => {
     });
 
     // Register modular routes
+    await fastify.register(authPlugin);
+    await fastify.register(authRoutes);
+    await fastify.register(usersRoutes);
     await fastify.register(urlRoutes);
     await fastify.register(scanRoutes);
     await fastify.register(categoryRoutes);

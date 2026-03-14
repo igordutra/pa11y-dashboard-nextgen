@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Save, RotateCcw, Server, Eye, Monitor, Clock, Shield, Info, CheckCircle2, Loader2, Activity } from 'lucide-react';
-
-const API = import.meta.env.VITE_API_URL || '';
+import api from '../lib/api';
 
 interface Settings {
     _id: string;
@@ -42,11 +41,14 @@ export function SettingsPage() {
 
     useEffect(() => {
         Promise.all([
-            fetch(`${API}/api/settings`).then(r => r.json()),
-            fetch(`${API}/api/environment`).then(r => r.json())
+            api.get(`/api/settings`).then(r => r.data),
+            api.get(`/api/environment`).then(r => r.data)
         ]).then(([s, e]) => {
             setSettings(s);
             setEnv(e);
+            setLoading(false);
+        }).catch(err => {
+            console.error('Failed to load settings', err);
             setLoading(false);
         });
     }, []);
@@ -56,11 +58,7 @@ export function SettingsPage() {
         setSaving(true);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { _id, ...body } = settings;
-        await fetch(`${API}/api/settings`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
+        await api.put(`/api/settings`, body);
         setSaving(false);
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
@@ -83,13 +81,8 @@ export function SettingsPage() {
             concurrency: 3
         };
         setSaving(true);
-        const res = await fetch(`${API}/api/settings`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(defaults)
-        });
-        const updated = await res.json();
-        setSettings(updated);
+        const res = await api.put(`/api/settings`, defaults);
+        setSettings(res.data);
         setSaving(false);
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);

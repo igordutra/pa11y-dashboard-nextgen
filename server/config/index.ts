@@ -14,11 +14,16 @@ const configSchema = z.object({
   nodeEnv: z.enum(['development', 'production', 'test']).default('development'),
   screenshotsDir: z.string().default(path.join(process.cwd(), 'screenshots')),
   demoMode: z.coerce.boolean().default(false),
+  authEnabled: z.coerce.boolean().default(false),
+  jwtSecret: z.string().default('default-unsafe-secret'),
+  githubClientId: z.string().optional(),
+  githubClientSecret: z.string().optional(),
 });
 
 export type Config = z.infer<typeof configSchema>;
 
 export const getConfig = (): Config => {
+  const isTest = process.env.NODE_ENV === 'test';
   return configSchema.parse({
     port: process.env.PORT,
     mongoUri: process.env.MONGO_URI || process.env.MONGODB_URI || process.env.DATABASE,
@@ -27,6 +32,10 @@ export const getConfig = (): Config => {
     readonly: process.env.READONLY || process.env.DEMO_MODE,
     nodeEnv: process.env.NODE_ENV,
     demoMode: process.env.DEMO_MODE,
+    authEnabled: isTest ? false : process.env.AUTH_ENABLED,
+    jwtSecret: process.env.JWT_SECRET,
+    githubClientId: process.env.GITHUB_CLIENT_ID,
+    githubClientSecret: process.env.GITHUB_CLIENT_SECRET,
   });
 };
 
