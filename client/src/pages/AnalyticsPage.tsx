@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import {
@@ -7,6 +8,13 @@ import {
     CardHeader,
     CardTitle,
 } from '../components/ui/card';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '../components/ui/select';
 import {
     BarChart,
     Bar,
@@ -29,9 +37,14 @@ import {
     AlertCircle, 
     BarChart3,
     ArrowUpRight,
-    Info
+    Info,
+    CheckCircle2,
+    XCircle,
+    ChevronRight,
+    Layout
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 interface AnalyticsData {
     globalStats: {
@@ -39,6 +52,7 @@ interface AnalyticsData {
         totalUrls: number;
         totalScans: number;
         totalIssues: number;
+        firstScanAt?: string;
     };
     issueDistribution: {
         name: string;
@@ -60,12 +74,28 @@ interface AnalyticsData {
         urlCount: number;
         color: string;
     }[];
+    leaderboard: {
+        topSites: {
+            _id: string;
+            name: string;
+            url: string;
+            score: number;
+        }[];
+        worstSites: {
+            _id: string;
+            name: string;
+            url: string;
+            score: number;
+        }[];
+    };
 }
 
 export function AnalyticsPage() {
+    const [period, setPeriod] = useState('7');
+
     const { data, isLoading, error } = useQuery<AnalyticsData>({
-        queryKey: ['analytics'],
-        queryFn: async () => (await api.get('/api/analytics')).data,
+        queryKey: ['analytics', period],
+        queryFn: async () => (await api.get(`/api/analytics?period=${period}`)).data,
     });
 
     if (isLoading) {
@@ -97,102 +127,112 @@ export function AnalyticsPage() {
         );
     }
 
-    const { globalStats, issueDistribution, scoreTrend, topIssues, categoryPerformance } = data;
+    const { globalStats, issueDistribution, scoreTrend, topIssues, categoryPerformance, leaderboard } = data;
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500 pb-10">
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-black tracking-tight text-slate-800">Analytics Dashboard</h1>
-                <p className="text-slate-500 mt-1">High-level overview of accessibility performance across all targets.</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-black tracking-tight text-slate-800">Analytics Dashboard</h1>
+                    <p className="text-slate-500 mt-1 font-medium">Deep insights across your accessibility portfolio.</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Period</span>
+                    <Select value={period} onValueChange={setPeriod}>
+                        <SelectTrigger className="w-[180px] bg-white rounded-xl border-slate-200 shadow-sm font-bold text-slate-700">
+                            <SelectValue placeholder="Select period" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-slate-200">
+                            <SelectItem value="7" className="rounded-lg font-medium">Last 7 Days</SelectItem>
+                            <SelectItem value="14" className="rounded-lg font-medium">Last 14 Days</SelectItem>
+                            <SelectItem value="30" className="rounded-lg font-medium">Last 30 Days</SelectItem>
+                            <SelectItem value="custom" className="rounded-lg font-medium italic opacity-50 cursor-not-allowed" disabled>Custom Range</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             {/* Global Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="border-none shadow-md shadow-slate-200/50 overflow-hidden group">
-                    <CardContent className="p-0">
-                        <div className="p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="p-2 bg-blue-50 rounded-xl text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
-                                    <Activity className="h-5 w-5" />
-                                </div>
-                                <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                                    <ArrowUpRight className="h-3 w-3" />
-                                    <span>LIVE</span>
-                                </div>
+                <Card className="border-none shadow-md shadow-slate-200/50 overflow-hidden">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-2 bg-blue-50 rounded-xl text-blue-600">
+                                <Activity className="h-5 w-5" />
                             </div>
-                            <div className="space-y-1">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Avg. Accessibility Score</p>
-                                <div className="flex items-baseline gap-2">
-                                    <h2 className="text-4xl font-black text-slate-800 tracking-tighter">{globalStats.averageScore}</h2>
-                                    <span className="text-xs font-bold text-slate-400">/ 100</span>
-                                </div>
+                            <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                <ArrowUpRight className="h-3 w-3" />
+                                <span>LIVE</span>
                             </div>
                         </div>
-                        <div className="h-1.5 w-full bg-slate-100">
-                            <div 
-                                className="h-full bg-blue-600 transition-all duration-1000 ease-out" 
-                                style={{ width: `${globalStats.averageScore}%` }} 
-                            />
+                        <div className="space-y-1">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Avg. Score</p>
+                            <div className="flex items-baseline gap-2">
+                                <h2 className="text-4xl font-black text-slate-800 tracking-tighter">{globalStats.averageScore}</h2>
+                                <span className="text-xs font-bold text-slate-400">/ 100</span>
+                            </div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">ALL TARGETS</p>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="border-none shadow-md shadow-slate-200/50 overflow-hidden group">
+                <Card className="border-none shadow-md shadow-slate-200/50 overflow-hidden">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-purple-50 rounded-xl text-purple-600 transition-colors group-hover:bg-purple-600 group-hover:text-white">
+                            <div className="p-2 bg-purple-50 rounded-xl text-purple-600">
                                 <Globe className="h-5 w-5" />
                             </div>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Monitored Targets</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Targets</p>
                             <h2 className="text-4xl font-black text-slate-800 tracking-tighter">{globalStats.totalUrls}</h2>
-                            <p className="text-[10px] font-bold text-slate-400">ACTIVELY TRACKED</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">ACTIVELY TRACKED</p>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="border-none shadow-md shadow-slate-200/50 overflow-hidden group">
+                <Card className="border-none shadow-md shadow-slate-200/50 overflow-hidden">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-amber-50 rounded-xl text-amber-600 transition-colors group-hover:bg-amber-600 group-hover:text-white">
+                            <div className="p-2 bg-amber-50 rounded-xl text-amber-600">
                                 <MonitorPlay className="h-5 w-5" />
                             </div>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Scans Executed</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Scans</p>
                             <h2 className="text-4xl font-black text-slate-800 tracking-tighter">{globalStats.totalScans.toLocaleString()}</h2>
-                            <p className="text-[10px] font-bold text-slate-400">SINCE DEPLOYMENT</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                                {globalStats.firstScanAt ? `SINCE ${format(new Date(globalStats.firstScanAt), 'MMM dd, yyyy').toUpperCase()}` : 'SINCE DEPLOYMENT'}
+                            </p>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="border-none shadow-md shadow-slate-200/50 overflow-hidden group">
+                <Card className="border-none shadow-md shadow-slate-200/50 overflow-hidden">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-rose-50 rounded-xl text-rose-600 transition-colors group-hover:bg-rose-600 group-hover:text-white">
+                            <div className="p-2 bg-rose-50 rounded-xl text-rose-600">
                                 <AlertCircle className="h-5 w-5" />
                             </div>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Issues Found</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Issues Found</p>
                             <h2 className="text-4xl font-black text-slate-800 tracking-tighter">{globalStats.totalIssues.toLocaleString()}</h2>
-                            <p className="text-[10px] font-bold text-rose-500">ACROSS LATEST SCANS</p>
+                            <p className="text-[10px] font-bold text-rose-500 uppercase tracking-tighter">ACROSS LATEST AUDITS</p>
                         </div>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Main Charts Grid */}
+            {/* Trends and Severity */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Score Trend - 2/3 width */}
                 <Card className="lg:col-span-2 border-none shadow-xl shadow-slate-200/40 rounded-3xl overflow-hidden">
                     <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                             <div>
                                 <CardTitle className="text-xl font-black tracking-tight">Accessibility Trend</CardTitle>
-                                <CardDescription>Overall score stability over the last 30 days.</CardDescription>
+                                <CardDescription className="font-medium">Global score performance over selected period.</CardDescription>
                             </div>
                             <div className="p-2 bg-slate-100 rounded-xl text-slate-400">
                                 <BarChart3 className="h-5 w-5" />
@@ -241,11 +281,10 @@ export function AnalyticsPage() {
                     </CardContent>
                 </Card>
 
-                {/* Issue Distribution - 1/3 width */}
                 <Card className="border-none shadow-xl shadow-slate-200/40 rounded-3xl overflow-hidden flex flex-col">
                     <CardHeader className="pb-0">
                         <CardTitle className="text-xl font-black tracking-tight">Issue Breakdown</CardTitle>
-                        <CardDescription>Severity distribution across latest audits.</CardDescription>
+                        <CardDescription className="font-medium">Severity distribution of failing elements.</CardDescription>
                     </CardHeader>
                     <CardContent className="flex-1 min-h-[300px] flex items-center justify-center pt-0">
                         <ResponsiveContainer width="100%" height="100%">
@@ -280,18 +319,103 @@ export function AnalyticsPage() {
                 </Card>
             </div>
 
-            {/* Bottom Grid */}
+            {/* Sites Leaderboard */}
+            <Card className="border-none shadow-xl shadow-slate-200/40 rounded-3xl overflow-hidden">
+                <CardHeader>
+                    <CardTitle className="text-xl font-black tracking-tight">Site Performance Rankings</CardTitle>
+                    <CardDescription className="font-medium">Top performing vs. high priority sites requiring attention.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                        {/* Top 5 */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-6">
+                                <div className="p-1.5 bg-emerald-50 rounded-lg text-emerald-600">
+                                    <CheckCircle2 className="h-4 w-4" />
+                                </div>
+                                <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest">Top 5 Performing Sites</h3>
+                            </div>
+                            <div className="space-y-3">
+                                {leaderboard.topSites.map((site, idx) => (
+                                    <Link 
+                                        key={site._id} 
+                                        to={`/report/${site._id}`}
+                                        className="flex items-center justify-between p-3 rounded-2xl bg-slate-50/50 hover:bg-emerald-50 transition-colors group"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-xs font-black text-slate-300 w-4">{idx + 1}</span>
+                                            <div>
+                                                <p className="text-sm font-black text-slate-700 truncate max-w-[200px]">{site.name || site.url}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 truncate max-w-[200px]">{site.url}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-right">
+                                                <p className="text-sm font-black text-emerald-600">{site.score}</p>
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">SCORE</p>
+                                            </div>
+                                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-emerald-400" />
+                                        </div>
+                                    </Link>
+                                ))}
+                                {leaderboard.topSites.length === 0 && (
+                                    <div className="text-center py-6 text-slate-400 text-xs font-medium italic">No scan data available.</div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Worst 5 */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-6">
+                                <div className="p-1.5 bg-rose-50 rounded-lg text-rose-600">
+                                    <XCircle className="h-4 w-4" />
+                                </div>
+                                <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest text-rose-600">Highest Priority (Worst 5)</h3>
+                            </div>
+                            <div className="space-y-3">
+                                {leaderboard.worstSites.map((site, idx) => (
+                                    <Link 
+                                        key={site._id} 
+                                        to={`/report/${site._id}`}
+                                        className="flex items-center justify-between p-3 rounded-2xl bg-slate-50/50 hover:bg-rose-50 transition-colors group"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-xs font-black text-slate-300 w-4">{idx + 1}</span>
+                                            <div>
+                                                <p className="text-sm font-black text-slate-700 truncate max-w-[200px]">{site.name || site.url}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 truncate max-w-[200px]">{site.url}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-right">
+                                                <p className="text-sm font-black text-rose-600">{site.score}</p>
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">SCORE</p>
+                                            </div>
+                                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-rose-400" />
+                                        </div>
+                                    </Link>
+                                ))}
+                                {leaderboard.worstSites.length === 0 && (
+                                    <div className="text-center py-6 text-slate-400 text-xs font-medium italic">No scan data available.</div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Violations and Categories */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Top Failing Rules */}
                 <Card className="border-none shadow-xl shadow-slate-200/40 rounded-3xl overflow-hidden">
                     <CardHeader>
                         <div className="flex items-center gap-2">
                             <CardTitle className="text-xl font-black tracking-tight">Top Violations</CardTitle>
-                            <div className="p-1 bg-slate-100 rounded-md text-slate-400 group cursor-help">
+                            <div className="p-1 bg-slate-100 rounded-md text-slate-400">
                                 <Info className="h-3.5 w-3.5" />
                             </div>
                         </div>
-                        <CardDescription>Most frequent accessibility rule failures detected.</CardDescription>
+                        <CardDescription className="font-medium">Most frequent accessibility rule failures detected.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
@@ -302,18 +426,18 @@ export function AnalyticsPage() {
                                             <span className="flex items-center justify-center h-6 w-6 rounded-lg bg-slate-100 text-slate-500 text-[10px] font-black leading-none">
                                                 {idx + 1}
                                             </span>
-                                            <span className="text-xs font-black text-slate-700 font-mono tracking-tight group-hover:text-blue-600 transition-colors">
+                                            <span className="text-xs font-black text-slate-700 font-mono tracking-tight text-blue-600 transition-colors">
                                                 {issue.code}
                                             </span>
                                         </div>
                                         <span className="text-xs font-black text-slate-400">{issue.count} instances</span>
                                     </div>
-                                    <p className="text-[11px] font-medium text-slate-500 leading-relaxed pl-9 mb-3 line-clamp-1 group-hover:line-clamp-none transition-all">
+                                    <p className="text-[11px] font-medium text-slate-500 leading-relaxed pl-9 mb-3">
                                         {issue.message}
                                     </p>
-                                    <div className="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
+                                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                                         <div 
-                                            className="h-full bg-slate-200 group-hover:bg-blue-400 transition-all duration-700 ease-out"
+                                            className="h-full bg-blue-500 transition-all duration-700 ease-out"
                                             style={{ 
                                                 width: `${(issue.count / topIssues[0].count) * 100}%`,
                                                 transitionDelay: `${idx * 100}ms`
@@ -334,8 +458,13 @@ export function AnalyticsPage() {
                 {/* Category Performance */}
                 <Card className="border-none shadow-xl shadow-slate-200/40 rounded-3xl overflow-hidden">
                     <CardHeader>
-                        <CardTitle className="text-xl font-black tracking-tight">Category Comparison</CardTitle>
-                        <CardDescription>Performance breakdown by logical URL groupings.</CardDescription>
+                        <div className="flex items-center gap-2">
+                            <CardTitle className="text-xl font-black tracking-tight">Category Comparison</CardTitle>
+                            <div className="p-1 bg-slate-100 rounded-md text-slate-400">
+                                <Layout className="h-3.5 w-3.5" />
+                            </div>
+                        </div>
+                        <CardDescription className="font-medium">Performance breakdown by logical URL groupings.</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">

@@ -11,13 +11,19 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
             description: 'Get aggregated accessibility analytics',
             summary: 'Get analytics',
             tags: ['analytics'],
+            querystring: z.object({
+                period: z.enum(['7', '14', '30', 'custom']).default('7'),
+                startDate: z.string().optional(),
+                endDate: z.string().optional()
+            }),
             response: {
                 200: z.object({
                     globalStats: z.object({
                         averageScore: z.number(),
                         totalUrls: z.number(),
                         totalScans: z.number(),
-                        totalIssues: z.number()
+                        totalIssues: z.number(),
+                        firstScanAt: z.string().optional()
                     }),
                     issueDistribution: z.array(z.object({
                         name: z.string(),
@@ -38,17 +44,33 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
                         avgScore: z.number(),
                         urlCount: z.number(),
                         color: z.string()
-                    }))
+                    })),
+                    leaderboard: z.object({
+                        topSites: z.array(z.object({
+                            _id: z.string(),
+                            name: z.string().optional(),
+                            url: z.string(),
+                            score: z.number()
+                        })),
+                        worstSites: z.array(z.object({
+                            _id: z.string(),
+                            name: z.string().optional(),
+                            url: z.string(),
+                            score: z.number()
+                        }))
+                    })
                 })
             }
         }
-    }, async (_req, _reply) => {
-        // 1. Basic Counts
+    }, async (req, _reply) => {
+        const { period } = req.query;
+        
+        // 1. Basic Counts and Metadata
         const totalUrls = await UrlModel.countDocuments();
         const totalScans = await ScanModel.countDocuments();
+        const firstScan = await ScanModel.findOne().sort({ timestamp: 1 }).select('timestamp').lean();
 
         // 2. Latest Scans for Global Stats and Breakdowns
-        // We get the most recent scan for each URL
         const latestScans = await ScanModel.aggregate([
             { $sort: { urlId: 1, timestamp: -1 } },
             {
@@ -74,13 +96,11 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
             totalIssues += issues.length;
             
             for (const issue of issues) {
-                // Type breakdown
                 const type = (issue.type || 'error').toLowerCase();
                 if (type in issueCounts) {
                     issueCounts[type as keyof typeof issueCounts]++;
                 }
 
-                // Rule breakdown
                 const code = issue.code;
                 if (code) {
                     if (!ruleFrequencies[code]) {
@@ -102,12 +122,13 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
             .sort((a, b) => b.count - a.count)
             .slice(0, 5);
 
-        // 3. Score Trend (Daily Average for last 30 days)
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        // 3. Score Trend based on period
+        const periodDays = period === 'custom' ? 30 : parseInt(period);
+        const trendStartDate = new Date();
+        trendStartDate.setDate(trendStartDate.getDate() - periodDays);
 
         const dailyTrend = await ScanModel.aggregate([
-            { $match: { timestamp: { $gte: thirtyDaysAgo }, score: { $exists: true } } },
+            { $match: { timestamp: { $gte: trendStartDate }, score: { $exists: true } } },
             {
                 $group: {
                     _id: { $dateToString: { format: '%Y-%m-%d', date: '$timestamp' } },
@@ -129,8 +150,6 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
         for (const cat of categories) {
             const urlsInCategory = await UrlModel.find({ categoryId: cat._id }).select('_id');
             const urlIds = urlsInCategory.map(u => u._id);
-            
-            // Average of the latest scores for URLs in this category
             const catLatestScans = validLatestScans.filter(s => 
                 urlIds.some(id => id.toString() === s.urlId.toString())
             );
@@ -147,7 +166,6 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
             });
         }
 
-        // Add "Uncategorized" if there are URLs without a category
         const uncategorizedUrls = await UrlModel.find({ categoryId: null }).select('_id');
         if (uncategorizedUrls.length > 0) {
             const urlIds = uncategorizedUrls.map(u => u._id);
@@ -167,17 +185,35 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
             });
         }
 
+        // 5. Leaderboard
+        const topSites = await UrlModel.find({ lastScore: { $exists: true } })
+            .sort({ lastScore: -1, lastIssueCount: 1 })
+            .limit(5)
+            .select('name url lastScore')
+            .lean();
+
+        const worstSites = await UrlModel.find({ lastScore: { $exists: true } })
+            .sort({ lastScore: 1, lastIssueCount: -1 })
+            .limit(5)
+            .select('name url lastScore')
+            .lean();
+
         return {
             globalStats: {
                 averageScore: Math.round(averageScore * 10) / 10,
                 totalUrls,
                 totalScans,
-                totalIssues
+                totalIssues,
+                firstScanAt: firstScan?.timestamp.toISOString()
             },
             issueDistribution,
             scoreTrend,
             topIssues,
-            categoryPerformance
+            categoryPerformance,
+            leaderboard: {
+                topSites: topSites.map(s => ({ ...s, _id: s._id.toString(), score: s.lastScore || 0 })),
+                worstSites: worstSites.map(s => ({ ...s, _id: s._id.toString(), score: s.lastScore || 0 }))
+            }
         };
     });
 }
