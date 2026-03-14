@@ -28,8 +28,11 @@ export function TrendChart({ history, onSelectScan }: TrendChartProps) {
 
     const handleClick = (state: unknown) => {
         const payloadData = state as { activePayload?: Array<{ payload: { id: string } }> };
-        if (payloadData?.activePayload?.[0]?.payload?.id && onSelectScan) {
-            onSelectScan(payloadData.activePayload[0].payload.id);
+        if (payloadData && payloadData.activePayload && payloadData.activePayload.length > 0) {
+            const payload = payloadData.activePayload[0].payload;
+            if (payload && payload.id && onSelectScan) {
+                onSelectScan(payload.id);
+            }
         }
     };
 

@@ -202,7 +202,7 @@ export function UrlCard({ url }: UrlCardProps) {
                         >
                             {url.lastThumbnail ? (
                                 <img
-                                    src={`${import.meta.env.VITE_API_URL || ''}${url.lastThumbnail}`}
+                                    src={`${import.meta.env.VITE_API_URL || ''}${url.lastThumbnail}?t=${new Date(url.lastScanAt || '').getTime()}`}
                                     alt={`Screenshot of ${url.name || url.url}`}
                                     className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                                     onError={(e) => {

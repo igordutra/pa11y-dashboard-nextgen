@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.1] - 2026-03-14
+
+### Fixed
+- **Production Rate Limiting**: Enabled `trustProxy` in the Fastify server and added a `TRUST_PROXY` environment variable. This correctly identifies client IPs behind Oracle Load Balancers and reverse proxies, preventing false 429 "Too Many Requests" errors.
+- **UI Caching & Disappearing Images**: Implemented cache-busting timestamps for all screenshots and thumbnails (URLs now include `?t=timestamp`). This ensures images remain visible and up-to-date when navigating between the Dashboard, Reports, and Analytics pages.
+- **Chart Interaction Stability**: Added robust defensive checks to Recharts interaction handlers in `TrendChart.tsx` to prevent `TypeError: Cannot read properties of undefined (reading 'payload')`.
+
+### Added
+- **Proxy Trust Integration Tests**: New test suite in `server/test/rate-limit.test.ts` to verify correct IP detection when behind a proxy.
+
 ## [0.7.0] - 2026-03-14
 
 ### Fixed

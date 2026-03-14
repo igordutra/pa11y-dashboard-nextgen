@@ -21,7 +21,8 @@ import proxyRoutes from './routes/proxy.js';
 import analyticsRoutes from './routes/analytics.js';
 
 const fastify = Fastify({
-  logger: true
+  logger: true,
+  trustProxy: process.env.TRUST_PROXY === 'true' || process.env.NODE_ENV === 'production'
 }).withTypeProvider<ZodTypeProvider>();
 
 fastify.setValidatorCompiler(validatorCompiler);

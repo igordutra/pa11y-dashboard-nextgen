@@ -332,7 +332,7 @@ export function ReportPage() {
                             {currentData?.screenshot ? (
                                 <div className="rounded-xl overflow-hidden border border-slate-200 bg-white shadow-inner max-h-[600px] overflow-y-auto">
                                     <ScreenshotOverlay
-                                        screenshot={currentData.screenshot.startsWith('data:') ? currentData.screenshot : `${import.meta.env.VITE_API_URL || ''}${currentData.screenshot}`}
+                                        screenshot={currentData.screenshot.startsWith('data:') ? currentData.screenshot : `${import.meta.env.VITE_API_URL || ''}${currentData.screenshot}?t=${new Date(activeScan?.timestamp || '').getTime()}`}
                                         issues={issues}
                                         viewport={currentData.viewport}
                                         selectedIssueIndex={selectedIssueIndex}
@@ -464,7 +464,7 @@ export function ReportPage() {
                                                     {issue.snippetUrl && (
                                                         <div className="mb-4 rounded-xl border border-slate-100 overflow-hidden bg-slate-50 p-2 group-hover:border-slate-200 transition-colors">
                                                             <img 
-                                                                src={`${import.meta.env.VITE_API_URL || ''}${issue.snippetUrl}`} 
+                                                                src={`${import.meta.env.VITE_API_URL || ''}${issue.snippetUrl}?t=${new Date(activeScan?.timestamp || '').getTime()}`} 
                                                                 alt="Element causing the issue" 
                                                                 className="max-h-24 w-auto object-contain mx-auto"
                                                             />
