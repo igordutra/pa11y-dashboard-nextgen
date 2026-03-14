@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import { UrlList } from '../components/UrlList';
 import { AddUrlModal } from '../components/AddUrlModal';
+import { Button } from '../components/ui/button';
 import { 
     Select, 
     SelectContent, 
@@ -11,7 +12,7 @@ import {
     SelectTrigger, 
     SelectValue 
 } from '../components/ui/select';
-import { ListFilter } from 'lucide-react';
+import { ListFilter, Plus } from 'lucide-react';
 
 export type SortOption = 'name' | 'score' | 'newest';
 
