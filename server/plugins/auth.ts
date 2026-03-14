@@ -44,7 +44,13 @@ export default fp(async (fastify) => {
           auth: (fastifyOauth2 as any).GITHUB_CONFIGURATION
         },
         startRedirectPath: '/api/auth/github/login',
-        callbackUri: `${config.nodeEnv === 'production' ? config.clientUrl : 'http://localhost:' + config.port}/api/auth/github/callback`
+        callbackUri: `${config.clientUrl}/api/auth/github/callback`,
+        scope: ['user:email'],
+        cookie: {
+          path: '/',
+          sameSite: 'lax',
+          secure: config.nodeEnv === 'production'
+        }
       });
     }
 

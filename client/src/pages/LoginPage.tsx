@@ -34,7 +34,7 @@ export function LoginPage() {
   };
 
   const handleGithubLogin = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL || ''}/api/auth/github/login`;
+    window.location.href = '/api/auth/github/login';
   };
 
   return (

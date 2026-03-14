@@ -11,6 +11,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyRateLimit from '@fastify/rate-limit';
+import fastifyCookie from '@fastify/cookie';
 
 // Import modular routes
 import urlRoutes from './routes/urls.js';
@@ -86,6 +87,10 @@ export const initApp = async () => {
       timeWindow: '1 minute'
     });
 
+    await fastify.register(fastifyCookie, {
+      secret: currentConfig.jwtSecret // Reuse jwtSecret for cookie signing
+    });
+
     await mongoose.connect(currentConfig.mongoUri);
     fastify.log.info('Connected to MongoDB');
 
@@ -154,6 +159,22 @@ export const initApp = async () => {
     await fastify.register(settingsRoutes);
     await fastify.register(proxyRoutes);
     await fastify.register(analyticsRoutes);
+
+    // Global Error Handler
+    fastify.setErrorHandler((error: any, request, reply) => {
+      fastify.log.error({ 
+        err: error,
+        url: request.url,
+        method: request.method,
+        body: request.body
+      }, 'Unhandled error');
+      
+      reply.status(error.statusCode || 500).send({
+        error: 'Internal Server Error',
+        message: error.message,
+        statusCode: error.statusCode || 500
+      });
+    });
 
     // Start Scheduler
     if (currentConfig.demoMode) {

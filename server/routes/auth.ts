@@ -18,11 +18,7 @@ export default async function (fastify: FastifyInstance) {
         body: z.object({
           email: z.string().email(),
           password: z.string()
-        }),
-        response: {
-          200: z.object({ token: z.string(), user: z.object({ id: z.string(), email: z.string(), role: z.string() }) }),
-          401: z.object({ error: z.string() })
-        }
+        })
       }
     },
     async (request, reply) => {
@@ -31,21 +27,30 @@ export default async function (fastify: FastifyInstance) {
       }
 
       const { email, password } = request.body;
-      const user = await UserModel.findOne({ email, provider: 'local' });
+      fastify.log.info({ email }, 'Login attempt');
+      
+      try {
+        const user = await UserModel.findOne({ email, provider: 'local' });
 
-      if (!user || !user.passwordHash) {
-        return reply.status(401).send({ error: 'Invalid credentials' });
+        if (!user || !user.passwordHash) {
+          fastify.log.warn({ email }, 'User not found or no password hash');
+          return reply.status(401).send({ error: 'Invalid credentials' });
+        }
+
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+        if (!isValid) {
+          fastify.log.warn({ email }, 'Invalid password');
+          return reply.status(401).send({ error: 'Invalid credentials' });
+        }
+
+        const payload = { userId: user._id.toString(), role: user.role, email: user.email };
+        const token = server.jwt.sign(payload, { expiresIn: '7d' });
+
+        return { token, user: { id: payload.userId, email: payload.email, role: payload.role } };
+      } catch (err) {
+        fastify.log.error(err, 'Login error');
+        return reply.status(500).send({ error: 'Internal server error' });
       }
-
-      const isValid = await bcrypt.compare(password, user.passwordHash);
-      if (!isValid) {
-        return reply.status(401).send({ error: 'Invalid credentials' });
-      }
-
-      const payload = { userId: user._id.toString(), role: user.role, email: user.email };
-      const token = server.jwt.sign(payload, { expiresIn: '7d' });
-
-      return { token, user: { id: payload.userId, email: payload.email, role: payload.role } };
     }
   );
 
@@ -55,11 +60,7 @@ export default async function (fastify: FastifyInstance) {
       preValidation: config.authEnabled ? [server.verifyAuth] : [],
       schema: {
         description: 'Get current user profile',
-        tags: ['Auth'],
-        response: {
-          200: z.object({ id: z.string(), email: z.string(), role: z.string() }),
-          401: z.object({ error: z.string() })
-        }
+        tags: ['Auth']
       }
     },
     async (request, _reply) => {
@@ -72,6 +73,8 @@ export default async function (fastify: FastifyInstance) {
 
   if (config.githubClientId && config.githubClientSecret) {
     server.get('/api/auth/github/callback', async function (request, reply) {
+      fastify.log.info({ headers: request.headers, cookies: request.cookies }, 'GitHub Callback headers and cookies');
+      
       if (!this.githubOAuth2) {
         return reply.status(500).send({ error: 'OAuth not configured' });
       }
@@ -87,15 +90,24 @@ export default async function (fastify: FastifyInstance) {
       
       if (!userData.email) {
         // Fallback to fetch emails
-        const emailsRes = await fetch('https://api.github.com/user/emails', {
-          headers: {
-            Authorization: `Bearer ${token.token.access_token}`,
-            Accept: 'application/vnd.github.v3+json'
+        try {
+          const emailsRes = await fetch('https://api.github.com/user/emails', {
+            headers: {
+              Authorization: `Bearer ${token.token.access_token}`,
+              Accept: 'application/vnd.github.v3+json'
+            }
+          });
+          const emails = await emailsRes.json();
+          
+          if (Array.isArray(emails)) {
+            const primary = emails.find((e: any) => e.primary) || emails[0];
+            if (primary) userData.email = primary.email;
+          } else {
+            fastify.log.warn({ emails }, 'GitHub emails response is not an array');
           }
-        });
-        const emails = await emailsRes.json();
-        const primary = emails.find((e: any) => e.primary) || emails[0];
-        if (primary) userData.email = primary.email;
+        } catch (err) {
+          fastify.log.error(err, 'Failed to fetch GitHub emails');
+        }
       }
 
       if (!userData.email) {
