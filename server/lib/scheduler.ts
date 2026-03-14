@@ -55,46 +55,48 @@ class ScanQueue {
     }
 
     private async process() {
-        const { getSettings } = await import('../models/settings.js');
-        const settings = await getSettings();
-        const maxConcurrent = settings.concurrency || 3;
-
-        if (this.processing || this.running.size >= maxConcurrent || this.queue.length === 0) {
+        if (this.processing) {
             return;
         }
 
         this.processing = true;
 
-        while (this.running.size < maxConcurrent && this.queue.length > 0) {
-            const metadata = this.queue.shift();
-            if (!metadata) break;
+        try {
+            const { getSettings } = await import('../models/settings.js');
+            const settings = await getSettings();
+            const maxConcurrent = settings.concurrency || 3;
 
-            const waitTime = Date.now() - metadata.enqueuedAt;
-            const id = metadata.urlId;
+            while (this.running.size < maxConcurrent && this.queue.length > 0) {
+                const metadata = this.queue.shift();
+                if (!metadata) break;
 
-            const runningMetadata: RunningMetadata = {
-                ...metadata,
-                startedAt: Date.now()
-            };
-            this.running.set(id, runningMetadata);
+                const waitTime = Date.now() - metadata.enqueuedAt;
+                const id = metadata.urlId;
 
-            console.log(`Starting scan for ${id} (waited ${waitTime}ms). Concurrent: ${this.running.size}`);
+                const runningMetadata: RunningMetadata = {
+                    ...metadata,
+                    startedAt: Date.now()
+                };
+                this.running.set(id, runningMetadata);
 
-            // Run scan in background (no await here to keep the loop going)
-            runScan(id)
-                .catch(err => {
-                    console.error(`Scan failed for ${id}:`, err);
-                    this.recordFailure(runningMetadata, err);
-                })
-                .finally(() => {
-                    const executionTime = Date.now() - runningMetadata.startedAt;
-                    this.running.delete(id);
-                    console.log(`Finished scan for ${id} (took ${executionTime}ms). Concurrent: ${this.running.size}`);
-                    this.process(); // Try to process next item
-                });
+                console.log(`Starting scan for ${id} (waited ${waitTime}ms). Concurrent: ${this.running.size}`);
+
+                // Run scan in background (no await here to keep the loop going)
+                runScan(id)
+                    .catch(err => {
+                        console.error(`Scan failed for ${id}:`, err);
+                        this.recordFailure(runningMetadata, err);
+                    })
+                    .finally(() => {
+                        const executionTime = Date.now() - runningMetadata.startedAt;
+                        this.running.delete(id);
+                        console.log(`Finished scan for ${id} (took ${executionTime}ms). Concurrent: ${this.running.size}`);
+                        this.process(); // Try to process next item
+                    });
+            }
+        } finally {
+            this.processing = false;
         }
-
-        this.processing = false;
     }
 
     private recordFailure(meta: RunningMetadata, error: unknown) {

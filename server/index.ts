@@ -18,6 +18,7 @@ import scanRoutes from './routes/scans.js';
 import categoryRoutes from './routes/categories.js';
 import settingsRoutes from './routes/settings.js';
 import proxyRoutes from './routes/proxy.js';
+import analyticsRoutes from './routes/analytics.js';
 
 const fastify = Fastify({
   logger: true
@@ -145,6 +146,7 @@ export const initApp = async () => {
     await fastify.register(categoryRoutes);
     await fastify.register(settingsRoutes);
     await fastify.register(proxyRoutes);
+    await fastify.register(analyticsRoutes);
 
     // Start Scheduler
     if (currentConfig.demoMode) {

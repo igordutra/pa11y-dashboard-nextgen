@@ -118,6 +118,10 @@ npm run prepare
 - **Multi-Step Scans**: Defined via actions (`wait`, `click`, `type`, `wait-for-url`) and processed sequentially in `runner.ts`.
     - **Iframe Support**: Actions like `click` and `type` support a special syntax to interact with elements inside iframes: `iframe_selector >>> element_selector` (e.g. `#my-iframe >>> .login-btn`).
 - **Focused Issue Snippets**: The scanner automatically crops screenshots to the bounding box of each identified issue (using `sharp`). These snippets are displayed in the UI and included in exported reports for easier remediation.
+- **Analytics Engine**:
+    - Aggregates data across all monitored targets using MongoDB aggregation pipelines.
+    - Tracks global health metrics, issue severity distribution, failing rule frequency, and category-wise performance.
+    - Provides a 30-day historical score trend for overall visibility.
 - **Accessibility Score**: Calculated using Lighthouse for the initial load and a custom rule-based deduction algorithm for intermediate steps (based on Pa11y issue count and impact).
 - **Demo & Read-Only Mode**:
     - `DEMO_MODE=true` disables background scans AND enforces read-only mode for all mutation APIs.
@@ -128,5 +132,5 @@ npm run prepare
     - **Puppeteer Sandbox**: Runs with the built-in sandbox enabled for better isolation; configurable via `PUPPETEER_NO_SANDBOX`.
 - **Startup Recovery**: The system automatically detects and resets URLs stuck in the `scanning` state back to `active` upon server restart.
     - **Timeout Enforcement**: A global timeout is enforced at the Puppeteer page level, synchronized with the user-defined scan timeout.
-    - **Atomic Status Updates**: The scanner re-validates the database state before final status updates to prevent race conditions during long-running audits.
-- **Scheduler**: Runs every 60 seconds to check for URLs where `lastScanAt` is older than the most recent cron schedule execution. Disabled if `DEMO_MODE=true`.
+    - **Atomic Status Updates**: The scanner re-validates the database state before final status updates to prevent race conditions during long-running audits. The background queue uses immediate flag setting and `try...finally` blocks to ensure `maxConcurrent` limits are strictly respected.
+- **Scheduler**: Runs every 60 seconds to check for URLs where `lastScanAt` is older than the most recent cron schedule execution. Disabled if `DEMO_MODE=true`. Includes a comprehensive unit test suite in `server/test/scheduler.test.ts`.

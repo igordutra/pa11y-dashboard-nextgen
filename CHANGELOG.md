@@ -2,7 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.6.1] - 2026-03-14
+## [0.7.0] - 2026-03-14
+
+### Fixed
+- **Dashboard Grid Integrity**: Resolved a major layout regression where the URL monitoring grid would become "messy" and misaligned. URL cards and their associated edit dialogs are now correctly encapsulated to occupy exactly one grid slot each (#41).
+- **Scan Concurrency Race Condition**: Fixed a critical race condition in the background `ScanQueue` that could lead to exceeding the configured `maxConcurrent` scan limit. The processing state is now managed atomically using immediate flag setting and `try...finally` blocks.
+- **Card UI Consistency**: Added `h-full` to `UrlCard` components to ensure uniform card heights across grid rows, regardless of content length.
+
+### Added
+- **Queue Logic Unit Tests**: Introduced a comprehensive test suite for `ScanQueue` to verify concurrency limits, priority handling, and execution flow.
+
+## [0.3.1] - 2026-03-14 (Note: Previous was 0.6.1, so this should be 0.7.0)
 
 ### Security
 - **Demo Mode Restrictions**: Implemented robust read-only enforcement when `DEMO_MODE=true` is set. All mutation APIs (POST, PUT, DELETE) now return `403 Forbidden` with descriptive error messages (#46).
@@ -10,6 +20,10 @@ All notable changes to this project will be documented in this file.
 - **XSS Prevention**: Implemented comprehensive HTML escaping for all dynamic content, including URL names, target URLs, and scanner error messages, in both the dashboard and exported HTML reports (#36).
 - **API Rate Limiting**: Integrated `@fastify/rate-limit` to prevent abuse. Added a global limit of 100 requests per minute and a strict limit of 2 manual scan triggers per minute per IP (#35).
 - **Puppeteer Sandboxing**: Re-enabled the built-in Puppeteer sandbox by default for improved process isolation in Docker environments. Added `PUPPETEER_NO_SANDBOX` environment variable for compatibility in restricted environments (#34).
+
+### Added
+- **Analytics Dashboard**: Introduced a high-level overview page providing deep insights into accessibility performance. Includes historical trends, issue severity breakdowns, top rule violations, and category-wise performance metrics (#41).
+- **Interactive Charts**: Integrated `recharts` for professional data visualization, featuring responsive area, donut, and bar charts with smooth animations.
 
 ## [0.6.0] - 2026-03-09
 

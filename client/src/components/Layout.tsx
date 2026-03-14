@@ -8,7 +8,8 @@ import {
     Menu, 
     X,
     ChevronRight,
-    MonitorPlay
+    MonitorPlay,
+    BarChart3
 } from 'lucide-react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { CategoriesManager, CategoryIcon } from './CategoriesManager';
@@ -51,6 +52,7 @@ export function Layout({ children }: LayoutProps) {
     const isSettings = location.pathname === '/settings';
     const isDashboard = location.pathname === '/' || location.pathname === '';
     const isJobs = location.pathname === '/jobs';
+    const isAnalytics = location.pathname === '/analytics';
     const activeCategory = searchParams.get('category');
 
     const { data: categories = [] } = useQuery<Category[]>({
@@ -84,6 +86,21 @@ export function Layout({ children }: LayoutProps) {
                     All URLs
                 </div>
                 {isDashboard && !activeCategory && <ChevronRight className="h-3 w-3 opacity-50" />}
+            </Link>
+
+            <Link to="/analytics"
+                className={`
+                    flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all
+                    ${isAnalytics
+                        ? 'bg-slate-800 text-white shadow-lg shadow-slate-200'
+                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}
+                `}
+            >
+                <div className="flex items-center gap-3">
+                    <BarChart3 className="h-4 w-4" />
+                    Analytics
+                </div>
+                {isAnalytics && <ChevronRight className="h-3 w-3 opacity-50" />}
             </Link>
 
             <Link to="/jobs"

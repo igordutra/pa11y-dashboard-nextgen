@@ -89,6 +89,7 @@ const UrlSchema = new Schema<IUrl>({
 }, { timestamps: true });
 
 export const UrlModel = mongoose.model<IUrl>('Url', UrlSchema);
+export * from './category.js';
 
 export interface IScanStep {
     stepName: string;
