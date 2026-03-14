@@ -63,6 +63,7 @@ export function UrlCard({ url }: UrlCardProps) {
     });
 
     const isReadonly = env?.readonly;
+    const isDemoMode = env?.demoMode;
 
     const scanMutation = useMutation({
         mutationFn: async () => {
@@ -269,7 +270,7 @@ export function UrlCard({ url }: UrlCardProps) {
                                     e.stopPropagation();
                                     scanMutation.mutate();
                                 }}
-                                disabled={scanMutation.isPending || url.status === 'scanning' || isReadonly}
+                                disabled={scanMutation.isPending || url.status === 'scanning' || (isReadonly && !isDemoMode)}
                             >
                                 {scanMutation.isPending || url.status === 'scanning' ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

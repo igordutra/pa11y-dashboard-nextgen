@@ -37,8 +37,8 @@ describe('Security Enhancements Tests', () => {
     }, 30000);
 
     describe('Demo Mode / Read-only restrictions (#46)', () => {
-        it('should return 403 for mutations when readonly is enabled', async () => {
-            // Force config to be readonly
+        it('should allow adding URLs but block other mutations in Demo Mode', async () => {
+            // Force config to be demo mode
             vi.mock('../config/index.js', async (importOriginal) => {
                 const actual = await importOriginal() as any;
                 return {
@@ -56,15 +56,34 @@ describe('Security Enhancements Tests', () => {
                 };
             });
 
-            // Re-import routes or re-init app might be needed if using mocking like this
-            // But since checkReadonly dynamic imports config, it should pick up the mock
-            
-            const res = await request(fastify.server)
+            // 1. Adding a URL should now succeed in Demo Mode (200 OK)
+            const addRes = await request(fastify.server)
                 .post('/api/urls')
-                .send({ url: 'https://example.com' });
+                .send({ url: 'https://demo-test.com', name: 'Demo Test' });
             
-            expect(res.status).toBe(403);
-            expect(res.body.message).toContain('Demo Mode');
+            expect(addRes.status).toBe(200);
+            const newId = addRes.body._id;
+
+            // 2. Triggering a scan should also succeed in Demo Mode (200 OK)
+            const scanRes = await request(fastify.server)
+                .post(`/api/urls/${newId}/scan`)
+                .send({});
+            expect(scanRes.status).toBe(200);
+
+            // 3. Deleting a URL should still be BLOCKED (403 Forbidden)
+            const deleteRes = await request(fastify.server)
+                .delete(`/api/urls/${newId}`);
+            
+            expect(deleteRes.status).toBe(403);
+            expect(deleteRes.body.message).toContain('Demo Mode');
+
+            // 4. Updating a URL should still be BLOCKED (403 Forbidden)
+            const updateRes = await request(fastify.server)
+                .put(`/api/urls/${newId}`)
+                .send({ name: 'Updated Name' });
+            
+            expect(updateRes.status).toBe(403);
+            expect(updateRes.body.message).toContain('Demo Mode');
         });
     });
 

@@ -6,12 +6,21 @@ import cronstrue from 'cronstrue';
 import { CronExpressionParser } from 'cron-parser';
 
 // Middleware to check if dashboard is in readonly mode
-const checkReadonly = async (_request: any, reply: any) => {
+const checkReadonly = async (request: any, reply: any) => {
     const { getConfig } = await import('../config/index.js');
     const currentConfig = getConfig();
+    
     if (currentConfig.readonly) {
+        // Special case: In Demo Mode, we allow users to trigger manual scans, 
+        // but not delete scan history.
+        const isTriggeringScan = request.method === 'POST' && request.url.endsWith('/scan');
+        
+        if (currentConfig.demoMode && isTriggeringScan) {
+            return; // Allow
+        }
+
         const message = currentConfig.demoMode 
-            ? 'Dashboard is in Demo Mode. Modifications are disabled.' 
+            ? 'Dashboard is in Demo Mode. Some modifications (like clearing history) are disabled.' 
             : 'Dashboard is in read-only mode.';
         reply.status(403).send({ error: 'Forbidden', message });
     }

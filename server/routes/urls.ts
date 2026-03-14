@@ -5,13 +5,20 @@ import { UrlModel, ScanModel } from '../models/index.js';
 import { overridesSchema } from '../types/schemas.js';
 
 // Middleware to check if dashboard is in readonly mode
-// In a real refactor, this would be in a separate plugin or decorator
-const checkReadonly = async (_request: any, reply: any) => {
+const checkReadonly = async (request: any, reply: any) => {
     const { getConfig } = await import('../config/index.js');
     const currentConfig = getConfig();
+    
     if (currentConfig.readonly) {
+        // Special case: In Demo Mode, we allow users to ADD new URLs, but not delete or update existing ones
+        const isAddingUrl = request.method === 'POST' && request.url === '/api/urls';
+        
+        if (currentConfig.demoMode && isAddingUrl) {
+            return; // Allow
+        }
+
         const message = currentConfig.demoMode 
-            ? 'Dashboard is in Demo Mode. Modifications are disabled.' 
+            ? 'Dashboard is in Demo Mode. Some modifications (like editing or deleting existing targets) are disabled.' 
             : 'Dashboard is in read-only mode.';
         reply.status(403).send({ error: 'Forbidden', message });
     }

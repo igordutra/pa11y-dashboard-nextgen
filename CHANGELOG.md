@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.2] - 2026-03-14
+
+### Changed
+- **Demo Mode Flexibility**: Users can now add new URLs and trigger manual scans even when `DEMO_MODE=true` is set. This allows for a more interactive "Try it out" experience.
+- **Safety Enforcement**: All other destructive or sensitive operations (updating/deleting existing targets, modifying categories, or changing global settings) remain strictly blocked in Demo Mode.
+
 ## [0.7.1] - 2026-03-14
 
 ### Fixed

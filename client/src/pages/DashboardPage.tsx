@@ -28,6 +28,7 @@ export function DashboardPage() {
     });
 
     const isReadonly = env?.readonly;
+    const isDemoMode = env?.demoMode;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-10">
@@ -55,9 +56,9 @@ export function DashboardPage() {
                     <AddUrlModal 
                         triggerButton={
                             <Button 
-                                disabled={isReadonly}
+                                disabled={isReadonly && !isDemoMode}
                                 className="rounded-xl font-bold px-5 bg-slate-800 hover:bg-slate-900 transition-all active:scale-95 shadow-lg shadow-slate-200 border-none disabled:opacity-50 disabled:cursor-not-allowed"
-                                title={isReadonly ? "Adding URLs is disabled in read-only/demo mode" : ""}
+                                title={isReadonly && !isDemoMode ? "Adding URLs is disabled in read-only mode" : ""}
                             >
                                 <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
                                 Add URL
