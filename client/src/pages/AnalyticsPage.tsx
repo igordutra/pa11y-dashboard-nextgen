@@ -259,7 +259,7 @@ export function AnalyticsPage() {
                                     axisLine={false} 
                                     tickLine={false} 
                                     tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
-                                    formatter={(value: string) => format(new Date(value), 'MMM dd')}
+                                    tickFormatter={(value: string) => format(new Date(value), 'MMM dd')}
                                 />
                                 <YAxis 
                                     domain={[0, 100]} 
