@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - 2026-03-14
+
+### Security
+- **Demo Mode Restrictions**: Implemented robust read-only enforcement when `DEMO_MODE=true` is set. All mutation APIs (POST, PUT, DELETE) now return `403 Forbidden` with descriptive error messages (#46).
+- **Frontend Read-Only UI**: The dashboard now automatically detects read-only status and disables all modification buttons with informative tooltips. Added a "Demo Mode" header banner for clear status visibility.
+- **XSS Prevention**: Implemented comprehensive HTML escaping for all dynamic content, including URL names, target URLs, and scanner error messages, in both the dashboard and exported HTML reports (#36).
+- **API Rate Limiting**: Integrated `@fastify/rate-limit` to prevent abuse. Added a global limit of 100 requests per minute and a strict limit of 2 manual scan triggers per minute per IP (#35).
+- **Puppeteer Sandboxing**: Re-enabled the built-in Puppeteer sandbox by default for improved process isolation in Docker environments. Added `PUPPETEER_NO_SANDBOX` environment variable for compatibility in restricted environments (#34).
+
 ## [0.6.0] - 2026-03-09
 
 ### Added

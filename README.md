@@ -4,7 +4,7 @@ Pa11y Dashboard NextGen is a modern web interface for the [Pa11y][pa11y] and [Li
 
 This project was built and evolved with the assistance of **Gemini CLI**, an AI-powered agent for software engineering.
 
-![Version](https://img.shields.io/badge/version-0.6.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.6.1-blue.svg)
 [![Node.js version support](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org/)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
