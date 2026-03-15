@@ -46,4 +46,91 @@ export default async function usersRoutes(fastify: FastifyInstance) {
 
         return { success: true };
     });
+
+    // ADMIN: List all users
+    f.get('/api/users', {
+        preValidation: config.authEnabled ? [f.requireRole(['admin'])] : [],
+        schema: {
+            description: 'List all registered users (Admin only)',
+            tags: ['Users'],
+            response: {
+                200: z.array(z.object({
+                    _id: z.string(),
+                    email: z.string(),
+                    role: z.string(),
+                    provider: z.string(),
+                    createdAt: z.any()
+                }))
+            }
+        }
+    }, async () => {
+        const users = await UserModel.find().sort({ createdAt: -1 });
+        return users.map(u => ({
+            ...u.toObject(),
+            _id: u._id.toString()
+        }));
+    });
+
+    // ADMIN: Update user role
+    f.put('/api/users/:id/role', {
+        preValidation: config.authEnabled ? [f.requireRole(['admin'])] : [],
+        schema: {
+            description: 'Update user role (Admin only)',
+            tags: ['Users'],
+            params: z.object({ id: z.string() }),
+            body: z.object({
+                role: z.enum(['admin', 'editor', 'viewer'])
+            }),
+            response: {
+                200: z.object({ success: z.boolean() }),
+                400: z.object({ error: z.string() }),
+                403: z.object({ error: z.string() }),
+                404: z.object({ error: z.string() })
+            }
+        }
+    }, async (request, reply) => {
+        const { id } = request.params;
+        const { role } = request.body;
+
+        // Prevent changing own role
+        if (id === request.user.userId) {
+            return reply.status(400).send({ error: 'You cannot change your own role' });
+        }
+
+        const user = await UserModel.findByIdAndUpdate(id, { role }, { new: true });
+        if (!user) {
+            return reply.status(404).send({ error: 'User not found' });
+        }
+
+        return { success: true };
+    });
+
+    // ADMIN: Delete user
+    f.delete('/api/users/:id', {
+        preValidation: config.authEnabled ? [f.requireRole(['admin'])] : [],
+        schema: {
+            description: 'Delete user account (Admin only)',
+            tags: ['Users'],
+            params: z.object({ id: z.string() }),
+            response: {
+                200: z.object({ success: z.boolean() }),
+                400: z.object({ error: z.string() }),
+                404: z.object({ error: z.string() })
+            }
+        }
+    }, async (request, reply) => {
+        const { id } = request.params;
+
+        // Prevent deleting yourself
+        if (id === request.user.userId) {
+            return reply.status(400).send({ error: 'You cannot delete your own account' });
+        }
+
+        const user = await UserModel.findByIdAndDelete(id);
+        if (!user) {
+            return reply.status(404).send({ error: 'User not found' });
+        }
+
+        return { success: true };
+    });
 }

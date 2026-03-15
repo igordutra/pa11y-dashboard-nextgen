@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Save, RotateCcw, Server, Eye, Monitor, Clock, Shield, Info, CheckCircle2, Loader2, Activity } from 'lucide-react';
+import { Save, RotateCcw, Server, Eye, Monitor, Clock, Shield, Info, CheckCircle2, Loader2, Activity, Users, Trash2, UserCog } from 'lucide-react';
 import api from '../lib/api';
+import { useAuth } from '../lib/AuthContext';
+
+interface IUser {
+    _id: string;
+    email: string;
+    role: 'admin' | 'editor' | 'viewer';
+    provider: string;
+    createdAt: string;
+}
 
 interface Settings {
     _id: string;
@@ -28,9 +37,13 @@ interface Environment {
 }
 
 export function SettingsPage() {
+    const { user: currentUser } = useAuth();
+    const [activeTab, setActiveTab] = useState<'global' | 'users'>('global');
     const [settings, setSettings] = useState<Settings | null>(null);
     const [env, setEnv] = useState<Environment | null>(null);
+    const [users, setUsers] = useState<IUser[]>([]);
     const [loading, setLoading] = useState(true);
+    const [usersLoading, setUsersLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [ignoreInput, setIgnoreInput] = useState('');
@@ -38,8 +51,10 @@ export function SettingsPage() {
     const [headerVal, setHeaderVal] = useState('');
 
     const isReadonly = env?.readonly;
+    const isAdmin = currentUser?.role === 'admin';
 
     useEffect(() => {
+        setLoading(true);
         Promise.all([
             api.get(`/api/settings`).then(r => r.data),
             api.get(`/api/environment`).then(r => r.data)
@@ -52,6 +67,46 @@ export function SettingsPage() {
             setLoading(false);
         });
     }, []);
+
+    useEffect(() => {
+        if (activeTab === 'users' && isAdmin) {
+            fetchUsers();
+        }
+    }, [activeTab, isAdmin]);
+
+    const fetchUsers = async () => {
+        setUsersLoading(true);
+        try {
+            const { data } = await api.get('/api/users');
+            setUsers(data);
+        } catch (err) {
+            console.error('Failed to fetch users', err);
+        } finally {
+            setUsersLoading(false);
+        }
+    };
+
+    const handleRoleChange = async (userId: string, newRole: string) => {
+        try {
+            await api.put(`/api/users/${userId}/role`, { role: newRole });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            setUsers(users.map(u => u._id === userId ? { ...u, role: newRole as any } : u));
+        } catch (err) {
+            console.error('Failed to update role', err);
+            alert('Failed to update user role');
+        }
+    };
+
+    const handleDeleteUser = async (userId: string) => {
+        if (!confirm('Are you sure you want to delete this user account?')) return;
+        try {
+            await api.delete(`/api/users/${userId}`);
+            setUsers(users.filter(u => u._id !== userId));
+        } catch (err) {
+            console.error('Failed to delete user', err);
+            alert('Failed to delete user');
+        }
+    };
 
     const save = async () => {
         if (!settings || isReadonly) return;
@@ -133,29 +188,58 @@ export function SettingsPage() {
     return (
         <div className="max-w-4xl mx-auto space-y-8">
             {/* Header */}
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-end">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-                    <p className="text-muted-foreground mt-1">Global Pa11y configuration — defaults for all scans</p>
+                    <p className="text-muted-foreground mt-1">
+                        {activeTab === 'global' ? 'Global Pa11y configuration — defaults for all scans' : 'Manage registered users and permissions'}
+                    </p>
                 </div>
-                <div className="flex gap-2">
-                    <button onClick={reset}
-                        disabled={isReadonly}
-                        aria-label="Reset all settings to default values"
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                        <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                        Reset Defaults
-                    </button>
-                    <button onClick={save} disabled={saving || isReadonly}
-                        aria-busy={saving}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                        {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : saved ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : <Save className="h-4 w-4" aria-hidden="true" />}
-                        {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Settings'}
-                    </button>
-                </div>
+                {activeTab === 'global' && (
+                    <div className="flex gap-2">
+                        <button onClick={reset}
+                            disabled={isReadonly}
+                            aria-label="Reset all settings to default values"
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                            Reset Defaults
+                        </button>
+                        <button onClick={save} disabled={saving || isReadonly}
+                            aria-busy={saving}
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : saved ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : <Save className="h-4 w-4" aria-hidden="true" />}
+                            {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Settings'}
+                        </button>
+                    </div>
+                )}
             </div>
 
-            {/* Runner */}
+            {/* Tabs */}
+            {isAdmin && (
+                <div className="flex border-b border-slate-200">
+                    <button
+                        onClick={() => setActiveTab('global')}
+                        className={`px-6 py-3 text-sm font-bold transition-all border-b-2 -mb-px ${activeTab === 'global' 
+                            ? 'border-primary text-primary' 
+                            : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+                    >
+                        Global Settings
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('users')}
+                        className={`px-6 py-3 text-sm font-bold transition-all border-b-2 -mb-px flex items-center gap-2 ${activeTab === 'users' 
+                            ? 'border-primary text-primary' 
+                            : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+                    >
+                        <Users className="h-4 w-4" />
+                        User Management
+                    </button>
+                </div>
+            )}
+
+            {activeTab === 'global' ? (
+                <>
+                    {/* Runner */}
             <Section icon={<Server className="h-5 w-5" aria-hidden="true" />} title="Test Runner" description="Choose which accessibility testing engine(s) to use">
                 <div className="flex gap-3">
                     {['axe', 'htmlcs'].map(runner => (
@@ -330,6 +414,88 @@ export function SettingsPage() {
                         <InfoRow label="Supported Standards" value={env.availableStandards.join(', ')} />
                     </div>
                 </Section>
+            )}
+                </>
+            ) : (
+                /* User Management Tab */
+                <div className="space-y-6">
+                    <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+                        <table className="w-full text-sm">
+                            <thead className="bg-muted/50 border-b">
+                                <tr>
+                                    <th className="px-6 py-4 text-left font-bold text-slate-700 uppercase tracking-wider text-[10px]">User</th>
+                                    <th className="px-6 py-4 text-left font-bold text-slate-700 uppercase tracking-wider text-[10px]">Role</th>
+                                    <th className="px-6 py-4 text-left font-bold text-slate-700 uppercase tracking-wider text-[10px]">Provider</th>
+                                    <th className="px-6 py-4 text-left font-bold text-slate-700 uppercase tracking-wider text-[10px]">Joined</th>
+                                    <th className="px-6 py-4 text-right font-bold text-slate-700 uppercase tracking-wider text-[10px]">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                                {usersLoading ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-12 text-center">
+                                            <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                                        </td>
+                                    </tr>
+                                ) : users.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                                            No users found.
+                                        </td>
+                                    </tr>
+                                ) : users.map(u => (
+                                    <tr key={u._id} className="hover:bg-slate-50 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="font-bold text-slate-900">{u.email}</div>
+                                            <div className="text-[10px] text-muted-foreground font-mono">{u._id}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <select
+                                                value={u.role}
+                                                disabled={u._id === currentUser?.id}
+                                                onChange={(e) => handleRoleChange(u._id, e.target.value)}
+                                                className="bg-white border border-input rounded px-2 py-1 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                                            >
+                                                <option value="viewer">Viewer</option>
+                                                <option value="editor">Editor</option>
+                                                <option value="admin">Admin</option>
+                                            </select>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600">
+                                                {u.provider}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-muted-foreground">
+                                            {new Date(u.createdAt).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <button
+                                                onClick={() => handleDeleteUser(u._id)}
+                                                disabled={u._id === currentUser?.id}
+                                                className="text-muted-foreground hover:text-red-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                                title="Delete user"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                        <UserCog className="h-5 w-5 text-blue-600 mt-0.5" />
+                        <div className="text-sm text-blue-800">
+                            <p className="font-bold mb-1 text-blue-900">User Management Tips</p>
+                            <ul className="list-disc ml-4 space-y-1 text-blue-800/80">
+                                <li>You cannot change your own role or delete your own account.</li>
+                                <li>New OAuth users are automatically assigned the <strong>viewer</strong> role.</li>
+                                <li>Assigning <strong>editor</strong> allows users to manage targets but not system settings.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

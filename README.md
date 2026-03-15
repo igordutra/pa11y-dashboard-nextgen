@@ -72,6 +72,8 @@ Secure your dashboard with enterprise-grade authentication:
 - **Setup CLI**: Simple bootstrap process to create the first admin user and generate secrets.
 - **Stateless Session**: JWT-based session management for high scalability and security.
 
+See the [Authentication & Identity Management](docs/AUTHENTICATION.md) guide for more details.
+
 ### 🎭 Scripted Multi-Step Actions
 Test complex user journeys, not just landing pages. The script editor supports:
 - **`click`**: Interact with buttons, tabs, or menus. Supports piercing iframes with `iframe_selector >>> element_selector`.
