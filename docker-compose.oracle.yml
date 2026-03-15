@@ -41,8 +41,7 @@ services:
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
       - DEMO_MODE=true
       - TRUST_PROXY=true
-    env_file:
-      - .env
+      - AUTH_ENABLED=false
     cap_add:
       - SYS_ADMIN
     restart: always
