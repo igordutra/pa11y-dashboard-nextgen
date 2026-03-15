@@ -131,8 +131,14 @@ export default async function proxyRoutes(fastify: FastifyInstance) {
                   // Tell the UI we are navigating
                   sendAction('navigate', '', absoluteUrl);
                   
+                  // Preserve token in query string if present
+                  var params = new URLSearchParams(window.location.search);
+                  var token = params.get('token');
+                  var nextUrl = '/api/proxy?url=' + encodeURIComponent(absoluteUrl);
+                  if (token) nextUrl += '&token=' + token;
+
                   // Update the iframe location to the new proxied URL
-                  window.location.href = '/api/proxy?url=' + encodeURIComponent(absoluteUrl);
+                  window.location.href = nextUrl;
                 } 
                 // Note: We no longer preventDefault on buttons. Many modern sites (like BBC's cookie banner)
                 // use buttons heavily for local state changes. Preventing default breaks them.

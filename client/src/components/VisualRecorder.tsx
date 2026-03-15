@@ -50,7 +50,8 @@ export function VisualRecorder({ targetUrl, onActionRecorded }: VisualRecorderPr
     }, [onActionRecorded]);
 
     const apiUrl = import.meta.env.VITE_API_URL || '';
-    const proxyUrl = `${apiUrl}/api/proxy?url=${encodeURIComponent(currentUrl)}`;
+    const token = localStorage.getItem('pa11y_token');
+    const proxyUrl = `${apiUrl}/api/proxy?url=${encodeURIComponent(currentUrl)}${token ? `&token=${token}` : ''}`;
 
     return (
         <div className="flex flex-col h-full bg-slate-50 border rounded-lg overflow-hidden">

@@ -7,6 +7,7 @@ Pa11y Dashboard NextGen features a robust, secure authentication layer with Role
 - [Roles and Permissions](#roles-and-permissions)
 - [Setup Wizard](#setup-wizard)
 - [Local Authentication](#local-authentication)
+- [User Management (Admin Only)](#user-management-admin-only)
 - [OAuth2 Integration](#oauth2-integration)
 - [Admin Bootstrapping](#admin-bootstrapping)
 
@@ -16,6 +17,7 @@ The system uses a **stateless JWT (JSON Web Token)** architecture:
 - **Stateless**: The server does not store session data. All identity information is encoded in the token.
 - **Security**: Local passwords are hashed using `bcryptjs`. JWTs are signed using a `JWT_SECRET` defined in the environment.
 - **Interceptors**: The frontend automatically attaches the token to every API request using an Axios interceptor.
+- **Iframe Support**: For the Visual Recorder, the token is passed via the `token` query parameter, as browsers do not send custom headers for iframe sources.
 
 ## Roles and Permissions
 
@@ -53,7 +55,7 @@ This script will guide you through:
 
 Administrators have access to a dedicated management interface within the Settings page:
 - **List Users**: View all registered accounts, their roles, and auth providers.
-- **Invite/Create Users**: Create new accounts with a temporary password.
+- **Invite/Create Users**: Create new accounts with an initial password.
 - **Change Roles**: Promote or demote users between `admin`, `editor`, and `viewer`.
 - **Delete Accounts**: Permanently remove user access.
 

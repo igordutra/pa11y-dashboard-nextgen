@@ -60,7 +60,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
 
     // PUT update global settings
     f.put('/api/settings', {
-        preValidation: config.authEnabled ? [f.requireRole(['admin', 'editor'])] : [],
+        preValidation: config.authEnabled ? [f.requireRole(['admin'])] : [],
         preHandler: checkReadonly,
         schema: {
             description: 'Modify global configuration parameters. Changes apply to all future scans.',

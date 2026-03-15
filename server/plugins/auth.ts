@@ -142,6 +142,10 @@ export default fp(async (fastify) => {
 
     fastify.decorate('verifyAuth', async (request: FastifyRequest, reply: FastifyReply) => {
       try {
+        // Support token in query string for iframes/media (e.g. /api/proxy?token=...)
+        if (!request.headers.authorization && (request.query as any).token) {
+          request.headers.authorization = `Bearer ${(request.query as any).token}`;
+        }
         await request.jwtVerify();
       } catch {
         reply.status(401).send({ error: 'Unauthorized' });
@@ -151,6 +155,10 @@ export default fp(async (fastify) => {
     fastify.decorate('requireRole', (roles: ('admin' | 'editor' | 'viewer')[]) => {
       return async (request: FastifyRequest, reply: FastifyReply) => {
         try {
+          // Support token in query string for iframes/media
+          if (!request.headers.authorization && (request.query as any).token) {
+            request.headers.authorization = `Bearer ${(request.query as any).token}`;
+          }
           await request.jwtVerify();
           if (!roles.includes(request.user.role)) {
             reply.status(403).send({ error: 'Forbidden', message: 'Insufficient permissions' });
