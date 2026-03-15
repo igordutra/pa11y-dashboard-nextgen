@@ -23,7 +23,9 @@ function App() {
                   <Route path="/" element={<DashboardPage />} />
                   <Route path="/analytics" element={<AnalyticsPage />} />
                   <Route path="/report/:id" element={<ReportPage />} />
-                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                    <Route path="/settings" element={<SettingsPage />} />
+                  </Route>
                   <Route path="/jobs" element={<JobMonitoringPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                 </Routes>

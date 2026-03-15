@@ -152,37 +152,41 @@ export function Layout({ children }: LayoutProps) {
                 </div>
             )}
 
-            <div className="mt-2">
-                <CategoriesManager
-                    trigger={
-                        <button 
-                            disabled={env?.readonly}
-                            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-blue-600 hover:bg-blue-50 transition-all w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                            title={env?.readonly ? "Managing categories is disabled in read-only/demo mode" : ""}
-                        >
-                            <Plus className="h-4 w-4" />
-                            {categories.length === 0 ? 'Add Category' : 'Manage Categories'}
-                        </button>
-                    }
-                />
-            </div>
+            {user?.role !== 'viewer' && (
+                <div className="mt-2">
+                    <CategoriesManager
+                        trigger={
+                            <button 
+                                disabled={env?.readonly}
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-blue-600 hover:bg-blue-50 transition-all w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                                title={env?.readonly ? "Managing categories is disabled in read-only/demo mode" : ""}
+                            >
+                                <Plus className="h-4 w-4" />
+                                {categories.length === 0 ? 'Add Category' : 'Manage Categories'}
+                            </button>
+                        }
+                    />
+                </div>
+            )}
 
             <div className="flex-1" />
 
-            <Link to="/settings"
-                className={`
-                    flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all mb-4
-                    ${isSettings 
-                        ? 'bg-slate-800 text-white shadow-lg shadow-slate-200' 
-                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}
-                `}
-            >
-                <div className="flex items-center gap-3">
-                    <Settings className="h-4 w-4" />
-                    Settings
-                </div>
-                {isSettings && <ChevronRight className="h-3 w-3 opacity-50" />}
-            </Link>
+            {user?.role === 'admin' && (
+                <Link to="/settings"
+                    className={`
+                        flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all mb-4
+                        ${isSettings 
+                            ? 'bg-slate-800 text-white shadow-lg shadow-slate-200' 
+                            : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}
+                    `}
+                >
+                    <div className="flex items-center gap-3">
+                        <Settings className="h-4 w-4" />
+                        Settings
+                    </div>
+                    {isSettings && <ChevronRight className="h-3 w-3 opacity-50" />}
+                </Link>
+            )}
 
             <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
                 <Link to="/profile" className="flex flex-col overflow-hidden px-2 hover:bg-slate-100 rounded-xl py-1 transition-colors flex-1" title="Go to Profile">

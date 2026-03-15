@@ -9,8 +9,19 @@ import { MemoryRouter } from 'react-router-dom';
 vi.mock('../lib/api', () => ({
     default: {
         post: vi.fn(),
-        delete: vi.fn()
+        delete: vi.fn(),
+        get: vi.fn().mockResolvedValue({ data: {} })
     }
+}));
+
+// Mock Auth Context
+vi.mock('../lib/AuthContext', () => ({
+    useAuth: () => ({
+        user: { id: 'admin', email: 'admin@test.local', role: 'admin' },
+        loading: false,
+        login: vi.fn(),
+        logout: vi.fn()
+    })
 }));
 
 const queryClient = new QueryClient({
