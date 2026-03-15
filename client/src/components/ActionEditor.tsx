@@ -4,7 +4,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Trash2, Plus, ArrowUp, ArrowDown, MonitorPlay } from 'lucide-react';
 import { Action } from '../types';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from './ui/dialog';
 import { VisualRecorder } from './VisualRecorder';
 
 interface ActionEditorProps {
@@ -60,14 +60,23 @@ export function ActionEditor({ actions, onChange, targetUrl }: ActionEditorProps
                                     <MonitorPlay className="mr-2 h-4 w-4" aria-hidden="true" /> Visual Record
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
-                                <DialogHeader>
-                                    <DialogTitle>Visual Script Recorder</DialogTitle>
-                                    <DialogDescription>
-                                        Interact with {targetUrl} to automatically generate script actions.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="flex-1 mt-2 min-h-0">
+                            <DialogContent className="max-w-none w-screen h-[100dvh] flex flex-col p-0 border-none rounded-none">
+                                <div className="bg-slate-800 p-4 text-white flex items-center justify-between flex-shrink-0">
+                                    <div>
+                                        <DialogTitle className="text-xl font-black tracking-tight text-white">Visual Script Recorder</DialogTitle>
+                                        <DialogDescription className="text-slate-400 font-medium text-xs">
+                                            Interact with {targetUrl} to automatically generate script actions.
+                                        </DialogDescription>
+                                    </div>
+                                    <Button 
+                                        variant="ghost" 
+                                        onClick={() => setIsRecorderOpen(false)}
+                                        className="text-slate-400 hover:text-white hover:bg-slate-700 rounded-xl h-10 w-10 p-0"
+                                    >
+                                        <Plus className="h-6 w-6 rotate-45" />
+                                    </Button>
+                                </div>
+                                <div className="flex-1 min-h-0 bg-slate-50">
                                     <VisualRecorder targetUrl={targetUrl} onActionRecorded={handleActionRecorded} />
                                 </div>
                             </DialogContent>

@@ -112,7 +112,7 @@ export function AddUrlModal({ triggerButton }: AddUrlModalProps) {
                         </Button>
                     </div>
 
-                    <div className="py-2">
+                    <div className="py-2 max-h-[60vh] overflow-y-auto px-1">
                         {activeTab === 'basic' ? (
                             <div id="add-basic-panel" role="tabpanel" aria-labelledby="add-basic-tab" className="grid gap-4">
                                 <div className="grid grid-cols-4 items-center gap-4">

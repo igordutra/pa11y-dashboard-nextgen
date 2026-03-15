@@ -4,7 +4,9 @@ import api from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { User, Shield, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { User, Shield, CheckCircle2, Loader2, AlertCircle, Mail, Lock } from 'lucide-react';
+import { PageHeading } from '../components/ui/PageHeading';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 
 export function ProfilePage() {
     const { user } = useAuth();
@@ -40,104 +42,132 @@ export function ProfilePage() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-                <p className="text-muted-foreground mt-1">Manage your account settings</p>
-            </div>
+        <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+            <PageHeading 
+                title="Profile" 
+                description="Manage your account settings and security preferences"
+            />
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-8 lg:grid-cols-3">
                 {/* User Info */}
-                <div className="rounded-xl border bg-card p-6 shadow-sm">
-                    <div className="flex items-center gap-2 mb-4">
-                        <User className="h-5 w-5 text-primary" />
-                        <h2 className="text-lg font-semibold">Account Details</h2>
-                    </div>
-                    <div className="space-y-4">
-                        <div>
-                            <Label className="text-muted-foreground">Email</Label>
-                            <div className="font-medium mt-1">{user?.email}</div>
+                <Card className="lg:col-span-1 border-none shadow-md shadow-slate-200/50 rounded-3xl overflow-hidden">
+                    <CardHeader className="bg-slate-800 text-white p-8">
+                        <div className="bg-blue-500/20 p-3 rounded-2xl w-fit mb-4">
+                            <User className="h-6 w-6 text-blue-400" />
                         </div>
-                        <div>
-                            <Label className="text-muted-foreground">Role</Label>
-                            <div className="mt-1 flex items-center gap-2">
-                                <span className="uppercase tracking-wider text-xs font-bold bg-slate-100 px-2 py-1 rounded-md">
-                                    {user?.role}
-                                </span>
-                                {user?.role === 'admin' && <Shield className="h-4 w-4 text-blue-600" />}
+                        <CardTitle className="text-2xl font-black tracking-tight text-white">Account Details</CardTitle>
+                        <CardDescription className="text-slate-400 font-medium">Your current identity and role</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-8 space-y-6 bg-white">
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-black text-slate-400 uppercase tracking-widest block">Email Address</Label>
+                            <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-100 font-bold text-slate-700 overflow-hidden">
+                                <Mail className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                                <span className="truncate">{user?.email}</span>
                             </div>
                         </div>
-                    </div>
-                </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-black text-slate-400 uppercase tracking-widest block">System Role</Label>
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div className="flex items-center gap-3 font-bold text-slate-700">
+                                    <Shield className={`h-4 w-4 ${user?.role === 'admin' ? 'text-blue-600' : 'text-slate-400'}`} />
+                                    <span className="capitalize">{user?.role}</span>
+                                </div>
+                                {user?.role === 'admin' && (
+                                    <span className="text-[10px] font-black uppercase tracking-widest bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                                        Superuser
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* Change Password */}
-                <div className="rounded-xl border bg-card p-6 shadow-sm">
-                    <div className="flex items-center gap-2 mb-4">
-                        <Shield className="h-5 w-5 text-primary" />
-                        <h2 className="text-lg font-semibold">Change Password</h2>
-                    </div>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {status === 'error' && (
-                            <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">
-                                <AlertCircle className="h-4 w-4" />
-                                {message}
+                <Card className="lg:col-span-2 border-none shadow-xl shadow-slate-200/40 rounded-3xl overflow-hidden">
+                    <CardHeader className="p-8 border-b border-slate-50">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-slate-100 rounded-xl text-slate-600">
+                                <Lock className="h-5 w-5" />
                             </div>
-                        )}
-                        {status === 'success' && (
-                            <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-3 rounded-lg border border-green-100">
-                                <CheckCircle2 className="h-4 w-4" />
-                                {message}
+                            <div>
+                                <CardTitle className="text-xl font-black tracking-tight text-slate-800">Change Password</CardTitle>
+                                <CardDescription className="font-medium">Update your local login credentials</CardDescription>
                             </div>
-                        )}
-
-                        <div className="space-y-2">
-                            <Label htmlFor="currentPassword">Current Password</Label>
-                            <Input
-                                id="currentPassword"
-                                type="password"
-                                value={currentPassword}
-                                onChange={(e) => setCurrentPassword(e.target.value)}
-                                required
-                            />
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="newPassword">New Password</Label>
-                            <Input
-                                id="newPassword"
-                                type="password"
-                                minLength={6}
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                            <Input
-                                id="confirmPassword"
-                                type="password"
-                                minLength={6}
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <Button 
-                            type="submit" 
-                            disabled={status === 'loading'}
-                            className="w-full"
-                        >
-                            {status === 'loading' ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Updating...
-                                </>
-                            ) : (
-                                'Update Password'
+                    </CardHeader>
+                    <CardContent className="p-8">
+                        <form onSubmit={handleSubmit} className="max-w-md space-y-6">
+                            {status === 'error' && (
+                                <div className="flex items-center gap-3 text-sm font-bold text-rose-600 bg-rose-50 p-4 rounded-2xl border border-rose-100 animate-in slide-in-from-top-2">
+                                    <AlertCircle className="h-5 w-5" />
+                                    {message}
+                                </div>
                             )}
-                        </Button>
-                    </form>
-                </div>
+                            {status === 'success' && (
+                                <div className="flex items-center gap-3 text-sm font-bold text-emerald-600 bg-emerald-50 p-4 rounded-2xl border border-emerald-100 animate-in slide-in-from-top-2">
+                                    <CheckCircle2 className="h-5 w-5" />
+                                    {message}
+                                </div>
+                            )}
+
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="currentPassword" title="Current password is required to authorize changes">Current Password</Label>
+                                    <Input
+                                        id="currentPassword"
+                                        type="password"
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        required
+                                        className="h-12 rounded-xl bg-slate-50 border-slate-200 font-bold focus:ring-blue-500/20"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="newPassword">New Password</Label>
+                                        <Input
+                                            id="newPassword"
+                                            type="password"
+                                            minLength={6}
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                            required
+                                            className="h-12 rounded-xl bg-slate-50 border-slate-200 font-bold focus:ring-blue-500/20"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                                        <Input
+                                            id="confirmPassword"
+                                            type="password"
+                                            minLength={6}
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            required
+                                            className="h-12 rounded-xl bg-slate-50 border-slate-200 font-bold focus:ring-blue-500/20"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <Button 
+                                type="submit" 
+                                disabled={status === 'loading'}
+                                className="w-full h-12 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold shadow-lg shadow-slate-200"
+                            >
+                                {status === 'loading' ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Updating...
+                                    </>
+                                ) : (
+                                    'Update Password'
+                                )}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );
