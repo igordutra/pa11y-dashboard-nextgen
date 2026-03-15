@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-03-15
+
+### Added
+- **Authentication & RBAC**: Implemented a secure authentication layer using JWT and Role-Based Access Control.
+- **Admin User Management**: New dashboard interface for administrators to list users, update roles, and delete accounts.
+- **Multi-Provider OAuth**: Added support for GitHub, Google, Auth0, and Keycloak identity providers.
+- **Setup Wizard**: Interactive CLI tool (`npm run setup`) to configure the environment, authentication, and bootstrap the initial admin account.
+- **User Profile**: Dedicated page for users to manage their credentials and security settings.
+- **Automatic Admin Bootstrap**: System automatically generates a temporary admin account on first start if no admins exist.
+
+### Fixed
+- **Visual Script Recorder**: Fixed authentication issues in iframes and enabled full-screen recording mode.
+- **Sidebar UX**: Redesigned navigation to keep settings and user controls fixed at the bottom.
+- **GitHub OAuth Stability**: Resolved "Invalid state" errors on localhost by implementing unique cookie names.
+- **UI Polish**: Standardized page headings, spacing, and dialog layouts across the entire dashboard.
+
+### Security
+- **Stateless Sessions**: Transitioned to secure, signed JWT tokens for all API requests.
+- **Protected Routes**: All mutation and administrative routes are now strictly guarded by role-based decorators.
+
 ## [0.7.2] - 2026-03-14
 
 ### Changed
