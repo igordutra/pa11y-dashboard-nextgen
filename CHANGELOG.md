@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.2] - 2026-03-15
+
+### Fixed
+- **Sidebar UX Polish**: Refactored the navigation layout to keep "Settings" and "User Info" permanently fixed at the bottom of the viewport.
+- **Guest Identity Privacy**: Ensured that the placeholder "guest@demo.local" information is hidden when authentication is disabled, providing a cleaner interface for public demos.
+
 ## [0.8.1] - 2026-03-15
 
 ### Fixed

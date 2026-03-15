@@ -172,7 +172,7 @@ export function Layout({ children }: LayoutProps) {
     );
 
     const bottomNav = (
-        <div className="flex flex-col gap-2 pt-4 bg-slate-50/50">
+        <div className="flex flex-col gap-2 pt-4 bg-slate-50 mt-auto border-t border-slate-100">
             {user?.role === 'admin' && (
                 <Link to="/settings"
                     className={`
@@ -190,9 +190,9 @@ export function Layout({ children }: LayoutProps) {
                 </Link>
             )}
 
-            {env?.authEnabled && (
-                <div className="pt-4 border-t border-slate-200 flex items-center justify-between pb-2">
-                    <Link to="/profile" className="flex flex-col overflow-hidden px-2 hover:bg-slate-100 rounded-xl py-1 transition-colors flex-1" title="Go to Profile">
+            {user && user.id !== 'guest' && (
+                <div className="flex items-center justify-between pb-2 px-2">
+                    <Link to="/profile" className="flex flex-col overflow-hidden hover:bg-slate-100 rounded-xl py-1 px-2 transition-colors flex-1" title="Go to Profile">
                         <span className="text-xs font-bold text-slate-900 truncate">{user?.email}</span>
                         <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{user?.role}</span>
                     </Link>
@@ -218,19 +218,21 @@ export function Layout({ children }: LayoutProps) {
             )}
             <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
                 {/* Desktop Sidebar */}
-                <aside className="hidden lg:flex flex-col w-72 border-r border-slate-100 bg-slate-50/50 p-6 h-screen sticky top-0">
-                    <Link to="/" className="flex items-center gap-3 font-black text-2xl mb-10 px-2 tracking-tighter hover:opacity-80 transition-opacity flex-shrink-0">
-                        <div className="bg-slate-800 p-1.5 rounded-xl shadow-lg shadow-slate-200">
-                            <Activity className="h-6 w-6 text-white" aria-hidden="true" />
-                        </div>
-                        <span>Pa11y<span className="text-blue-600">Dash</span></span>
-                    </Link>
+                <aside className="hidden lg:flex flex-col w-72 border-r border-slate-100 bg-slate-50/50 h-screen sticky top-0 overflow-hidden">
+                    <div className="p-6 pb-2">
+                        <Link to="/" className="flex items-center gap-3 font-black text-2xl mb-8 px-2 tracking-tighter hover:opacity-80 transition-opacity flex-shrink-0">
+                            <div className="bg-slate-800 p-1.5 rounded-xl shadow-lg shadow-slate-200">
+                                <Activity className="h-6 w-6 text-white" aria-hidden="true" />
+                            </div>
+                            <span>Pa11y<span className="text-blue-600">Dash</span></span>
+                        </Link>
+                    </div>
                     
-                    <div className="flex-1 overflow-y-auto pr-2 -mr-2 scrollbar-hide">
+                    <div className="flex-1 overflow-y-auto px-6 scrollbar-hide">
                         {topNav}
                     </div>
 
-                    <div className="mt-auto flex-shrink-0">
+                    <div className="flex-shrink-0 p-6 pt-0">
                         {bottomNav}
                     </div>
                 </aside>
