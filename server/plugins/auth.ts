@@ -14,6 +14,7 @@ declare module 'fastify' {
   interface FastifyInstance {
     verifyAuth: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     requireRole: (roles: ('admin' | 'editor' | 'viewer')[]) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     githubOAuth2?: any;
   }
 }
@@ -41,11 +42,13 @@ export default fp(async (fastify) => {
             id: config.githubClientId,
             secret: config.githubClientSecret
           },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           auth: (fastifyOauth2 as any).GITHUB_CONFIGURATION
         },
         startRedirectPath: '/api/auth/github/login',
         callbackUri: `${config.clientUrl}/api/auth/github/callback`,
         scope: ['user:email'],
+        redirectStateCookieName: 'pa11y_oauth_state',
         cookie: {
           path: '/',
           sameSite: 'lax',

@@ -87,9 +87,7 @@ export const initApp = async () => {
       timeWindow: '1 minute'
     });
 
-    await fastify.register(fastifyCookie, {
-      secret: currentConfig.jwtSecret // Reuse jwtSecret for cookie signing
-    });
+    await fastify.register(fastifyCookie);
 
     await mongoose.connect(currentConfig.mongoUri);
     fastify.log.info('Connected to MongoDB');
@@ -161,18 +159,19 @@ export const initApp = async () => {
     await fastify.register(analyticsRoutes);
 
     // Global Error Handler
-    fastify.setErrorHandler((error: any, request, reply) => {
+    fastify.setErrorHandler((error, request, reply) => {
+      const err = error as any;
       fastify.log.error({ 
-        err: error,
+        err,
         url: request.url,
         method: request.method,
         body: request.body
       }, 'Unhandled error');
       
-      reply.status(error.statusCode || 500).send({
+      reply.status(err.statusCode || 500).send({
         error: 'Internal Server Error',
-        message: error.message,
-        statusCode: error.statusCode || 500
+        message: err.message,
+        statusCode: err.statusCode || 500
       });
     });
 
