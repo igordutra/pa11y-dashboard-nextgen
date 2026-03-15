@@ -10,7 +10,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
-    "setup-auth": "tsx scripts/setup-auth.ts"
+    "setup": "tsx scripts/setup.ts"
   },
   "keywords": [],
   "author": "",

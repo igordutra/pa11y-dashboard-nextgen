@@ -97,13 +97,13 @@ newgrp docker
    cd pa11y-dashboard-nextgen
    ```
 
-3. **Set up Authentication:**
-   It is highly recommended to enable authentication for production deployments. Run the bootstrap script:
+3. **Configure the Application:**
+   It is highly recommended to use the setup wizard for production deployments:
    ```bash
-   # Run inside the container or locally if Node is installed
-   docker compose run --rm app npm run setup-auth
+   # Run inside the container
+   docker compose run --rm app npm run setup
    ```
-   Follow the prompts to create your admin user. Copy the `JWT_SECRET` and `AUTH_ENABLED=true` values.
+   Follow the prompts to configure authentication, roles, and OAuth. Copy the output values into your `.env` file.
 
 4. **Configure environment:**
    Create a `.env` file in the project root:

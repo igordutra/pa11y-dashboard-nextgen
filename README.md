@@ -194,13 +194,13 @@ Alternatively, you can run services manually for debugging or if Docker is unava
    cd ../server && npm install
    ```
 
-3. **Configure Authentication**:
-   The dashboard requires an initial setup to create an admin user and generate a JWT secret:
+3. **Configure Application**:
+   The dashboard includes a setup wizard to configure authentication, demo mode, and OAuth providers:
    ```bash
    cd server
-   npm run setup-auth
+   npm run setup
    ```
-   Follow the prompts to create your admin account. The script will output a `JWT_SECRET` and `AUTH_ENABLED=true` which you must add to your `.env` file in the `server` directory.
+   Follow the prompts to configure your environment and create an initial admin account. The script will output the environment variables you need to add to your `.env` file.
 
 4. **Configure environment**:
    Create a `.env` file in the `server` directory (see [Configuring](#configuring-pa11y-dashboard-nextgen)).
