@@ -71,7 +71,7 @@ export const initApp = async () => {
           info: {
             title: 'Pa11y Dashboard NextGen API',
             description: 'API for managing Pa11y scans and results',
-            version: '0.4.2',
+            version: '0.7.2',
           },
         },
         transform: jsonSchemaTransform,

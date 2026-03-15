@@ -132,6 +132,7 @@ npm run prepare
     - `AUTH_ENABLED` toggle in `.env` allows for public or private access.
     - JWT-based stateless session management.
     - `npm run setup` CLI script for initial provisioning and environment configuration.
+    - **Authenticated Iframes**: To support the visual recorder without 401 errors, the `verifyAuth` and `requireRole` decorators support extracting the JWT from a `token` query parameter as a fallback when the `Authorization` header is missing.
 - **Security & Sandboxing**:
     - **XSS Prevention**: All dynamic content (URLs, names, issue messages) is HTML-escaped in reports and the dashboard.
     - **Rate Limiting**: Global API limits (100 req/min) and strict scan trigger limits (2 req/min) using `@fastify/rate-limit`.

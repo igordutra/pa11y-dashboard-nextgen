@@ -249,7 +249,7 @@ export function Layout({ children }: LayoutProps) {
                                 <span className="sr-only">Open menu</span>
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-xs h-[100dvh] left-0 top-0 translate-x-0 translate-y-0 rounded-none border-r border-slate-100 p-6 flex flex-col">
+                        <DialogContent hideClose className="sm:max-w-xs h-[100dvh] left-0 top-0 translate-x-0 translate-y-0 rounded-none border-r border-slate-100 p-6 flex flex-col">
                             <DialogHeader className="flex flex-row items-center justify-between mb-8 flex-shrink-0">
                                 <DialogTitle className="text-xl font-black tracking-tighter">Navigation</DialogTitle>
                                 <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)} className="rounded-xl h-10 w-10">

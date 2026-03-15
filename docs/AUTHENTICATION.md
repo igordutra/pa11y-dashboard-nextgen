@@ -17,17 +17,19 @@ The system uses a **stateless JWT (JSON Web Token)** architecture:
 - **Stateless**: The server does not store session data. All identity information is encoded in the token.
 - **Security**: Local passwords are hashed using `bcryptjs`. JWTs are signed using a `JWT_SECRET` defined in the environment.
 - **Interceptors**: The frontend automatically attaches the token to every API request using an Axios interceptor.
-- **Iframe Support**: For the Visual Recorder, the token is passed via the `token` query parameter, as browsers do not send custom headers for iframe sources.
+- **Authenticated Iframes**: Browsers do not send `Authorization` headers for iframe `src` requests. To support the **Visual Script Recorder**, the backend allows extracting the JWT from a `token` query parameter. This is used strictly for the proxy endpoint.
 
 ## Roles and Permissions
 
-The system defines three distinct roles:
-
-| Role | Permissions |
-| :--- | :--- |
-| **admin** | Full access. Can manage URLs, categories, settings, and other users. |
-| **editor** | Can manage URLs and categories. Can trigger manual scans. Cannot change global settings or manage users. |
-| **viewer** | Read-only access to dashboards, reports, and analytics. Cannot trigger scans or modify data. |
+| Feature | admin | editor | viewer |
+| :--- | :---: | :---: | :---: |
+| View Dashboards & Reports | ✅ | ✅ | ✅ |
+| Manage URLs (Add/Edit/Delete) | ✅ | ✅ | ❌ |
+| Run Manual Scans | ✅ | ✅ | ❌ |
+| Manage Categories | ✅ | ✅ | ❌ |
+| Manage System Settings | ✅ | ❌ | ❌ |
+| User Management (List/Role/Delete) | ✅ | ❌ | ❌ |
+| Change Own Password | ✅ | ✅ | ✅ |
 
 ## Setup Wizard
 

@@ -60,7 +60,7 @@ export function ActionEditor({ actions, onChange, targetUrl }: ActionEditorProps
                                     <MonitorPlay className="mr-2 h-4 w-4" aria-hidden="true" /> Visual Record
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-none w-screen h-[100dvh] flex flex-col p-0 border-none rounded-none">
+                            <DialogContent hideClose className="max-w-none w-screen h-[100dvh] flex flex-col p-0 border-none rounded-none">
                                 <div className="bg-slate-800 p-4 text-white flex items-center justify-between flex-shrink-0">
                                     <div>
                                         <DialogTitle className="text-xl font-black tracking-tight text-white">Visual Script Recorder</DialogTitle>
