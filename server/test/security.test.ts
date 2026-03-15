@@ -134,8 +134,8 @@ describe('Security Enhancements Tests', () => {
             });
 
             // Make multiple requests
-            // Stricter limit is 5 per minute
-            for (let i = 0; i < 5; i++) {
+            // Stricter limit is 10 per minute
+            for (let i = 0; i < 10; i++) {
                 await request(fastify.server).post(`/api/urls/${url._id}/scan`);
             }
             

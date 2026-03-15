@@ -139,7 +139,7 @@ export default async function scanRoutes(fastify: FastifyInstance) {
         preValidation: config.authEnabled ? [f.requireRole(['admin', 'editor'])] : [],
         config: {
             rateLimit: {
-                max: 5,
+                max: 10,
                 timeWindow: '1 minute'
             }
         },

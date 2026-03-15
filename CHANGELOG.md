@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.1] - 2026-03-15
+
+### Fixed
+- **Production Rate Limiting**: Increased global API rate limit to 1000 requests per minute and excluded static assets (JS, CSS, images) from rate limiting. This resolves false positives on dashboard load (#52).
+- **Error Handling**: Improved global error handler to correctly report actual error types and status codes instead of generic "Internal Server Error" wrappers.
+- **Scan Trigger Limits**: Increased manual scan trigger limit to 10 per minute per IP for better flexibility.
+
 ## [0.8.0] - 2026-03-15
 
 ### Added

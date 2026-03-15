@@ -83,9 +83,10 @@ export const initApp = async () => {
     }
 
     await fastify.register(fastifyRateLimit, {
-      max: 100,
-      timeWindow: '1 minute'
-    });
+      max: 1000,
+      timeWindow: '1 minute',
+      skip: (request: any) => !request.url.startsWith('/api')
+    } as any);
 
     await fastify.register(fastifyCookie);
 
@@ -192,17 +193,20 @@ export const initApp = async () => {
     // Global Error Handler
     fastify.setErrorHandler((error, request, reply) => {
       const err = error as any;
+      const statusCode = err.statusCode || 500;
+      const isRateLimit = statusCode === 429;
+
       fastify.log.error({ 
         err,
         url: request.url,
         method: request.method,
         body: request.body
-      }, 'Unhandled error');
-      
-      reply.status(err.statusCode || 500).send({
-        error: 'Internal Server Error',
+      }, isRateLimit ? 'Rate limit hit' : 'Unhandled error');
+
+      reply.status(statusCode).send({
+        error: isRateLimit ? 'Too Many Requests' : (err.error || 'Internal Server Error'),
         message: err.message,
-        statusCode: err.statusCode || 500
+        statusCode: statusCode
       });
     });
 
