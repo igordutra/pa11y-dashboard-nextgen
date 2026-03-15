@@ -6,8 +6,15 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - **Production Rate Limiting**: Increased global API rate limit to 1000 requests per minute and excluded static assets (JS, CSS, images) from rate limiting. This resolves false positives on dashboard load (#52).
+- **Boolean Env Parsing**: Implemented robust environment variable parsing using `z.preprocess()` to ensure string `"false"` is correctly interpreted as boolean `false`.
+- **UI Logic Stability**: Refactored role-based UI checks to use explicit opt-in (checking for `admin` or `editor`) instead of opt-out (checking if not `viewer`). This prevents destructive actions from flickering visible while the user profile is still loading.
+- **Guest Experience**: Hidden the placeholder "guest@demo.local" account and logout button from the sidebar when authentication is disabled.
+- **Deployment Stability**: Removed mandatory `.env` file dependency from Docker configuration, allowing public demo instances to deploy using only the Compose environment variables.
 - **Error Handling**: Improved global error handler to correctly report actual error types and status codes instead of generic "Internal Server Error" wrappers.
 - **Scan Trigger Limits**: Increased manual scan trigger limit to 10 per minute per IP for better flexibility.
+
+### Changed
+- **Infrastructure**: Updated GitHub Actions CI workflow to use **Node.js 24.x** for both client and server jobs.
 
 ## [0.8.0] - 2026-03-15
 
