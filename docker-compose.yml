@@ -22,10 +22,7 @@ services:
       - mongo
     environment:
       - MONGO_URI=mongodb://mongo:27017/pa11y-dashboard
-      - PORT=3000
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-      - NODE_ENV=development
-      - CLIENT_URL=http://localhost:8080
       - TRUST_PROXY=true
     env_file:
       - ./server/.env
