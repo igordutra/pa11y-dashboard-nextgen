@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
-import { Activity, Github } from 'lucide-react';
+import { Activity, Github, Globe, Shield } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -13,8 +13,17 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [providers, setProviders] = useState<string[]>([]);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    api.get('/api').then(res => {
+      if (res.data.providers) {
+        setProviders(res.data.providers);
+      }
+    }).catch(err => console.error('Failed to fetch info', err));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,8 +42,16 @@ export function LoginPage() {
     }
   };
 
-  const handleGithubLogin = () => {
-    window.location.href = '/api/auth/github/login';
+  const handleOAuthLogin = (provider: string) => {
+    window.location.href = `/api/auth/${provider}/login`;
+  };
+
+  const getProviderIcon = (provider: string) => {
+    switch (provider) {
+      case 'github': return <Github className="h-5 w-5" />;
+      case 'google': return <Globe className="h-5 w-5" />;
+      default: return <Shield className="h-5 w-5" />;
+    }
   };
 
   return (
@@ -90,23 +107,30 @@ export function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-8 flex items-center gap-4">
-            <div className="flex-1 h-px bg-slate-200"></div>
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Or continue with</div>
-            <div className="flex-1 h-px bg-slate-200"></div>
-          </div>
-          
-          <div className="mt-6">
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full h-12 rounded-xl font-bold border-2 hover:bg-slate-50 gap-2"
-              onClick={handleGithubLogin}
-            >
-              <Github className="h-5 w-5" />
-              GitHub
-            </Button>
-          </div>
+          {providers.length > 0 && (
+            <>
+              <div className="mt-8 flex items-center gap-4">
+                <div className="flex-1 h-px bg-slate-200"></div>
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Or continue with</div>
+                <div className="flex-1 h-px bg-slate-200"></div>
+              </div>
+              
+              <div className="mt-6 space-y-3">
+                {providers.map(provider => (
+                  <Button 
+                    key={provider}
+                    type="button" 
+                    variant="outline" 
+                    className="w-full h-12 rounded-xl font-bold border-2 hover:bg-slate-50 gap-2 capitalize"
+                    onClick={() => handleOAuthLogin(provider)}
+                  >
+                    {getProviderIcon(provider)}
+                    {provider}
+                  </Button>
+                ))}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

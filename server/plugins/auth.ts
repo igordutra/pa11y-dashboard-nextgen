@@ -16,6 +16,12 @@ declare module 'fastify' {
     requireRole: (roles: ('admin' | 'editor' | 'viewer')[]) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     githubOAuth2?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    googleOAuth2?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    auth0OAuth2?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    keycloakOAuth2?: any;
   }
 }
 
@@ -48,7 +54,84 @@ export default fp(async (fastify) => {
         startRedirectPath: '/api/auth/github/login',
         callbackUri: `${config.clientUrl}/api/auth/github/callback`,
         scope: ['user:email'],
-        redirectStateCookieName: 'pa11y_oauth_state',
+        redirectStateCookieName: 'pa11y_oauth_github_state',
+        cookie: {
+          path: '/',
+          sameSite: 'lax',
+          secure: config.nodeEnv === 'production'
+        }
+      });
+    }
+
+    if (config.googleClientId && config.googleClientSecret) {
+      fastify.register(fastifyOauth2, {
+        name: 'googleOAuth2',
+        credentials: {
+          client: {
+            id: config.googleClientId,
+            secret: config.googleClientSecret
+          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          auth: (fastifyOauth2 as any).GOOGLE_CONFIGURATION
+        },
+        startRedirectPath: '/api/auth/google/login',
+        callbackUri: `${config.clientUrl}/api/auth/google/callback`,
+        scope: ['profile', 'email'],
+        redirectStateCookieName: 'pa11y_oauth_google_state',
+        cookie: {
+          path: '/',
+          sameSite: 'lax',
+          secure: config.nodeEnv === 'production'
+        }
+      });
+    }
+
+    if (config.auth0ClientId && config.auth0ClientSecret && config.auth0Domain) {
+      fastify.register(fastifyOauth2, {
+        name: 'auth0OAuth2',
+        credentials: {
+          client: {
+            id: config.auth0ClientId,
+            secret: config.auth0ClientSecret
+          },
+          auth: {
+            authorizeHost: `https://${config.auth0Domain}`,
+            authorizePath: '/authorize',
+            tokenHost: `https://${config.auth0Domain}`,
+            tokenPath: '/oauth/token'
+          }
+        },
+        startRedirectPath: '/api/auth/auth0/login',
+        callbackUri: `${config.clientUrl}/api/auth/auth0/callback`,
+        scope: ['openid', 'profile', 'email'],
+        redirectStateCookieName: 'pa11y_oauth_auth0_state',
+        cookie: {
+          path: '/',
+          sameSite: 'lax',
+          secure: config.nodeEnv === 'production'
+        }
+      });
+    }
+
+    if (config.keycloakClientId && config.keycloakClientSecret && config.keycloakBaseUrl) {
+      fastify.register(fastifyOauth2, {
+        name: 'keycloakOAuth2',
+        credentials: {
+          client: {
+            id: config.keycloakClientId,
+            secret: config.keycloakClientSecret
+          },
+          auth: {
+            authorizeHost: config.keycloakBaseUrl,
+            authorizePath: '/protocol/openid-connect/auth',
+            tokenHost: config.keycloakBaseUrl,
+            tokenPath: '/protocol/openid-connect/token'
+          }
+        },
+        startRedirectPath: '/api/auth/keycloak/login',
+        callbackUri: `${config.clientUrl}/api/auth/keycloak/callback`,
+        scope: ['openid', 'profile', 'email'],
+        redirectStateCookieName: 'pa11y_oauth_keycloak_state',
         cookie: {
           path: '/',
           sameSite: 'lax',

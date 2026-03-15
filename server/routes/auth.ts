@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
@@ -78,14 +78,18 @@ export default async function (fastify: FastifyInstance) {
     }
   );
 
-  if (config.githubClientId && config.githubClientSecret) {
-    server.get('/api/auth/github/callback', async function (request, reply) {
-      if (!this.githubOAuth2) {
-        return reply.status(500).send({ error: 'OAuth not configured' });
-      }
-      const token = await this.githubOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
+  /**
+   * Reusable OAuth Callback Handler
+   */
+  const handleOAuthCallback = async (request: FastifyRequest, reply: any, provider: string, oauth2: any, userProfileUrl: string) => {
+    if (!oauth2) {
+      return reply.status(500).send({ error: `OAuth provider ${provider} not configured` });
+    }
+
+    try {
+      const token = await oauth2.getAccessTokenFromAuthorizationCodeFlow(request);
       
-      const userRes = await fetch('https://api.github.com/user', {
+      const userRes = await fetch(userProfileUrl, {
         headers: {
           Authorization: `Bearer ${token.token.access_token}`,
           Accept: 'application/vnd.github.v3+json'
@@ -93,8 +97,9 @@ export default async function (fastify: FastifyInstance) {
       });
       const userData = await userRes.json();
       
-      if (!userData.email) {
-        // Fallback to fetch emails
+      // Normalize email (handling GitHub's specific logic)
+      let email = userData.email;
+      if (provider === 'github' && !email) {
         try {
           const emailsRes = await fetch('https://api.github.com/user/emails', {
             headers: {
@@ -103,37 +108,35 @@ export default async function (fastify: FastifyInstance) {
             }
           });
           const emails = await emailsRes.json();
-          
           if (Array.isArray(emails)) {
             const primary = emails.find((e: any) => e.primary) || emails[0];
-            if (primary) userData.email = primary.email;
-          } else {
-            fastify.log.warn({ emails }, 'GitHub emails response is not an array');
+            if (primary) email = primary.email;
           }
         } catch (err) {
           fastify.log.error(err, 'Failed to fetch GitHub emails');
         }
       }
 
-      if (!userData.email) {
-        return reply.status(400).send({ error: 'No email found on GitHub account' });
+      if (!email) {
+        return reply.status(400).send({ error: `No email found on ${provider} account` });
       }
 
-      let user = await UserModel.findOne({ provider: 'github', providerId: userData.id.toString() });
+      const providerId = userData.id || userData.sub || userData.email;
+
+      let user = await UserModel.findOne({ provider, providerId: providerId.toString() });
       if (!user) {
-        // Also check if email exists with local provider
-        const existingLocal = await UserModel.findOne({ email: userData.email });
-        if (existingLocal) {
+        // Also check if email exists with other providers or local
+        user = await UserModel.findOne({ email });
+        if (user) {
           // Link account
-          existingLocal.provider = 'github';
-          existingLocal.providerId = userData.id.toString();
-          await existingLocal.save();
-          user = existingLocal;
+          user.provider = provider as any;
+          user.providerId = providerId.toString();
+          await user.save();
         } else {
           user = await UserModel.create({
-            email: userData.email,
-            provider: 'github',
-            providerId: userData.id.toString(),
+            email,
+            provider: provider as any,
+            providerId: providerId.toString(),
             role: 'viewer' // Default role for new OAuth users
           });
         }
@@ -142,10 +145,26 @@ export default async function (fastify: FastifyInstance) {
       const payload = { userId: user._id.toString(), role: user.role, email: user.email };
       const jwtToken = server.jwt.sign(payload, { expiresIn: '7d' });
 
-      // Redirect to frontend with token (this assumes frontend handles ?token=xyz)
       const redirectUrl = new URL(config.clientUrl);
       redirectUrl.searchParams.set('token', jwtToken);
       reply.redirect(redirectUrl.toString());
-    });
+    } catch (err) {
+      fastify.log.error(err, `${provider} callback error`);
+      return reply.status(500).send({ error: 'Authentication failed' });
+    }
+  };
+
+  // Register callback routes for each enabled provider
+  if (config.githubClientId) {
+    server.get('/api/auth/github/callback', async (req, res) => handleOAuthCallback(req, res, 'github', (server as any).githubOAuth2, 'https://api.github.com/user'));
+  }
+  if (config.googleClientId) {
+    server.get('/api/auth/google/callback', async (req, res) => handleOAuthCallback(req, res, 'google', (server as any).googleOAuth2, 'https://www.googleapis.com/oauth2/v2/userinfo'));
+  }
+  if (config.auth0ClientId) {
+    server.get('/api/auth/auth0/callback', async (req, res) => handleOAuthCallback(req, res, 'auth0', (server as any).auth0OAuth2, `https://${config.auth0Domain}/userinfo`));
+  }
+  if (config.keycloakClientId) {
+    server.get('/api/auth/keycloak/callback', async (req, res) => handleOAuthCallback(req, res, 'keycloak', (server as any).keycloakOAuth2, `${config.keycloakBaseUrl}/protocol/openid-connect/userinfo`));
   }
 }

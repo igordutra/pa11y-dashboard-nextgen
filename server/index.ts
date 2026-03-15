@@ -92,6 +92,30 @@ export const initApp = async () => {
     await mongoose.connect(currentConfig.mongoUri);
     fastify.log.info('Connected to MongoDB');
 
+    // Bootstrap: Create initial admin account if none exists
+    const { UserModel } = await import('./models/index.js');
+    const adminCount = await UserModel.countDocuments({ role: 'admin' });
+    if (adminCount === 0 && currentConfig.authEnabled) {
+      const crypto = await import('crypto');
+      const bcrypt = await import('bcryptjs');
+      const tempPassword = crypto.randomBytes(8).toString('hex');
+      const passwordHash = await bcrypt.hash(tempPassword, 10);
+      
+      await UserModel.create({
+        email: 'admin@demo.local',
+        passwordHash,
+        role: 'admin',
+        provider: 'local'
+      });
+
+      console.log('\n' + '!'.repeat(60));
+      console.log('BOOTSTRAP: No admin account found. Created initial account:');
+      console.log('Email:    admin@demo.local');
+      console.log(`Password: ${tempPassword}`);
+      console.log('IMPORTANT: Please change this password immediately after login!');
+      console.log('!'.repeat(60) + '\n');
+    }
+
     // Reset URLs stuck in 'scanning' status to 'active' on startup
     const { UrlModel } = await import('./models/index.js');
     const resetResult = await UrlModel.updateMany(
@@ -143,7 +167,14 @@ export const initApp = async () => {
         service: 'pa11y-dashboard-nextgen-api', 
         readonly: currentConfig.readonly, 
         noindex: currentConfig.noindex,
-        demoMode: currentConfig.demoMode 
+        demoMode: currentConfig.demoMode,
+        authEnabled: currentConfig.authEnabled,
+        providers: [
+          currentConfig.githubClientId && 'github',
+          currentConfig.googleClientId && 'google',
+          currentConfig.auth0ClientId && 'auth0',
+          currentConfig.keycloakClientId && 'keycloak',
+        ].filter(Boolean)
       };
     });
 
