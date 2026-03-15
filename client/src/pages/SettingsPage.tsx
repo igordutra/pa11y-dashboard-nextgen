@@ -1,9 +1,28 @@
 import { useState, useEffect } from 'react';
-import { Save, RotateCcw, Server, Eye, Monitor, Clock, Shield, Info, CheckCircle2, Loader2, Activity, Users, Trash2, UserCog } from 'lucide-react';
+import { Save, RotateCcw, Server, Eye, Monitor, Clock, Shield, Info, CheckCircle2, Loader2, Activity, Users, Trash2, UserCog, UserPlus, Mail, Lock } from 'lucide-react';
 import api from '../lib/api';
 import { useAuth } from '../lib/AuthContext';
 import { PageHeading } from '../components/ui/PageHeading';
 import { Card, CardContent } from '../components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "../components/ui/dialog";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../components/ui/select";
+import { Button } from "../components/ui/button";
 
 interface IUser {
     _id: string;
@@ -51,6 +70,13 @@ export function SettingsPage() {
     const [ignoreInput, setIgnoreInput] = useState('');
     const [headerKey, setHeaderKey] = useState('');
     const [headerVal, setHeaderVal] = useState('');
+
+    // Add User State
+    const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+    const [newUserEmail, setNewUserEmail] = useState('');
+    const [newUserPassword, setNewUserPassword] = useState('');
+    const [newUserRole, setNewUserRole] = useState<'admin' | 'editor' | 'viewer'>('viewer');
+    const [isAddingUser, setIsAddingUser] = useState(false);
 
     const isReadonly = env?.readonly;
     const isAdmin = currentUser?.role === 'admin';
@@ -107,6 +133,29 @@ export function SettingsPage() {
         } catch (err) {
             console.error('Failed to delete user', err);
             alert('Failed to delete user');
+        }
+    };
+
+    const handleAddUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsAddingUser(true);
+        try {
+            await api.post('/api/users', {
+                email: newUserEmail,
+                password: newUserPassword,
+                role: newUserRole
+            });
+            setIsAddUserModalOpen(false);
+            setNewUserEmail('');
+            setNewUserPassword('');
+            setNewUserRole('viewer');
+            fetchUsers();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
+            console.error('Failed to add user', err);
+            alert(err.response?.data?.error || 'Failed to add user');
+        } finally {
+            setIsAddingUser(false);
         }
     };
 
@@ -215,24 +264,115 @@ export function SettingsPage() {
 
             {/* Tabs */}
             {isAdmin && (
-                <div className="flex gap-1 p-1 bg-slate-100/50 rounded-2xl w-fit">
-                    <button
-                        onClick={() => setActiveTab('global')}
-                        className={`px-6 py-2.5 text-sm font-bold transition-all rounded-xl ${activeTab === 'global' 
-                            ? 'bg-white text-slate-900 shadow-sm' 
-                            : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                        Global Settings
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('users')}
-                        className={`px-6 py-2.5 text-sm font-bold transition-all rounded-xl flex items-center gap-2 ${activeTab === 'users' 
-                            ? 'bg-white text-slate-900 shadow-sm' 
-                            : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                        <Users className="h-4 w-4" />
-                        User Management
-                    </button>
+                <div className="flex items-center justify-between">
+                    <div className="flex gap-1 p-1 bg-slate-100/50 rounded-2xl w-fit">
+                        <button
+                            onClick={() => setActiveTab('global')}
+                            className={`px-6 py-2.5 text-sm font-bold transition-all rounded-xl ${activeTab === 'global' 
+                                ? 'bg-white text-slate-900 shadow-sm' 
+                                : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            Global Settings
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('users')}
+                            className={`px-6 py-2.5 text-sm font-bold transition-all rounded-xl flex items-center gap-2 ${activeTab === 'users' 
+                                ? 'bg-white text-slate-900 shadow-sm' 
+                                : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            <Users className="h-4 w-4" />
+                            User Management
+                        </button>
+                    </div>
+
+                    {activeTab === 'users' && (
+                        <Dialog open={isAddUserModalOpen} onOpenChange={setIsAddUserModalOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold gap-2 shadow-lg shadow-blue-200">
+                                    <UserPlus className="h-4 w-4" />
+                                    Add User
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="rounded-3xl border-none shadow-2xl p-0 overflow-hidden max-w-md">
+                                <DialogHeader className="bg-slate-800 p-8 text-white relative">
+                                    <div className="bg-blue-500/20 p-3 rounded-2xl w-fit mb-4">
+                                        <UserPlus className="h-6 w-6 text-blue-400" />
+                                    </div>
+                                    <DialogTitle className="text-2xl font-black tracking-tight text-white">Create User</DialogTitle>
+                                    <DialogDescription className="text-slate-400 font-medium mt-1">
+                                        Add a new member to your accessibility team.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <form onSubmit={handleAddUser} className="p-8 space-y-6 bg-white">
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email" className="text-xs font-black text-slate-400 uppercase tracking-widest">Email Address</Label>
+                                            <div className="relative">
+                                                <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                                                <Input
+                                                    id="email"
+                                                    type="email"
+                                                    required
+                                                    value={newUserEmail}
+                                                    onChange={e => setNewUserEmail(e.target.value)}
+                                                    className="pl-10 h-11 rounded-xl bg-slate-50 border-slate-200 font-bold focus:ring-blue-500/20"
+                                                    placeholder="user@example.com"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="password" className="text-xs font-black text-slate-400 uppercase tracking-widest">Initial Password</Label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                                                <Input
+                                                    id="password"
+                                                    type="password"
+                                                    required
+                                                    minLength={6}
+                                                    value={newUserPassword}
+                                                    onChange={e => setNewUserPassword(e.target.value)}
+                                                    className="pl-10 h-11 rounded-xl bg-slate-50 border-slate-200 font-bold focus:ring-blue-500/20"
+                                                    placeholder="Min. 6 characters"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-black text-slate-400 uppercase tracking-widest">Role</Label>
+                                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                            <Select value={newUserRole} onValueChange={(v: any) => setNewUserRole(v)}>
+                                                <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-200 font-bold">
+                                                    <SelectValue placeholder="Select role" />
+                                                </SelectTrigger>
+                                                <SelectContent className="rounded-xl border-slate-200">
+                                                    <SelectItem value="viewer" className="font-bold">Viewer (Read-only)</SelectItem>
+                                                    <SelectItem value="editor" className="font-bold">Editor (Can manage scans)</SelectItem>
+                                                    <SelectItem value="admin" className="font-bold text-blue-600">Admin (Full access)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <DialogFooter className="pt-4 gap-3 sm:gap-0">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            onClick={() => setIsAddUserModalOpen(false)}
+                                            className="rounded-xl font-bold text-slate-500 hover:text-slate-800"
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            type="submit"
+                                            disabled={isAddingUser}
+                                            className="rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold px-8"
+                                        >
+                                            {isAddingUser ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                                            Create Account
+                                        </Button>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
+                    )}
                 </div>
             )}
 

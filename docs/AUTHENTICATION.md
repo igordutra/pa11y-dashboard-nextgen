@@ -45,9 +45,19 @@ This script will guide you through:
 
 ## Local Authentication
 
-- **Registration**: Currently, the first admin is created via the setup script or automatic bootstrapping. 
+- **Registration**: Administrators can manually create new user accounts from the **Settings > User Management** tab. Future iterations will support self-registration with email verification.
 - **Login**: Users provide their email and password. The server validates the credentials and returns a JWT.
 - **Profile**: Users can change their password from the "Profile" page.
+
+## User Management (Admin Only)
+
+Administrators have access to a dedicated management interface within the Settings page:
+- **List Users**: View all registered accounts, their roles, and auth providers.
+- **Invite/Create Users**: Create new accounts with a temporary password.
+- **Change Roles**: Promote or demote users between `admin`, `editor`, and `viewer`.
+- **Delete Accounts**: Permanently remove user access.
+
+Note: To prevent accidental lockout, admins cannot delete their own account or change their own role.
 
 ## OAuth2 Integration
 

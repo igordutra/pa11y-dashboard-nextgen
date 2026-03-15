@@ -71,6 +71,53 @@ export default async function usersRoutes(fastify: FastifyInstance) {
         }));
     });
 
+    // ADMIN: Create new user
+    f.post('/api/users', {
+        preValidation: config.authEnabled ? [f.requireRole(['admin'])] : [],
+        schema: {
+            description: 'Create a new user account (Admin only)',
+            tags: ['Users'],
+            body: z.object({
+                email: z.string().email(),
+                password: z.string().min(6),
+                role: z.enum(['admin', 'editor', 'viewer']).default('viewer')
+            }),
+            response: {
+                201: z.object({
+                    _id: z.string(),
+                    email: z.string(),
+                    role: z.string(),
+                    provider: z.string()
+                }),
+                400: z.object({ error: z.string() }),
+                401: z.object({ error: z.string() }),
+                403: z.object({ error: z.string() })
+            }
+        }
+    }, async (request, reply) => {
+        const { email, password, role } = request.body;
+
+        const existingUser = await UserModel.findOne({ email });
+        if (existingUser) {
+            return reply.status(400).send({ error: 'User with this email already exists' });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+        const newUser = await UserModel.create({
+            email,
+            passwordHash,
+            role,
+            provider: 'local'
+        });
+
+        return reply.status(201).send({
+            _id: newUser._id.toString(),
+            email: newUser.email,
+            role: newUser.role,
+            provider: newUser.provider
+        });
+    });
+
     // ADMIN: Update user role
     f.put('/api/users/:id/role', {
         preValidation: config.authEnabled ? [f.requireRole(['admin'])] : [],
