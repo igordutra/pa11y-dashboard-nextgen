@@ -5,16 +5,25 @@ import path from 'path';
 // Load .env from server root
 dotenv.config();
 
+// Helper to correctly parse boolean from environment variables
+const envBoolean = (val: any) => {
+  if (typeof val === 'string') {
+    if (val.toLowerCase() === 'true') return true;
+    if (val.toLowerCase() === 'false') return false;
+  }
+  return val;
+};
+
 const configSchema = z.object({
   port: z.coerce.number().default(3000),
   mongoUri: z.string().default('mongodb://localhost:27017/pa11y-dashboard'),
   clientUrl: z.string().default('http://localhost:8080'),
-  noindex: z.coerce.boolean().default(true),
-  readonly: z.coerce.boolean().default(false),
+  noindex: z.preprocess(envBoolean, z.boolean().default(true)),
+  readonly: z.preprocess(envBoolean, z.boolean().default(false)),
   nodeEnv: z.enum(['development', 'production', 'test']).default('development'),
   screenshotsDir: z.string().default(path.join(process.cwd(), 'screenshots')),
-  demoMode: z.coerce.boolean().default(false),
-  authEnabled: z.coerce.boolean().default(false),
+  demoMode: z.preprocess(envBoolean, z.boolean().default(false)),
+  authEnabled: z.preprocess(envBoolean, z.boolean().default(false)),
   jwtSecret: z.string().default('default-unsafe-secret'),
   githubClientId: z.string().optional(),
   githubClientSecret: z.string().optional(),
