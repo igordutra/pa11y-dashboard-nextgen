@@ -25,8 +25,10 @@ import { getIssueDocsUrl } from '../lib/issueDocsUrl';
 import { ScreenshotOverlay } from '../components/ScreenshotOverlay';
 import { ExportReportModal } from '../components/ExportReportModal';
 import { Issue, Scan, ScanStep, Url } from '../types';
+import { useAuth } from '../lib/AuthContext';
 
 export function ReportPage() {
+    const { user } = useAuth();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -222,19 +224,21 @@ export function ReportPage() {
                             <ArrowLeft className="mr-2 h-4 w-4" /> Latest Scan
                         </Button>
                     )}
-                    <Button 
-                        onClick={() => scanMutation.mutate()} 
-                        disabled={scanMutation.isPending || urlData.status === 'scanning' || isReadonly}
-                        className="rounded-xl bg-slate-800 hover:bg-slate-900 font-bold px-6 shadow-lg shadow-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={isReadonly ? "Scanning is disabled in read-only/demo mode" : ""}
-                    >
-                        {scanMutation.isPending || urlData.status === 'scanning' ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                            <RefreshCw className="mr-2 h-4 w-4" />
-                        )}
-                        Re-Scan Now
-                    </Button>
+                    {user?.role !== 'viewer' && (
+                        <Button 
+                            onClick={() => scanMutation.mutate()} 
+                            disabled={scanMutation.isPending || urlData.status === 'scanning' || isReadonly}
+                            className="rounded-xl bg-slate-800 hover:bg-slate-900 font-bold px-6 shadow-lg shadow-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={isReadonly ? "Scanning is disabled in read-only/demo mode" : ""}
+                        >
+                            {scanMutation.isPending || urlData.status === 'scanning' ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                            )}
+                            Re-Scan Now
+                        </Button>
+                    )}
                 </div>
             </header>
 

@@ -3,6 +3,7 @@ import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { SettingsModel, getSettings } from '../models/settings.js';
 import { settingsSchema } from '../types/schemas.js';
+import { getConfig } from '../config/index.js';
 
 const checkReadonly = async (_request: any, reply: any) => {
     const { getConfig } = await import('../config/index.js');
@@ -17,9 +18,11 @@ const checkReadonly = async (_request: any, reply: any) => {
 
 export default async function settingsRoutes(fastify: FastifyInstance) {
     const f = fastify.withTypeProvider<ZodTypeProvider>();
+    const config = getConfig();
 
     // GET global settings
     f.get('/api/settings', {
+        preValidation: config.authEnabled ? [f.verifyAuth] : [],
         schema: {
             description: 'Retrieve global Pa11y/Lighthouse configuration used as defaults for all scans',
             summary: 'Get settings',
@@ -57,6 +60,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
 
     // PUT update global settings
     f.put('/api/settings', {
+        preValidation: config.authEnabled ? [f.requireRole(['admin'])] : [],
         preHandler: checkReadonly,
         schema: {
             description: 'Modify global configuration parameters. Changes apply to all future scans.',
@@ -103,6 +107,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
 
     // GET environment info
     f.get('/api/environment', {
+        preValidation: config.authEnabled ? [f.verifyAuth] : [],
         schema: {
             description: 'Retrieve technical details about the server environment, versions, and supported standards',
             summary: 'Get environment',

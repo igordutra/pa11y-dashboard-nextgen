@@ -45,12 +45,14 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { EditUrlDialog } from './EditUrlDialog';
 import { Url } from '../types';
+import { useAuth } from '../lib/AuthContext';
 
 interface UrlCardProps {
     url: Url;
 }
 
 export function UrlCard({ url }: UrlCardProps) {
+    const { user } = useAuth();
     const queryClient = useQueryClient();
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -262,62 +264,66 @@ export function UrlCard({ url }: UrlCardProps) {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <Button
-                                className="flex-1 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 shadow-sm rounded-xl font-bold transition-all active:scale-[0.95]"
-                                variant="outline"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    scanMutation.mutate();
-                                }}
-                                disabled={scanMutation.isPending || url.status === 'scanning' || (isReadonly && !isDemoMode)}
-                            >
-                                {scanMutation.isPending || url.status === 'scanning' ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                    <Play className="mr-2 h-4 w-4 fill-current" />
-                                )}
-                                {url.status === 'scanning' ? 'Scanning' : 'Run Scan'}
-                            </Button>
-
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button 
-                                        variant="outline" 
-                                        className="w-10 px-0 bg-white hover:bg-slate-100 border border-slate-200 shadow-sm rounded-xl text-slate-600"
-                                        aria-label="More actions"
+                            {user?.role !== 'viewer' && (
+                                <>
+                                    <Button
+                                        className="flex-1 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 shadow-sm rounded-xl font-bold transition-all active:scale-[0.95]"
+                                        variant="outline"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            scanMutation.mutate();
+                                        }}
+                                        disabled={scanMutation.isPending || url.status === 'scanning' || (isReadonly && !isDemoMode)}
                                     >
-                                        <MoreHorizontal className="h-5 w-5" />
+                                        {scanMutation.isPending || url.status === 'scanning' ? (
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <Play className="mr-2 h-4 w-4 fill-current" />
+                                        )}
+                                        {url.status === 'scanning' ? 'Scanning' : 'Run Scan'}
                                     </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-48 p-1 rounded-xl border-slate-200 shadow-xl">
-                                    <DropdownMenuItem 
-                                        onClick={() => setIsEditDialogOpen(true)}
-                                        disabled={isReadonly}
-                                        className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <Edit className="h-4 w-4" />
-                                        <span className="font-medium">Edit Details</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem 
-                                        onClick={() => setIsDeleteScansDialogOpen(true)}
-                                        disabled={isReadonly}
-                                        className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-amber-600 hover:text-amber-700 hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                        <span className="font-medium">Clear History</span>
-                                    </DropdownMenuItem>
-                                    <div className="h-px bg-slate-100 my-1 mx-1" />
-                                    <DropdownMenuItem 
-                                        onClick={() => setIsDeleteDialogOpen(true)}
-                                        disabled={isReadonly}
-                                        className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                        <span className="font-medium">Delete URL</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button 
+                                                variant="outline" 
+                                                className="w-10 px-0 bg-white hover:bg-slate-100 border border-slate-200 shadow-sm rounded-xl text-slate-600"
+                                                aria-label="More actions"
+                                            >
+                                                <MoreHorizontal className="h-5 w-5" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="w-48 p-1 rounded-xl border-slate-200 shadow-xl">
+                                            <DropdownMenuItem 
+                                                onClick={() => setIsEditDialogOpen(true)}
+                                                disabled={isReadonly}
+                                                className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                                <span className="font-medium">Edit Details</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem 
+                                                onClick={() => setIsDeleteScansDialogOpen(true)}
+                                                disabled={isReadonly}
+                                                className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-amber-600 hover:text-amber-700 hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                                <span className="font-medium">Clear History</span>
+                                            </DropdownMenuItem>
+                                            <div className="h-px bg-slate-100 my-1 mx-1" />
+                                            <DropdownMenuItem 
+                                                onClick={() => setIsDeleteDialogOpen(true)}
+                                                disabled={isReadonly}
+                                                className="flex items-center gap-2 p-2.5 rounded-lg cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                                <span className="font-medium">Delete URL</span>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </>
+                            )}
                         </div>
                     </div>
                 </CardContent>

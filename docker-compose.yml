@@ -22,10 +22,10 @@ services:
       - mongo
     environment:
       - MONGO_URI=mongodb://mongo:27017/pa11y-dashboard
-      - PORT=3000
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-      - NODE_ENV=development
-      - CLIENT_URL=http://localhost:8080
+      - TRUST_PROXY=true
+    env_file:
+      - ./server/.env
     cap_add:
       - SYS_ADMIN
 
@@ -40,7 +40,8 @@ services:
       - ./client:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:3000
+      - VITE_API_URL=
+      - VITE_API_PROXY_TARGET=http://api:3000
 
 volumes:
   mongodb_data:

@@ -11,6 +11,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyRateLimit from '@fastify/rate-limit';
+import fastifyCookie from '@fastify/cookie';
 
 // Import modular routes
 import urlRoutes from './routes/urls.js';
@@ -19,6 +20,9 @@ import categoryRoutes from './routes/categories.js';
 import settingsRoutes from './routes/settings.js';
 import proxyRoutes from './routes/proxy.js';
 import analyticsRoutes from './routes/analytics.js';
+import authRoutes from './routes/auth.js';
+import authPlugin from './plugins/auth.js';
+import usersRoutes from './routes/users.js';
 
 const fastify = Fastify({
   logger: true,
@@ -67,7 +71,7 @@ export const initApp = async () => {
           info: {
             title: 'Pa11y Dashboard NextGen API',
             description: 'API for managing Pa11y scans and results',
-            version: '0.4.2',
+            version: '0.7.2',
           },
         },
         transform: jsonSchemaTransform,
@@ -83,8 +87,34 @@ export const initApp = async () => {
       timeWindow: '1 minute'
     });
 
+    await fastify.register(fastifyCookie);
+
     await mongoose.connect(currentConfig.mongoUri);
     fastify.log.info('Connected to MongoDB');
+
+    // Bootstrap: Create initial admin account if none exists
+    const { UserModel } = await import('./models/index.js');
+    const adminCount = await UserModel.countDocuments({ role: 'admin' });
+    if (adminCount === 0 && currentConfig.authEnabled) {
+      const crypto = await import('crypto');
+      const bcrypt = await import('bcryptjs');
+      const tempPassword = crypto.randomBytes(8).toString('hex');
+      const passwordHash = await bcrypt.hash(tempPassword, 10);
+      
+      await UserModel.create({
+        email: 'admin@demo.local',
+        passwordHash,
+        role: 'admin',
+        provider: 'local'
+      });
+
+      console.log('\n' + '!'.repeat(60));
+      console.log('BOOTSTRAP: No admin account found. Created initial account:');
+      console.log('Email:    admin@demo.local');
+      console.log(`Password: ${tempPassword}`);
+      console.log('IMPORTANT: Please change this password immediately after login!');
+      console.log('!'.repeat(60) + '\n');
+    }
 
     // Reset URLs stuck in 'scanning' status to 'active' on startup
     const { UrlModel } = await import('./models/index.js');
@@ -137,17 +167,44 @@ export const initApp = async () => {
         service: 'pa11y-dashboard-nextgen-api', 
         readonly: currentConfig.readonly, 
         noindex: currentConfig.noindex,
-        demoMode: currentConfig.demoMode 
+        demoMode: currentConfig.demoMode,
+        authEnabled: currentConfig.authEnabled,
+        providers: [
+          currentConfig.githubClientId && 'github',
+          currentConfig.googleClientId && 'google',
+          currentConfig.auth0ClientId && 'auth0',
+          currentConfig.keycloakClientId && 'keycloak',
+        ].filter(Boolean)
       };
     });
 
     // Register modular routes
+    await fastify.register(authPlugin);
+    await fastify.register(authRoutes);
+    await fastify.register(usersRoutes);
     await fastify.register(urlRoutes);
     await fastify.register(scanRoutes);
     await fastify.register(categoryRoutes);
     await fastify.register(settingsRoutes);
     await fastify.register(proxyRoutes);
     await fastify.register(analyticsRoutes);
+
+    // Global Error Handler
+    fastify.setErrorHandler((error, request, reply) => {
+      const err = error as any;
+      fastify.log.error({ 
+        err,
+        url: request.url,
+        method: request.method,
+        body: request.body
+      }, 'Unhandled error');
+      
+      reply.status(err.statusCode || 500).send({
+        error: 'Internal Server Error',
+        message: err.message,
+        statusCode: err.statusCode || 500
+      });
+    });
 
     // Start Scheduler
     if (currentConfig.demoMode) {

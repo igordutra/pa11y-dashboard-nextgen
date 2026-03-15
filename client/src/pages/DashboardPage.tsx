@@ -14,10 +14,12 @@ import {
     SelectValue 
 } from '../components/ui/select';
 import { ListFilter, Plus } from 'lucide-react';
+import { useAuth } from '../lib/AuthContext';
 
 export type SortOption = 'name' | 'score' | 'newest';
 
 export function DashboardPage() {
+    const { user } = useAuth();
     const [searchParams] = useSearchParams();
     const [sortBy, setSortBy] = useState<SortOption>('newest');
     const activeCategory = searchParams.get('category');
@@ -53,18 +55,20 @@ export function DashboardPage() {
                             </SelectContent>
                         </Select>
                     </div>
-                    <AddUrlModal 
-                        triggerButton={
-                            <Button 
-                                disabled={isReadonly && !isDemoMode}
-                                className="rounded-xl font-bold px-5 bg-slate-800 hover:bg-slate-900 transition-all active:scale-95 shadow-lg shadow-slate-200 border-none disabled:opacity-50 disabled:cursor-not-allowed"
-                                title={isReadonly && !isDemoMode ? "Adding URLs is disabled in read-only mode" : ""}
-                            >
-                                <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-                                Add URL
-                            </Button>
-                        }
-                    />
+                    {user?.role !== 'viewer' && (
+                        <AddUrlModal 
+                            triggerButton={
+                                <Button 
+                                    disabled={isReadonly && !isDemoMode}
+                                    className="rounded-xl font-bold px-5 bg-slate-800 hover:bg-slate-900 transition-all active:scale-95 shadow-lg shadow-slate-200 border-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title={isReadonly && !isDemoMode ? "Adding URLs is disabled in read-only mode" : ""}
+                                >
+                                    <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+                                    Add URL
+                                </Button>
+                            }
+                        />
+                    )}
                 </div>
             </PageHeading>
 

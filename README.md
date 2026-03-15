@@ -63,6 +63,17 @@ Organise your monitored URLs into logical groups. NextGen supports rich metadata
 - **Colour Coding**: Assign distinct colours to categories for quick visual identification.
 - **Filtering**: Sidebar navigation allows you to quickly isolate URLs by category.
 
+### 🔐 Authentication & RBAC
+Secure your dashboard with enterprise-grade authentication:
+- **Local Auth**: Secure email/password login with bcrypt hashing.
+- **Role-Based Access Control (RBAC)**: Fine-grained permissions with `admin`, `editor`, and `viewer` roles.
+- **GitHub OAuth**: Single-sign-on support via GitHub.
+- **User Profile**: Dedicated page for users to manage their account and change passwords.
+- **Setup CLI**: Simple bootstrap process to create the first admin user and generate secrets.
+- **Stateless Session**: JWT-based session management for high scalability and security.
+
+See the [Authentication & Identity Management](docs/AUTHENTICATION.md) guide for more details.
+
 ### 🎭 Scripted Multi-Step Actions
 Test complex user journeys, not just landing pages. The script editor supports:
 - **`click`**: Interact with buttons, tabs, or menus. Supports piercing iframes with `iframe_selector >>> element_selector`.
@@ -185,10 +196,18 @@ Alternatively, you can run services manually for debugging or if Docker is unava
    cd ../server && npm install
    ```
 
-3. **Configure environment**:
+3. **Configure Application**:
+   The dashboard includes a setup wizard to configure authentication, demo mode, and OAuth providers:
+   ```bash
+   cd server
+   npm run setup
+   ```
+   Follow the prompts to configure your environment and create an initial admin account. The script will output the environment variables you need to add to your `.env` file.
+
+4. **Configure environment**:
    Create a `.env` file in the `server` directory (see [Configuring](#configuring-pa11y-dashboard-nextgen)).
 
-4. **Run the application**:
+5. **Run the application**:
    - **Backend**: `cd server && npm run dev`
    - **Frontend**: `cd client && npm run dev`
 
@@ -237,6 +256,18 @@ Configuration is managed via environment variables in the `server` directory.
 
 ### `READONLY`
 *(boolean)* Set to `true` to disable all modifications without the "Demo Mode" banner. Defaults to `true` if `DEMO_MODE=true`.
+
+### `AUTH_ENABLED`
+*(boolean)* Set to `true` to enable the authentication layer. Requires `JWT_SECRET`.
+
+### `JWT_SECRET`
+*(string)* A strong random string used to sign JWT tokens. Can be generated using the setup script or manually.
+
+### `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`
+*(string)* Optional credentials for GitHub OAuth integration.
+
+### `VITE_API_PROXY_TARGET`
+*(string)* The backend API URL used by the Vite development proxy (defaults to `http://localhost:3000`).
 
 ### `PUPPETEER_NO_SANDBOX`
 *(boolean)* Set to `true` to disable the Puppeteer sandbox (only use if sandboxing is not supported by your OS/environment).

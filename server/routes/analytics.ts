@@ -2,11 +2,14 @@ import { FastifyInstance } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { UrlModel, ScanModel, CategoryModel } from '../models/index.js';
+import { getConfig } from '../config/index.js';
 
 export default async function analyticsRoutes(fastify: FastifyInstance) {
     const f = fastify.withTypeProvider<ZodTypeProvider>();
+    const config = getConfig();
 
     f.get('/api/analytics', {
+        preValidation: config.authEnabled ? [f.verifyAuth] : [],
         schema: {
             description: 'Get aggregated accessibility analytics',
             summary: 'Get analytics',

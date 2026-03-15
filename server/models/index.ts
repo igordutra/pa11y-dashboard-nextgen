@@ -90,6 +90,7 @@ const UrlSchema = new Schema<IUrl>({
 
 export const UrlModel = mongoose.model<IUrl>('Url', UrlSchema);
 export * from './category.js';
+export * from './user.js';
 
 export interface IScanStep {
     stepName: string;

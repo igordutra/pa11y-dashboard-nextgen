@@ -9,7 +9,8 @@ import {
     X,
     ChevronRight,
     MonitorPlay,
-    BarChart3
+    BarChart3,
+    LogOut
 } from 'lucide-react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { CategoriesManager, CategoryIcon } from './CategoriesManager';
@@ -22,6 +23,7 @@ import {
     DialogTitle, 
     DialogTrigger 
 } from './ui/dialog';
+import { useAuth } from '../lib/AuthContext';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -42,12 +44,14 @@ interface Environment {
     availableStandards: string[];
     readonly: boolean;
     demoMode: boolean;
+    authEnabled: boolean;
 }
 
 export function Layout({ children }: LayoutProps) {
     const location = useLocation();
     const [searchParams] = useSearchParams();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { logout, user } = useAuth();
     
     const isSettings = location.pathname === '/settings';
     const isDashboard = location.pathname === '/' || location.pathname === '';
@@ -71,8 +75,8 @@ export function Layout({ children }: LayoutProps) {
         setTimeout(() => setIsMobileMenuOpen(false), 0);
     }, [location.pathname, searchParams]);
 
-    const navContent = (
-        <nav className="flex flex-col gap-2 h-full">
+    const topNav = (
+        <div className="flex flex-col gap-2">
             <Link to="/"
                 className={`
                     flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all
@@ -148,38 +152,54 @@ export function Layout({ children }: LayoutProps) {
                 </div>
             )}
 
-            <div className="mt-2">
-                <CategoriesManager
-                    trigger={
-                        <button 
-                            disabled={env?.readonly}
-                            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-blue-600 hover:bg-blue-50 transition-all w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                            title={env?.readonly ? "Managing categories is disabled in read-only/demo mode" : ""}
-                        >
-                            <Plus className="h-4 w-4" />
-                            {categories.length === 0 ? 'Add Category' : 'Manage Categories'}
-                        </button>
-                    }
-                />
-            </div>
-
-            <div className="flex-1" />
-
-            <Link to="/settings"
-                className={`
-                    flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all mb-4
-                    ${isSettings 
-                        ? 'bg-slate-800 text-white shadow-lg shadow-slate-200' 
-                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}
-                `}
-            >
-                <div className="flex items-center gap-3">
-                    <Settings className="h-4 w-4" />
-                    Settings
+            {user?.role !== 'viewer' && (
+                <div className="mt-2">
+                    <CategoriesManager
+                        trigger={
+                            <button 
+                                disabled={env?.readonly}
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-blue-600 hover:bg-blue-50 transition-all w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                                title={env?.readonly ? "Managing categories is disabled in read-only/demo mode" : ""}
+                            >
+                                <Plus className="h-4 w-4" />
+                                {categories.length === 0 ? 'Add Category' : 'Manage Categories'}
+                            </button>
+                        }
+                    />
                 </div>
-                {isSettings && <ChevronRight className="h-3 w-3 opacity-50" />}
-            </Link>
-        </nav>
+            )}
+        </div>
+    );
+
+    const bottomNav = (
+        <div className="flex flex-col gap-2 pt-4 bg-slate-50/50">
+            {user?.role === 'admin' && (
+                <Link to="/settings"
+                    className={`
+                        flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all mb-2
+                        ${isSettings 
+                            ? 'bg-slate-800 text-white shadow-lg shadow-slate-200' 
+                            : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}
+                    `}
+                >
+                    <div className="flex items-center gap-3">
+                        <Settings className="h-4 w-4" />
+                        Settings
+                    </div>
+                    {isSettings && <ChevronRight className="h-3 w-3 opacity-50" />}
+                </Link>
+            )}
+
+            <div className="pt-4 border-t border-slate-200 flex items-center justify-between pb-2">
+                <Link to="/profile" className="flex flex-col overflow-hidden px-2 hover:bg-slate-100 rounded-xl py-1 transition-colors flex-1" title="Go to Profile">
+                    <span className="text-xs font-bold text-slate-900 truncate">{user?.email}</span>
+                    <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{user?.role}</span>
+                </Link>
+                <Button variant="ghost" size="icon" onClick={logout} className="rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 ml-1" title="Log out">
+                    <LogOut className="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
     );
 
     return (
@@ -196,14 +216,21 @@ export function Layout({ children }: LayoutProps) {
             )}
             <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
                 {/* Desktop Sidebar */}
-                <aside className="hidden lg:flex flex-col w-72 border-r border-slate-100 bg-slate-50/50 p-6">
-                    <Link to="/" className="flex items-center gap-3 font-black text-2xl mb-10 px-2 tracking-tighter hover:opacity-80 transition-opacity">
+                <aside className="hidden lg:flex flex-col w-72 border-r border-slate-100 bg-slate-50/50 p-6 h-screen sticky top-0">
+                    <Link to="/" className="flex items-center gap-3 font-black text-2xl mb-10 px-2 tracking-tighter hover:opacity-80 transition-opacity flex-shrink-0">
                         <div className="bg-slate-800 p-1.5 rounded-xl shadow-lg shadow-slate-200">
                             <Activity className="h-6 w-6 text-white" aria-hidden="true" />
                         </div>
                         <span>Pa11y<span className="text-blue-600">Dash</span></span>
                     </Link>
-                    {navContent}
+                    
+                    <div className="flex-1 overflow-y-auto pr-2 -mr-2 scrollbar-hide">
+                        {topNav}
+                    </div>
+
+                    <div className="mt-auto flex-shrink-0">
+                        {bottomNav}
+                    </div>
                 </aside>
 
                 {/* Mobile Header */}
@@ -222,15 +249,18 @@ export function Layout({ children }: LayoutProps) {
                                 <span className="sr-only">Open menu</span>
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-xs h-[100dvh] left-0 top-0 translate-x-0 translate-y-0 rounded-none border-r border-slate-100 p-6 flex flex-col">
-                            <DialogHeader className="flex flex-row items-center justify-between mb-8">
+                        <DialogContent hideClose className="sm:max-w-xs h-[100dvh] left-0 top-0 translate-x-0 translate-y-0 rounded-none border-r border-slate-100 p-6 flex flex-col">
+                            <DialogHeader className="flex flex-row items-center justify-between mb-8 flex-shrink-0">
                                 <DialogTitle className="text-xl font-black tracking-tighter">Navigation</DialogTitle>
                                 <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)} className="rounded-xl h-10 w-10">
                                     <X className="h-6 w-6 text-slate-400" />
                                 </Button>
                             </DialogHeader>
-                            <div className="flex-1 overflow-y-auto pr-2">
-                                {navContent}
+                            <div className="flex-1 overflow-y-auto pr-2 -mr-2 mb-6">
+                                {topNav}
+                            </div>
+                            <div className="mt-auto flex-shrink-0">
+                                {bottomNav}
                             </div>
                         </DialogContent>
                     </Dialog>

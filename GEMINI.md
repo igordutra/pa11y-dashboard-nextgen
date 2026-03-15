@@ -126,9 +126,17 @@ npm run prepare
 - **Demo & Read-Only Mode**:
     - `DEMO_MODE=true` disables background scans AND enforces read-only mode for all mutation APIs.
     - Frontend automatically detects `readonly` status from `/api/environment` and disables all mutation buttons with appropriate tooltips.
+- **Authentication & RBAC**:
+    - Supports local email/password login and GitHub OAuth.
+    - RBAC with `admin`, `editor`, and `viewer` roles.
+    - `AUTH_ENABLED` toggle in `.env` allows for public or private access.
+    - JWT-based stateless session management.
+    - `npm run setup` CLI script for initial provisioning and environment configuration.
+    - **Authenticated Iframes**: To support the visual recorder without 401 errors, the `verifyAuth` and `requireRole` decorators support extracting the JWT from a `token` query parameter as a fallback when the `Authorization` header is missing.
 - **Security & Sandboxing**:
     - **XSS Prevention**: All dynamic content (URLs, names, issue messages) is HTML-escaped in reports and the dashboard.
     - **Rate Limiting**: Global API limits (100 req/min) and strict scan trigger limits (2 req/min) using `@fastify/rate-limit`.
+    - **Vite Proxy Architecture**: In development, Vite (port 8080) proxies `/api` and `/screenshots` to the backend container (`http://api:3000`), allowing for a single-origin experience and simplifying OAuth callbacks.
     - **Puppeteer Sandbox**: Runs with the built-in sandbox enabled for better isolation; configurable via `PUPPETEER_NO_SANDBOX`.
 - **Startup Recovery**: The system automatically detects and resets URLs stuck in the `scanning` state back to `active` upon server restart.
     - **Timeout Enforcement**: A global timeout is enforced at the Puppeteer page level, synchronized with the user-defined scan timeout.

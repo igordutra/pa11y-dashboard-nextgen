@@ -1,10 +1,13 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { getConfig } from '../config/index.js';
 
 export default async function proxyRoutes(fastify: FastifyInstance) {
+  const config = getConfig();
   fastify.get(
     '/api/proxy',
     {
+      preValidation: config.authEnabled ? [fastify.verifyAuth] : [],
       schema: {
         querystring: z.object({
           url: z.string().url(),
@@ -128,8 +131,14 @@ export default async function proxyRoutes(fastify: FastifyInstance) {
                   // Tell the UI we are navigating
                   sendAction('navigate', '', absoluteUrl);
                   
+                  // Preserve token in query string if present
+                  var params = new URLSearchParams(window.location.search);
+                  var token = params.get('token');
+                  var nextUrl = '/api/proxy?url=' + encodeURIComponent(absoluteUrl);
+                  if (token) nextUrl += '&token=' + token;
+
                   // Update the iframe location to the new proxied URL
-                  window.location.href = '/api/proxy?url=' + encodeURIComponent(absoluteUrl);
+                  window.location.href = nextUrl;
                 } 
                 // Note: We no longer preventDefault on buttons. Many modern sites (like BBC's cookie banner)
                 // use buttons heavily for local state changes. Preventing default breaks them.

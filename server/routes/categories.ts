@@ -4,9 +4,9 @@ import { z } from 'zod';
 import { UrlModel } from '../models/index.js';
 import { CategoryModel, CATEGORY_ICONS } from '../models/category.js';
 import mongoose from 'mongoose';
+import { getConfig } from '../config/index.js';
 
 const checkReadonly = async (_request: any, reply: any) => {
-    const { getConfig } = await import('../config/index.js');
     const currentConfig = getConfig();
     if (currentConfig.readonly) {
         const message = currentConfig.demoMode 
@@ -18,9 +18,11 @@ const checkReadonly = async (_request: any, reply: any) => {
 
 export default async function categoryRoutes(fastify: FastifyInstance) {
     const f = fastify.withTypeProvider<ZodTypeProvider>();
+    const config = getConfig();
 
     // GET all categories
     f.get('/api/categories', {
+        preValidation: config.authEnabled ? [f.verifyAuth] : [],
         schema: {
             description: 'Retrieve all URL categories, used for organizing and filtering monitored sites',
             summary: 'List categories',
@@ -47,6 +49,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
     // POST create category
     f.post('/api/categories', {
         preHandler: checkReadonly,
+        preValidation: config.authEnabled ? [f.requireRole(['admin', 'editor'])] : [],
         schema: {
             description: 'Create a new category for site organization',
             summary: 'Create category',
@@ -81,6 +84,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
     // PUT update category
     f.put('/api/categories/:id', {
         preHandler: checkReadonly,
+        preValidation: config.authEnabled ? [f.requireRole(['admin', 'editor'])] : [],
         schema: {
             description: 'Update properties of an existing category',
             summary: 'Update category',
@@ -125,6 +129,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
     // DELETE category (unassigns URLs, does not delete them)
     f.delete('/api/categories/:id', {
         preHandler: checkReadonly,
+        preValidation: config.authEnabled ? [f.requireRole(['admin', 'editor'])] : [],
         schema: {
             description: 'Permanently remove a category. All URLs assigned to this category will be unassigned but NOT deleted.',
             summary: 'Delete category',
