@@ -190,15 +190,17 @@ export function Layout({ children }: LayoutProps) {
                 </Link>
             )}
 
-            <div className="pt-4 border-t border-slate-200 flex items-center justify-between pb-2">
-                <Link to="/profile" className="flex flex-col overflow-hidden px-2 hover:bg-slate-100 rounded-xl py-1 transition-colors flex-1" title="Go to Profile">
-                    <span className="text-xs font-bold text-slate-900 truncate">{user?.email}</span>
-                    <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{user?.role}</span>
-                </Link>
-                <Button variant="ghost" size="icon" onClick={logout} className="rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 ml-1" title="Log out">
-                    <LogOut className="h-4 w-4" />
-                </Button>
-            </div>
+            {env?.authEnabled && (
+                <div className="pt-4 border-t border-slate-200 flex items-center justify-between pb-2">
+                    <Link to="/profile" className="flex flex-col overflow-hidden px-2 hover:bg-slate-100 rounded-xl py-1 transition-colors flex-1" title="Go to Profile">
+                        <span className="text-xs font-bold text-slate-900 truncate">{user?.email}</span>
+                        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{user?.role}</span>
+                    </Link>
+                    <Button variant="ghost" size="icon" onClick={logout} className="rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 ml-1" title="Log out">
+                        <LogOut className="h-4 w-4" />
+                    </Button>
+                </div>
+            )}
         </div>
     );
 
