@@ -55,7 +55,7 @@ export function DashboardPage() {
                             </SelectContent>
                         </Select>
                     </div>
-                    {user?.role !== 'viewer' && (
+                    {(user?.role === 'admin' || user?.role === 'editor') && (
                         <AddUrlModal 
                             triggerButton={
                                 <Button 

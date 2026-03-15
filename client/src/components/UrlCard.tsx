@@ -264,7 +264,7 @@ export function UrlCard({ url }: UrlCardProps) {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            {user?.role !== 'viewer' && (
+                            {(user?.role === 'admin' || user?.role === 'editor') && (
                                 <>
                                     <Button
                                         className="flex-1 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 shadow-sm rounded-xl font-bold transition-all active:scale-[0.95]"

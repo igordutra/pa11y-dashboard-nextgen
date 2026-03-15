@@ -224,7 +224,7 @@ export function ReportPage() {
                             <ArrowLeft className="mr-2 h-4 w-4" /> Latest Scan
                         </Button>
                     )}
-                    {user?.role !== 'viewer' && (
+                    {(user?.role === 'admin' || user?.role === 'editor') && (
                         <Button 
                             onClick={() => scanMutation.mutate()} 
                             disabled={scanMutation.isPending || urlData.status === 'scanning' || isReadonly}

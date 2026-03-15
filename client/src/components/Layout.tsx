@@ -152,7 +152,7 @@ export function Layout({ children }: LayoutProps) {
                 </div>
             )}
 
-            {user?.role !== 'viewer' && (
+            {(user?.role === 'admin' || user?.role === 'editor') && (
                 <div className="mt-2">
                     <CategoriesManager
                         trigger={
