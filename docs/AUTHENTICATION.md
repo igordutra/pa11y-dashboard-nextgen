@@ -94,3 +94,17 @@ If `AUTH_ENABLED=true` and the database contains no admin users, the system will
 - **Password**: Randomly generated 16-character string (logged to console).
 
 **IMPORTANT**: Log in and change this password immediately, or create your own admin account and delete the default one.
+
+## Public Demo Mode
+
+If you wish to host a public instance of the dashboard without requiring a login, while still keeping the data safe, you can use the **Public Demo Mode**:
+
+1. Set `AUTH_ENABLED=false` in your `.env`.
+2. Set `DEMO_MODE=true` in your `.env`.
+
+In this configuration:
+- The login page is bypassed automatically.
+- Users are assigned a virtual `guest` identity with the **viewer** role.
+- All mutation actions (Add URL, Run Scan, Delete, etc.) are hidden from the UI and blocked by the API.
+- Global Settings and User Management are completely inaccessible.
+

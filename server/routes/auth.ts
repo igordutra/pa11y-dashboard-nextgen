@@ -72,7 +72,11 @@ export default async function (fastify: FastifyInstance) {
     },
     async (request, _reply) => {
       if (!config.authEnabled) {
-        return { id: 'admin', email: 'admin@demo.local', role: 'admin' };
+        return { 
+          id: 'guest', 
+          email: 'guest@demo.local', 
+          role: config.demoMode ? 'viewer' : 'admin' 
+        };
       }
       return { id: request.user.userId, email: request.user.email, role: request.user.role };
     }

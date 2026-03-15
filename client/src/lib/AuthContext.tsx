@@ -32,12 +32,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    if (!token && !urlToken) {
-      setLoading(false);
-      return;
-    }
-
     try {
+      // First, check if auth is even enabled on the backend
+      const { data: apiInfo } = await api.get('/api');
+      
+      if (!apiInfo.authEnabled) {
+        // If auth is disabled, fetch the default guest/admin profile provided by the server
+        const { data: userData } = await api.get('/api/auth/me');
+        setUser(userData);
+        setLoading(false);
+        return;
+      }
+
+      // Auth is enabled, we need a token
+      if (!token && !urlToken) {
+        setLoading(false);
+        return;
+      }
+
       const { data } = await api.get('/api/auth/me');
       setUser(data);
     } catch (err) {
