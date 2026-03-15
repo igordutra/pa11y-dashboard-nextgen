@@ -12,15 +12,20 @@ let mongoServer: MongoMemoryServer | null = null;
 // Mock config to enable authentication for these tests
 vi.mock('../config/index.js', async (importOriginal) => {
     const actual = await importOriginal() as any;
-    const mockConfig = {
-        ...actual.getConfig(),
-        authEnabled: true,
-        jwtSecret: 'test-secret-key-12345678901234567890'
-    };
     return {
         ...actual,
-        getConfig: () => mockConfig,
-        default: mockConfig
+        getConfig: () => ({
+            ...actual.getConfig(),
+            // Use the MONGO_URI from process.env which will be set in beforeAll
+            mongoUri: process.env.MONGO_URI || actual.getConfig().mongoUri,
+            authEnabled: true,
+            jwtSecret: 'test-secret-key-12345678901234567890'
+        }),
+        default: {
+            ...actual.default,
+            authEnabled: true,
+            jwtSecret: 'test-secret-key-12345678901234567890'
+        }
     };
 });
 
