@@ -39,9 +39,10 @@ services:
       - CLIENT_URL=https://pa11ydash.mangaba.co.uk
       - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-      - DEMO_MODE=true
+      - DEMO_MODE=false
       - TRUST_PROXY=true
-      - AUTH_ENABLED=false
+      - AUTH_ENABLED=true
+      - JWT_SECRET=ee7b09ff21b2a0ba4d1550254e136d5341a32676b66a8a2694c78af619c78d59
     cap_add:
       - SYS_ADMIN
     restart: always
